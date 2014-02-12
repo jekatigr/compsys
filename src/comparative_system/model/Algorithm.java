@@ -82,4 +82,12 @@ public class Algorithm {
     String getCounterName() {
         return this.counterName;
     }
+
+    /**
+     * Метод возвращает id алгоритма в БД.
+     * @return id алгоритма в БД.
+     */
+    int getId() {
+        return this.id;
+    }
 }
