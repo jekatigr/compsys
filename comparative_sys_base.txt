@@ -1,0 +1,56 @@
+FileWriter file = null;
+        try {
+            file = new FileWriter(new File("Code.java"));
+            file.write(CodeText.getText());
+            file.close();
+
+            ProcessBuilder procBuilder = new ProcessBuilder("javac", "Code.java");
+            procBuilder.redirectErrorStream(true);
+
+            Process process = procBuilder.start();
+
+            InputStream stdout = process.getInputStream();
+            InputStreamReader isrStdout = new InputStreamReader(stdout);
+            BufferedReader brStdout = new BufferedReader(isrStdout);
+
+            String line = null;
+            while((line = brStdout.readLine()) != null) {
+                System.out.println(line);
+            }
+
+            int exitVal = process.waitFor();
+        } catch (InterruptedException ex) {
+            Logger.getLogger(MainForm.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(MainForm.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                file.close();
+            } catch (IOException ex) {
+                Logger.getLogger(MainForm.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+		
+		
+		
+try {
+            ProcessBuilder procBuilder = new ProcessBuilder("java", "Code");
+                procBuilder.redirectErrorStream(true);
+
+                Process process = procBuilder.start();
+
+                InputStream stdout = process.getInputStream();
+                InputStreamReader isrStdout = new InputStreamReader(stdout);
+                BufferedReader brStdout = new BufferedReader(isrStdout);
+
+                String line = null;
+                while((line = brStdout.readLine()) != null) {
+                    System.out.println(line);
+                }
+
+                int exitVal = process.waitFor();
+        } catch (InterruptedException ex) {
+            Logger.getLogger(MainForm.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(MainForm.class.getName()).log(Level.SEVERE, null, ex);
+        }

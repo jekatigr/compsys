@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.collections.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="557.9998779296875" prefWidth="884.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="comparative_system.controller.AddEditAlgWindowController">
+  <children>
+    <TextField fx:id="algNameTextField" prefWidth="764.0" promptText="Введите название алгоритма..." AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="39.0" />
+        <ComboBox fx:id="methodsComboBox" disable="true" onAction="#handleChangeMethod" pickOnBounds="false" prefHeight="21.0" prefWidth="716.0" promptText="Метод вызова алгоритма..." AnchorPane.bottomAnchor="13.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="154.0">
+          <items>
+            <FXCollections fx:factory="observableArrayList">
+              <String fx:value="Item 1" />
+              <String fx:value="Item 2" />
+              <String fx:value="Item 3" />
+            </FXCollections>
+          </items>
+        </ComboBox>
+        <Button fx:id="saveButton" disable="true" mnemonicParsing="false" onAction="#handleSaveAlgButton" prefWidth="92.0" text="Сохранить" AnchorPane.bottomAnchor="13.0" AnchorPane.rightAnchor="14.0" />
+        <ProgressIndicator fx:id="progressIndicator" disable="false" focusTraversable="false" minWidth="19.0" opacity="1.0" prefHeight="21.0" prefWidth="23.0" progress="-1.0" visible="false" AnchorPane.bottomAnchor="14.0" AnchorPane.rightAnchor="122.0" />
+        <TabPane fx:id="codesOfAlgorithmsTabPane" prefHeight="343.9998779296875" prefWidth="884.0" rotateGraphic="false" side="TOP" tabClosingPolicy="SELECTED_TAB" AnchorPane.bottomAnchor="97.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="117.0">
+          <tabs>
+            <Tab text="Новый класс">
+              <content>
+                <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="330.0" prefWidth="884.0">
+                  <children>
+                    <TextArea fx:id="ta" prefHeight="292.0" prefWidth="856.0" promptText="Исходный код алгоритма (java)..." wrapText="true" AnchorPane.bottomAnchor="14.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="14.0" />
+                  </children>
+                </AnchorPane>
+              </content>
+            </Tab>
+          </tabs>
+        </TabPane>
+        <Label layoutX="14.0" layoutY="90.0" text="Код алгоритма:">
+          <font>
+            <Font size="14.0" fx:id="x1" />
+          </font>
+        </Label>
+        <Label layoutY="92.0" text="Каждая вкладка должна содержать public-класс" AnchorPane.rightAnchor="14.0" />
+        <Label font="$x1" layoutX="14.0" layoutY="14.0" text="Название алгоритма:" />
+        <Separator prefWidth="884.0" AnchorPane.bottomAnchor="46.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+        <Separator prefWidth="884.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="78.0" />
+        <Button mnemonicParsing="false" onAction="#handleAddTabButtonClicked" text="Добавить вкладку" AnchorPane.bottomAnchor="76.0" AnchorPane.leftAnchor="14.0" />
+        <Button fx:id="" mnemonicParsing="false" onAction="#handleConfirmButtonClicked" text="Подтвердить" AnchorPane.bottomAnchor="76.0" AnchorPane.rightAnchor="14.0" />
+        <Label alignment="TOP_CENTER" prefHeight="48.0" prefWidth="612.0" text="Место для ошибок" textAlignment="LEFT" textFill="RED" underline="true" visible="true" wrapText="true" AnchorPane.bottomAnchor="49.0" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="122.0" />
+    </children>
+</AnchorPane>

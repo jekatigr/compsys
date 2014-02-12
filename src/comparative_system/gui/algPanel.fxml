@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.collections.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="327.0" prefWidth="554.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="comparative_system.controller.FXMLguiController">
+  <children>
+    <TabPane id="tabs" fx:id="algTabs" prefHeight="257.0" prefWidth="522.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="44.0" />
+    <Label layoutX="10.0" layoutY="14.0" text="Алгоритмы должны представлять собой один или несколько компилируемых java-классов" />
+    <Label layoutX="188.0" layoutY="152.0" text="Алгоритмов нет." />
+    <Hyperlink layoutX="284.0" layoutY="149.0" onAction="#handleAddAlgLinkClicked" text="[добавить...]" />
+  </children>
+</AnchorPane>

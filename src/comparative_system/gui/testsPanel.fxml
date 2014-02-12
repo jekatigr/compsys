@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="301.0" prefWidth="522.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="comparative_system.controller.FXMLguiController">
+  <children>
+    <Accordion layoutX="159.0" layoutY="37.0">
+      <expandedPane>
+        <TitledPane fx:id="x1" animated="false" text="untitled">
+          <content>
+            <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+          </content>
+        </TitledPane>
+      </expandedPane>
+      <panes>
+        <TitledPane animated="false" text="untitled">
+          <content>
+            <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+          </content>
+        </TitledPane>
+        <fx:reference source="x1" />
+      </panes>
+    </Accordion>
+    <Label layoutX="71.0" layoutY="102.0" text="tests">
+      <font>
+        <Font name="Angsana New" size="48.0" />
+      </font>
+    </Label>
+  </children>
+</AnchorPane>

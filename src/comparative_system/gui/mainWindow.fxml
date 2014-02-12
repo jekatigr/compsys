@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.input.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane id="AnchorPane" disable="false" mouseTransparent="false" pickOnBounds="false" prefHeight="432.0" prefWidth="595.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="comparative_system.controller.FXMLguiController">
+  <children>
+    <AnchorPane id="AnchorPane" fx:id="mainPanel" disable="false" prefHeight="339.0" prefWidth="595.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="93.0" />
+    <HBox layoutY="47.0" prefHeight="21.0" prefWidth="218.0" AnchorPane.rightAnchor="-6.0">
+      <children>
+        <ToggleButton id="alg" fx:id="algButton" contentDisplay="RIGHT" disable="false" graphicTextGap="4.0" mnemonicParsing="false" onAction="#handleAlgClicked" selected="true" text="Алгоритмы" underline="false">
+          <toggleGroup>
+            <ToggleGroup fx:id="toggles" />
+          </toggleGroup>
+        </ToggleButton>
+        <ToggleButton id="data" fx:id="dataButton" contentDisplay="RIGHT" graphicTextGap="4.0" mnemonicParsing="false" onAction="#handleDataClicked" rotate="0.0" selected="false" style="" text="Данные" textAlignment="LEFT" textOverrun="ELLIPSIS" toggleGroup="$toggles" underline="false">
+          <HBox.margin>
+            <Insets />
+          </HBox.margin>
+        </ToggleButton>
+        <ToggleButton id="tests" fx:id="testsButton" contentDisplay="RIGHT" graphicTextGap="4.0" mnemonicParsing="false" onAction="#handleTestsClicked" selected="false" text="Расчеты" toggleGroup="$toggles" />
+      </children>
+    </HBox>
+    <Label fx:id="project_name" layoutY="45.0" prefWidth="353.0" text="Бинарный и интерполяционный поиски" AnchorPane.leftAnchor="8.0" AnchorPane.rightAnchor="234.0">
+      <font>
+        <Font size="18.0" />
+      </font>
+    </Label>
+    <MenuBar prefWidth="595.0" rotate="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <menus>
+        <Menu mnemonicParsing="false" text="Проект">
+          <items>
+            <MenuItem mnemonicParsing="false" onAction="#handleSaveNewProject" text="Новый проект">
+              <accelerator>
+                <KeyCodeCombination alt="UP" code="N" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+              </accelerator>
+            </MenuItem>
+            <MenuItem mnemonicParsing="false" onAction="#handleOpenProject" text="Открыть..." />
+            <SeparatorMenuItem mnemonicParsing="false" />
+            <MenuItem mnemonicParsing="false" onAction="#handleExit" text="Выход" />
+          </items>
+        </Menu>
+        <Menu mnemonicParsing="false" text="Помощь">
+          <items>
+            <MenuItem mnemonicParsing="false" text="Справка" />
+            <SeparatorMenuItem mnemonicParsing="false" />
+            <MenuItem mnemonicParsing="false" text="Настройки..." />
+          </items>
+        </Menu>
+      </menus>
+    </MenuBar>
+  </children>
+</AnchorPane>
