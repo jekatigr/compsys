@@ -90,4 +90,12 @@ public class Algorithm {
     long getId() {
         return this.id;
     }
+
+    /**
+     * Метод возвращает коды алгоритма.
+     * @return Коды алгоритма.
+     */
+    ArrayList<Code> getCodes() {
+        return this.codes;
+    }
 }
