@@ -54,7 +54,7 @@ public class Proccessor {
      * @param codes Исходные коды алгоритма.
      * @return Будущее имя счетчика.
      */
-    public static String getCounterName(ArrayList<String> codes) {//TODO:
+    public static String getCounterName(ArrayList<String> codes) {//TODO: реализовать метод
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -64,7 +64,7 @@ public class Proccessor {
      * @param codes Исходные коды алгоритма.
      * @return Коды с расставленными счетчиками.
      */
-    public static ArrayList<Code> putCounters(String counterName, ArrayList<String> codes) {//TODO:
+    public static ArrayList<Code> putCounters(String counterName, ArrayList<String> codes) {//TODO: реализовать метод
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

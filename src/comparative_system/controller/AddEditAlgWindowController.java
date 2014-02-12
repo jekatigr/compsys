@@ -59,7 +59,7 @@ public class AddEditAlgWindowController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
+        
     }
 
     @FXML private static TextField algNameTextField;
@@ -233,7 +233,7 @@ public class AddEditAlgWindowController implements Initializable {
         primaryStage = stage;
     }
 
-    private static boolean checkPublicClassesInTabs() {//TODO:
+    private static boolean checkPublicClassesInTabs() {//TODO: реализовать метод
         return true;
     }
 }

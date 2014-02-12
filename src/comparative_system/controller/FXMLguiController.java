@@ -110,7 +110,7 @@ public class FXMLguiController implements Initializable {
             AddEditAlgWindowController.setStage(stage);
             stage.show();
         } catch (IOException ex) {
-            Logger.getLogger(FXMLguiController.class.getName()).log(Level.SEVERE, null, ex);//TODO:
+            Logger.getLogger(FXMLguiController.class.getName()).log(Level.SEVERE, null, ex);//TODO: сделать нормалиный вывод ошибок
         }
     }
     
