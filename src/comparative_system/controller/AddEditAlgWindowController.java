@@ -193,7 +193,7 @@ public class AddEditAlgWindowController implements Initializable {
                             break;
                         }
                         case 4: {//параметры методов не совместимы
-                            if (Dialogs.showConfirmDialog(primaryStage, "Параметры метода вызова алгоритма не совпадают с уже сохраненными!", "Перезаписать параметры?", "Параметры метода вызова...", Dialogs.DialogOptions.YES_NO) == DialogResponse.YES) {
+                            if (Dialogs.showConfirmDialog(primaryStage, "Перезаписать параметры?", "Параметры метода вызова алгоритма не совпадают с уже сохраненными!", "Параметры метода вызова...", Dialogs.DialogOptions.YES_NO) == DialogResponse.YES) {
                                 //перезапись
                                 List parameters = (methods.get(methodsComboBox.getSelectionModel().selectedIndexProperty().getValue())).parameters();
                                 DataGenerator.saveNewMainMethodParams(parameters);
