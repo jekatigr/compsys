@@ -70,6 +70,7 @@ public class AddEditAlgWindowController implements Initializable {
     
     /** Коды алгоритма (еще не сгенерированные). */ 
     ArrayList<String> codes = new ArrayList<>();
+    /** Объявления методов для добвления в выпадающий список. */
     ArrayList<MethodDeclaration> methods = null;
     
     /**
@@ -134,6 +135,9 @@ public class AddEditAlgWindowController implements Initializable {
     
     /** Индикатор ошибки. */
     private static int error = 0;
+    /**
+     * Обработка нажатия кнопки сохранения алгоритма.
+     */
     @FXML private void handleSaveAlgButton() {
         progressIndicator.setVisible(true);
         error = 0;
@@ -206,6 +210,9 @@ public class AddEditAlgWindowController implements Initializable {
         new Thread(resolveAddAlg).start();
     }
 
+    /**
+     * Обработка изменения выбранного метода в выпадающем списке.
+     */
     @FXML private void handleChangeMethod() {
         if (!methodsComboBox.getSelectionModel().isEmpty()) {
             saveButton.setDisable(false);
