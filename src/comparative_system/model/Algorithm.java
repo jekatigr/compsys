@@ -87,7 +87,7 @@ public class Algorithm {
      * Метод возвращает id алгоритма в БД.
      * @return id алгоритма в БД.
      */
-    int getId() {
+    long getId() {
         return this.id;
     }
 }
