@@ -35,7 +35,7 @@ public class Project {
     File file;
     /** Генераторы, включающие в себя наборы данных для анализа. **/
     ArrayList<DataGenerator> dg;
-    /** Алгоритмы для анализа. */
+    /** Алгоритмы для анализа. Индексы элементов совпадают с id алгоритмов в БД. */
     ArrayList<Algorithm> algorithms;
     /* Результаты анализа. Элементы в списке соотносятся с соответствующими алгоритмами в списке алгоритмов. */
     //ArrayList<Result> results;
@@ -47,11 +47,6 @@ public class Project {
         algorithms = new ArrayList<>();
         //results = new ArrayList();
     }
-
-//    public Project(String name) {
-//        this();
-//        this.name = name;
-//    }
 
     /**
      * Метод для добавления алгоритма к проекту из БД.
@@ -66,8 +61,8 @@ public class Project {
     }
 
     /**
-     * Метод для добавления нового алгоритма к проекту. 
-     * Сгенерированне коды создаются тут.
+     * Метод для добавления нового алгоритма к проекту. Здесь же расставляются 
+     * счетчики операций. После этого алгоритм сохраняется в БД.
      * @param name Имя алгоритма.
      * @param codes Исходные коды алгоритма.
      * @param mainMethod Метод вызова алгоритма.
@@ -75,6 +70,7 @@ public class Project {
     public void addAlgorithm(String name, ArrayList<String> codes, String mainMethod) { 
         String counterName = Proccessor.getCounterName(codes);
         algorithms.add(new Algorithm(algorithms.size(), name, mainMethod, counterName, Proccessor.putCounters(counterName, codes)));
+        this.saveAlgorithmInDB(this.algorithms.size() - 1);
     }
     
     /**
@@ -127,9 +123,11 @@ public class Project {
     }
     
     /**
-     * Метод для сохранения нового алгоритма в БД.
+     * Метод для сохранения алгоритма в БД.
+     * @param index Индекс в списке, соответствующий алгоритму, 
+     * который нужно сохранить в БД.  
      */
-    public void saveLastAlgorithmInDB() {
+    private void saveAlgorithmInDB(int index) {
         try {
             //открываем базу данных проекта
             SQLiteConnection db = new SQLiteConnection(this.file);

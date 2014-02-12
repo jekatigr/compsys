@@ -45,7 +45,8 @@ public class CompSys extends Application {
         stage.setOnCloseRequest(new EventHandler() {
             @Override
             public void handle(Event t) {
-                saveAllBeforeClose();
+                Preferences.savePreferences();
+                //TODO: остановить анализ saveAllBeforeClose();
                 Platform.exit();
             }
         });
@@ -92,26 +93,29 @@ public class CompSys extends Application {
     }
 
     /**
-     * Добавление алгоритма к проекту с отображением в окне.
+     * Добавление нового алгоритма к проекту с отображением в окне и сохранением в БД.
      * @param name Имя алгоритма.
      * @param codes Исходные коды алгоритма.
      * @param method Метод вызова алгоритма. 
      */
     public static void addAlgorithm(String name, ArrayList<String> codes, String method) {
         project.addAlgorithm(name, codes, method);
-        project.saveLastAlgorithmInDB();
     }
     
     /**
-     * Метод для сохранения открытых проектов и данных программы перед закрытием.
+     * Метод для остановки запущенных проектов и данных программы перед закрытием.
      */
     public static void saveAllBeforeClose() {
-        Preferences.savePreferences();
+        //this thing is useless
         if (project != null && Dialogs.showConfirmDialog(primaryStage, "", "Сохранить изменения в проекте перед выходом?", "Сохранение перед выходом...", Dialogs.DialogOptions.YES_NO) == DialogResponse.YES) {
             //TODO: project.save();
         }
     }
 
+    /**
+     * Метод возвращает количество алгоритмов в текущем проекте.
+     * @return Количество алгоритмов.
+     */
     public static int getCountOfAlgorithms() {
         return project.getCountOfAlgorithms();
     }
