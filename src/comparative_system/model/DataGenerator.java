@@ -17,7 +17,6 @@ import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 public class DataGenerator {
     /** Список параметров методов вызова алгоритмов. Для всех генераторов список один и тот же. */
     private static ArrayList<Param> params = new ArrayList<>();
-
         
     /** Индекс генератора в БД. */
     private int id;
@@ -57,10 +56,11 @@ public class DataGenerator {
     }
     
     /**
-     * Метод для очистки списка параметров методов вызова.
+     * Метод для очистки списка параметров методов вызова. Параметры также удаляются из БД.
+     * Если существуют сгенерированные исходные данные для тестов, то они тоже удаляются.
      */
-    public static void clearParamsList() {//TODO: сделать удаление данных из бд
-        params.clear();
+    private static void clearParamsList() {//TODO: сделать удаление данных из бд
+        params.clear();//TODO:удаление из бд и удаление данных
     }
 
     /**
@@ -82,7 +82,7 @@ public class DataGenerator {
 
     /**
      * Метод для сравнения параметров методов вызова алгоритмов.
-     * @param parameters Список параметров для сравнения.
+     * @param parameters Список параметров типа {@code SingleVariableDeclaration} для сравнения.
      * @return {@code true} в случае, когда параметры совпадают по типу и количеству, {@code false} иначе.
      */
     public static boolean compareListOfParams(List parameters) {
@@ -102,5 +102,18 @@ public class DataGenerator {
             return true;
         }
         return false;
+    }
+    
+    /**
+     * Метод для сохранения или перезаписи списка параметров методов вызова алгоритмов.
+     * Также параметры записываются в БД проекта.
+     * @param parameters Список параметров типа {@code SingleVariableDeclaration} для сохранения.
+     */
+    public static void saveNewMainMethodParams(List parameters) {
+        clearParamsList();
+        for(Object param : parameters) {
+            SingleVariableDeclaration p = (SingleVariableDeclaration)param;
+            DataGenerator.addMainMethodsParam(p.getType().toString(), p.getName().toString());
+        }
     }
 }

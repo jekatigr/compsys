@@ -13,8 +13,11 @@ import comparative_system.CompSys;
 import comparative_system.Proccessor;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 
 /**
  *
@@ -254,5 +257,23 @@ public class Project {
      */
     private static void addMainMethodsParam(String type, String name) {
         DataGenerator.addMainMethodsParam(type, name);
+    }
+
+    /**
+     * Проверка того, что параметры выбранного в выпадающем 
+     * списке метода совпадают по порядку и по типам с уже сохраненными
+     * параметрыми в {@code DataGenerator}. 
+     * В случае, когда параметры еще не заданы - сохраняются параметры выбранного в данный момент метода.
+     * @param parameters Лист параметров метода.
+     * @return {@code true}, когда параметры совпадают или были только что сохранены,
+     * {@code false}, когда параметры не совпадают.
+     */
+    public static boolean methodParamsAreCompatible(List parameters) {
+        if (DataGenerator.getCountOfMethodsParams() == 0) {
+            DataGenerator.saveNewMainMethodParams(parameters);
+            return true;
+        } else {//сравниваем параметры метода по типу с уже сохраненными
+            return DataGenerator.compareListOfParams(parameters);
+        }
     }
 }

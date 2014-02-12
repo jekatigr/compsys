@@ -9,6 +9,7 @@ package comparative_system.controller;
 import comparative_system.CompSys;
 import comparative_system.Proccessor;
 import comparative_system.model.DataGenerator;
+import comparative_system.model.Project;
 import java.net.URL; 
 import java.util.ArrayList;
 import java.util.List;
@@ -148,8 +149,9 @@ public class AddEditAlgWindowController implements Initializable {
                     if (checkPublicClassesInTabs()) {//проверка public-классов в вкладках
                         int methodIndex = methodsComboBox.getSelectionModel().selectedIndexProperty().getValue();
                         MethodDeclaration method = methods.get(methodIndex);
-                        if (method.parameters().size() > 0) {//количество параметров должно быть > 0 
-                            if (methodParamsAreCompatible(methodIndex)) {//проверка на совместимость параметров методов.
+                        List parameters = method.parameters();
+                        if (parameters.size() > 0) {//количество параметров должно быть > 0 
+                            if (Project.methodParamsAreCompatible(parameters)) {//проверка на совместимость параметров методов.
                                 error = 0;//все ок, можно сохранять
                             } else {
                                 error = 4;//запрос на перезапись или исправление переметров методов
@@ -194,8 +196,7 @@ public class AddEditAlgWindowController implements Initializable {
                             if (Dialogs.showConfirmDialog(primaryStage, "Параметры метода вызова алгоритма не совпадают с уже сохраненными!", "Перезаписать параметры?", "Параметры метода вызова...", Dialogs.DialogOptions.YES_NO) == DialogResponse.YES) {
                                 //перезапись
                                 List parameters = (methods.get(methodsComboBox.getSelectionModel().selectedIndexProperty().getValue())).parameters();
-                                DataGenerator.clearParamsList();
-                                saveParams(parameters);
+                                DataGenerator.saveNewMainMethodParams(parameters);
                                 CompSys.addAlgorithm(algNameTextField.getText(), codes, String.valueOf(methodsComboBox.getSelectionModel().selectedItemProperty().getValue()));
                                 primaryStage.close();
                             }
@@ -234,35 +235,5 @@ public class AddEditAlgWindowController implements Initializable {
 
     private static boolean checkPublicClassesInTabs() {//TODO:
         return true;
-    }
-    
-    /**
-     * Проверка того, что параметры выбранного в выпадающем 
-     * списке метода совпадают по порядку и по типам с уже сохраненными
-     * параметрыми в {@code DataGenerator}. 
-     * В случае, когда параметры еще не заданы - сохраняются параметры выбранного в данный момент метода.
-     * @return {@code true}, когда параметры совпадают или были только что сохранены,
-     * {@code false}, когда параметры не совпадают.
-     */
-    boolean methodParamsAreCompatible(int methodIndex) {
-        MethodDeclaration method = methods.get(methodIndex);
-        List parameters = method.parameters();
-        if (DataGenerator.getCountOfMethodsParams() == 0) {
-            saveParams(parameters);
-            return true;
-        } else {//сравниваем параметры метода по типу с уже сохраненными
-            return DataGenerator.compareListOfParams(parameters);
-        }
-    }
-
-    /**
-     * Метод для сохранения параметров методов вызова алгоритма в {@code DataGenerator}.
-     * @param parameters Лист параметров.
-     */
-    private void saveParams(List parameters) {
-        for(Object param : parameters) {
-            SingleVariableDeclaration p = (SingleVariableDeclaration)param;
-            DataGenerator.addMainMethodsParam(p.getType().toString(), p.getName().toString());
-        }
     }
 }
