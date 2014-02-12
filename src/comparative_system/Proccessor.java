@@ -55,7 +55,7 @@ public class Proccessor {
      * @return Будущее имя счетчика.
      */
     public static String getCounterName(ArrayList<String> codes) {//TODO: реализовать метод
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return "tempNameOfCounter";
     }
 
     /**
@@ -65,8 +65,10 @@ public class Proccessor {
      * @return Коды с расставленными счетчиками.
      */
     public static ArrayList<Code> putCounters(String counterName, ArrayList<String> codes) {//TODO: реализовать метод
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    
+        ArrayList<Code> gen_codes = new ArrayList<>();
+        for(int i = 0; i < codes.size(); i++) {
+            gen_codes.add(new Code(codes.get(i), codes.get(i)));
+        }
+        return gen_codes;
+    }   
 }
