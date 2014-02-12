@@ -62,14 +62,14 @@ public class Project {
 
     /**
      * Метод для добавления нового алгоритма к проекту. Здесь же расставляются 
-     * счетчики операций. После этого алгоритм сохраняется в БД.
+     * счетчики операций. После этого алгоритм сохраняется в БД и ему сопостовляется id.
      * @param name Имя алгоритма.
      * @param codes Исходные коды алгоритма.
      * @param mainMethod Метод вызова алгоритма.
      */
     public void addAlgorithm(String name, ArrayList<String> codes, String mainMethod) { 
         String counterName = Proccessor.getCounterName(codes);
-        algorithms.add(new Algorithm(algorithms.size(), name, mainMethod, counterName, Proccessor.putCounters(counterName, codes)));
+        algorithms.add(new Algorithm(name, mainMethod, counterName, Proccessor.putCounters(counterName, codes)));
         this.saveAlgorithmInDB(this.algorithms.size() - 1);
     }
     
@@ -123,7 +123,7 @@ public class Project {
     }
     
     /**
-     * Метод для сохранения алгоритма в БД.
+     * Метод для сохранения алгоритма в БД. 
      * @param index Индекс в списке, соответствующий алгоритму, 
      * который нужно сохранить в БД.  
      */
@@ -133,9 +133,31 @@ public class Project {
             SQLiteConnection db = new SQLiteConnection(this.file);
             db.open();
             //--открываем базу данных проекта
-            //делаем запросы и сохраняем данные
+            //сохраняем данные
+            db.exec("INSERT INTO algorithms (name, main, counter_name) "
+                    + "VALUES ('"+ algorithms.get(index).getName() 
+                    + "', '"+ algorithms.get(index).getMainMethod() 
+                    + "', '"+ algorithms.get(index).getCounterName() +"')");
             
-            //--делаем запросы и сохраняем данные
+            long alg_id = algorithms.get(index).getId();
+            if (alg_id == -1) { // значит алгорит новый, сохраняем впервые
+                alg_id = db.getLastInsertId();
+                algorithms.get(index).setId(alg_id);
+            }
+                 
+            ArrayList<Code> codes = algorithms.get(index).getCodes();
+            for(int i = 0; i < codes.size(); i++) {
+                db.exec("INSERT INTO codes (alg_id, sourse_code, generated_code) "
+                    + "VALUES ("+ alg_id 
+                    + ", '"+ codes.get(i).getSourceCode()
+                    + "', '"+ codes.get(i).getGeneratedCode() +"')");
+                long code_id = codes.get(i).getId();
+                if (code_id == -1) {
+                    code_id = db.getLastInsertId();
+                    codes.get(i).setId(code_id);
+                }
+            }
+            //--сохраняем данные
         } catch (SQLiteException ex) {
             Logger.getLogger(Project.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -236,7 +258,7 @@ public class Project {
             db.open();
             //--создаем базу данных проекта
             //создаем структуру БД
-            db.exec("CREATE TABLE algorithms(id, name, main, counter_name)");
+            db.exec("CREATE TABLE algorithms(id INTEGER PRIMARY KEY, name, main, counter_name)");
             db.exec("CREATE TABLE codes(id INTEGER PRIMARY KEY, alg_id, sourse_code, generated_code)");
             db.exec("CREATE TABLE source_gen(id INTEGER PRIMARY KEY, name, code)");
             db.exec("CREATE TABLE results(id INTEGER PRIMARY KEY, alg_id, data_id, operations)");
