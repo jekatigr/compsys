@@ -70,8 +70,9 @@ public class FXMLguiController implements Initializable {
         }
         fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("project","*.db"), new FileChooser.ExtensionFilter("all files","*.*"));
         fileChooser.setInitialFileName("new_project.db");
-
-        File new_proj_file = fileChooser.showSaveDialog(new Stage());
+        
+        
+        File new_proj_file = fileChooser.showSaveDialog(primaryStage);
         if (new_proj_file != null) {
             Preferences.updateLastPathForFileChooser(new_proj_file.getParent());
             Project.createNewProject(new_proj_file);
@@ -85,7 +86,7 @@ public class FXMLguiController implements Initializable {
         fileChooser.setInitialDirectory(new File(Preferences.getLastPathForFileChooser()));
         fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("project","*.db"), new FileChooser.ExtensionFilter("all files","*.*"));
 
-        File proj_file = fileChooser.showOpenDialog(new Stage());
+        File proj_file = fileChooser.showOpenDialog(primaryStage);
         if (proj_file != null) {
             Preferences.updateLastPathForFileChooser(proj_file.getParent());
             CompSys.openProject(proj_file);
@@ -173,6 +174,8 @@ public class FXMLguiController implements Initializable {
 
     public static void openProject(Project project) {
         project_name.setTooltip(new Tooltip(project.getFilePath()));
+        algList.getItems().clear();
+        hBoxZeroAlgs.setVisible(true);
         if (project.getCountOfAlgorithms() > 0) {
             for (int i = 0; i < project.getCountOfAlgorithms(); i++) {
                 addAlgInList(i, project.getAlgorithm(i));
