@@ -11,7 +11,10 @@ import com.almworks.sqlite4java.SQLiteException;
 import com.almworks.sqlite4java.SQLiteStatement;
 import comparative_system.CompSys;
 import comparative_system.Proccessor;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -252,18 +255,20 @@ public class Project {
      */
     public static void createNewProject(File file) {
         try {
-            //проверяем существование файла, если надо - удаляем
+            //проверяем существование файла, если надо - очищаем
             if (file.exists())
             {
-                //TODO: файл не удаляется Щ_щ
-                if (file.canWrite()) {System.out.println("can write!!!!!!!!!");}
-                if (file.delete()) {
-                    System.out.println("ok");
-                } else {
-                    System.out.println("ne ok");
+                if (file.canWrite()) {
+                    try {
+                        BufferedWriter bf = new BufferedWriter(new FileWriter(file));
+                        bf.write("");
+                        bf.close();
+                    } catch (IOException ex) {
+                        Logger.getLogger(Project.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             }
-            //--проверяем существование файла, если надо - удаляем
+            //--проверяем существование файла, если надо - очищаем
             //создаем базу данных проекта
             SQLiteConnection db = new SQLiteConnection(file);
             db.open();
