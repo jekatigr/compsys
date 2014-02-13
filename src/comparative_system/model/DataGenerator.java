@@ -106,12 +106,12 @@ public class DataGenerator {
     
     /**
      * Метод для сохранения или перезаписи списка параметров методов вызова алгоритмов.
-     * Также параметры записываются в БД проекта.
+     * Также параметры записываются в БД проекта и создается таблица для исходных данных.
      * @param parameters Список параметров типа {@code SingleVariableDeclaration} для сохранения.
      */
     public static void saveNewMainMethodParams(List parameters) {
         clearParamsList();
-        for(Object param : parameters) {
+        for(Object param : parameters) {//TODO: сохранить параметры в БД и создать таблицу исх. данных.
             SingleVariableDeclaration p = (SingleVariableDeclaration)param;
             DataGenerator.addMainMethodsParam(p.getType().toString(), p.getName().toString());
         }

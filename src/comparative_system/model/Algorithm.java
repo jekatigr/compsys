@@ -63,7 +63,7 @@ public class Algorithm {
      * Метод возвращает имя алгоритма.
      * @return Имя алгоритма.
      */
-    String getName() {
+    public String getName() {
         return this.name;
     }
 
@@ -71,7 +71,7 @@ public class Algorithm {
      * Метод возвращает метод вызова алгоритма.
      * @return Метод вызова алгоритма.
      */
-    String getMainMethod() {
+    public String getMainMethod() {
         return this.mainMethod;
     }
 
@@ -79,7 +79,7 @@ public class Algorithm {
      * Метод возвращает имя счетчика операций.
      * @return Имя счетчика операций.
      */
-    String getCounterName() {
+    public String getCounterName() {
         return this.counterName;
     }
 
@@ -87,7 +87,7 @@ public class Algorithm {
      * Метод возвращает id алгоритма в БД.
      * @return id алгоритма в БД.
      */
-    long getId() {
+    public long getId() {
         return this.id;
     }
 
@@ -95,7 +95,7 @@ public class Algorithm {
      * Метод возвращает коды алгоритма.
      * @return Коды алгоритма.
      */
-    ArrayList<Code> getCodes() {
+    public ArrayList<Code> getCodes() {
         return this.codes;
     }
 }

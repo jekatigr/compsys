@@ -123,6 +123,17 @@ public class Project {
     }
     
     /**
+     * Метод возвращает алгоритм по индексу.
+     * @param index Индекст алгоритма в листе.
+     * @return Алгоритм типа {@code Algorithm}, {@code null} когда такого алгоритма нет.
+     */
+    public Algorithm getAlgorithm(int index) {
+        if (algorithms != null && index >= 0 && index < algorithms.size())
+            return algorithms.get(index);
+        return null;
+    }
+    
+    /**
      * Метод для сохранения алгоритма в БД. 
      * @param index Индекс в списке, соответствующий алгоритму, 
      * который нужно сохранить в БД.  

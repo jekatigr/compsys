@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.collections.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="327.0" prefWidth="554.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="comparative_system.controller.FXMLguiController">
-  <children>
-    <TabPane id="tabs" fx:id="algTabs" prefHeight="257.0" prefWidth="522.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="44.0" />
-    <Label layoutX="10.0" layoutY="14.0" text="Алгоритмы должны представлять собой один или несколько компилируемых java-классов" />
-    <Label layoutX="188.0" layoutY="152.0" text="Алгоритмов нет." />
-    <Hyperlink layoutX="284.0" layoutY="149.0" onAction="#handleAddAlgLinkClicked" text="[добавить...]" />
+<AnchorPane id="AnchorPane" prefHeight="327.0" prefWidth="554.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="comparative_system.controller.FXMLguiController">
+  <children><HBox id="" fx:id="hBoxZeroAlgs" layoutY="48.0" prefHeight="23.0" prefWidth="554.0" style="-fx-alignment: top-center;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+<children>
+    <Label layoutX="188.0" layoutY="152.0" prefHeight="24.0" prefWidth="91.0" text="Алгоритмов нет." />
+    <Hyperlink layoutX="284.0" layoutY="149.0" onAction="#handleAddAlgClicked" text="[добавить...]" />
+</children></HBox>
+    <Label layoutX="10.0" layoutY="14.0" text="Алгоритмы должны представлять собой один или несколько компилируемых java-классов" /><ListView fx:id="algList" focusTraversable="false" layoutX="10.0" layoutY="60.0" prefHeight="253.0" prefWidth="554.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="74.0" />
   </children>
 </AnchorPane>

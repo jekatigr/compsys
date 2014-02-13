@@ -9,7 +9,7 @@
 
 <AnchorPane id="AnchorPane" disable="false" mouseTransparent="false" pickOnBounds="false" prefHeight="432.0" prefWidth="595.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="comparative_system.controller.FXMLguiController">
   <children>
-    <AnchorPane id="AnchorPane" fx:id="mainPanel" disable="false" prefHeight="339.0" prefWidth="595.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="93.0" />
+    <AnchorPane id="AnchorPane" fx:id="mainPanel" disable="false" prefHeight="313.0" prefWidth="595.0" AnchorPane.bottomAnchor="26.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="93.0" />
     <HBox layoutY="47.0" prefHeight="21.0" prefWidth="218.0" AnchorPane.rightAnchor="-6.0">
       <children>
         <ToggleButton id="alg" fx:id="algButton" contentDisplay="RIGHT" disable="false" graphicTextGap="4.0" mnemonicParsing="false" onAction="#handleAlgClicked" selected="true" text="Алгоритмы" underline="false">
@@ -52,6 +52,6 @@
           </items>
         </Menu>
       </menus>
-    </MenuBar>
+    </MenuBar><ToolBar layoutY="394.0" prefHeight="27.0" prefWidth="595.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" xmlns:fx="http://javafx.com/fxml" />
   </children>
 </AnchorPane>

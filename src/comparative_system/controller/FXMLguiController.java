@@ -7,11 +7,13 @@
 package comparative_system.controller;
 import comparative_system.CompSys;
 import comparative_system.Preferences;
+import comparative_system.model.Algorithm;
 
 import comparative_system.model.Project;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,11 +28,13 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Dialogs;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBoxBuilder;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
@@ -50,7 +54,10 @@ public class FXMLguiController implements Initializable {
     @FXML private static ToggleButton dataButton;
     @FXML private static ToggleButton testsButton;
     @FXML private static AnchorPane mainPanel;
-    @FXML private TabPane algTabs;
+    //@FXML private TabPane algTabs;
+    @FXML private static ListView algList;
+    @FXML private static HBox hBoxZeroAlgs;
+    
 
     @FXML private void handleSaveNewProject(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
@@ -101,7 +108,7 @@ public class FXMLguiController implements Initializable {
         switchShowMode(2);
     }
 
-    @FXML private void handleAddAlgLinkClicked() {
+    @FXML private void handleAddAlgClicked() {
         try {
             Stage stage = new Stage();
             Parent root = FXMLLoader.load(CompSys.class.getResource("gui/addEditAlgWindow.fxml"));
@@ -114,7 +121,7 @@ public class FXMLguiController implements Initializable {
         }
     }
     
-
+    
     public static Parent algPanel;
     public static Parent dataPanel;
     public static Parent testsPanel;
@@ -165,6 +172,12 @@ public class FXMLguiController implements Initializable {
 
     public static void openProject(Project project) {
         project_name.setTooltip(new Tooltip(project.getFilePath()));
+        if (project.getCountOfAlgorithms() > 0) {
+            hBoxZeroAlgs.setVisible(false);
+            for (int i = 0; i < project.getCountOfAlgorithms(); i++) {
+                addAlgInList(i, project.getAlgorithm(i));
+            }
+        }
         setAllEnabled(true);
     }
     
@@ -174,6 +187,15 @@ public class FXMLguiController implements Initializable {
     
     public static void setStage(Stage stage) {
         primaryStage = stage;
+    }
+
+    /**
+     * Метод для добавления алгоритма в ListView.
+     * @param index Индекс алгоритма в списке в проекте.
+     * @param alg Алгоритм типа {@code Algoritm}.
+     */
+    private static void addAlgInList(int index, Algorithm alg) {
+        algList.getItems().add(alg.getName());
     }
 }
 
