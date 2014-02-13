@@ -100,6 +100,7 @@ public class CompSys extends Application {
      */
     public static void addAlgorithm(String name, ArrayList<String> codes, String method) {
         project.addAlgorithm(name, codes, method);
+        FXMLguiController.addAlgInList(project.getCountOfAlgorithms() - 1, project.getAlgorithm(project.getCountOfAlgorithms() - 1));
     }
     
     /**
@@ -107,9 +108,9 @@ public class CompSys extends Application {
      */
     public static void saveAllBeforeClose() {
         //this thing is useless
-        if (project != null && Dialogs.showConfirmDialog(primaryStage, "", "Сохранить изменения в проекте перед выходом?", "Сохранение перед выходом...", Dialogs.DialogOptions.YES_NO) == DialogResponse.YES) {
+        //if (project != null && Dialogs.showConfirmDialog(primaryStage, "", "Сохранить изменения в проекте перед выходом?", "Сохранение перед выходом...", Dialogs.DialogOptions.YES_NO) == DialogResponse.YES) {
             //TODO: project.save();
-        }
+        //}
     }
 
     /**

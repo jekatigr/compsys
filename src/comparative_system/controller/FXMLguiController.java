@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -92,8 +93,8 @@ public class FXMLguiController implements Initializable {
     }
 
     @FXML private void handleExit(ActionEvent event) {
-        CompSys.saveAllBeforeClose();
-        System.exit(0);
+        //CompSys.saveAllBeforeClose();
+        Platform.exit();
     }
 
     @FXML private void handleAlgClicked() {
@@ -173,7 +174,6 @@ public class FXMLguiController implements Initializable {
     public static void openProject(Project project) {
         project_name.setTooltip(new Tooltip(project.getFilePath()));
         if (project.getCountOfAlgorithms() > 0) {
-            hBoxZeroAlgs.setVisible(false);
             for (int i = 0; i < project.getCountOfAlgorithms(); i++) {
                 addAlgInList(i, project.getAlgorithm(i));
             }
@@ -194,7 +194,8 @@ public class FXMLguiController implements Initializable {
      * @param index Индекс алгоритма в списке в проекте.
      * @param alg Алгоритм типа {@code Algoritm}.
      */
-    private static void addAlgInList(int index, Algorithm alg) {
+    public static void addAlgInList(int index, Algorithm alg) {
+        hBoxZeroAlgs.setVisible(false);
         algList.getItems().add(alg.getName());
     }
 }
