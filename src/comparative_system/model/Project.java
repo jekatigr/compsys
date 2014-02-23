@@ -80,7 +80,7 @@ public class Project {
      * Добавление нового генератора исходных данных к проекту.
      * @param dg Генератор исходных данных.
      */
-    public void addDataGenerator(DataGenerator dg) {//TODO:
+    public void addDataGenerator(DataGenerator dg) {//TODO: 
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -137,7 +137,7 @@ public class Project {
     }
     
     /**
-     * Метод для сохранения алгоритма в БД. 
+     * Метод для сохранения алгоритма в БД. Здесь же ему сопоставляется id.
      * @param index Индекс в списке, соответствующий алгоритму, 
      * который нужно сохранить в БД.  
      */
@@ -256,16 +256,14 @@ public class Project {
     public static void createNewProject(File file) {
         try {
             //проверяем существование файла, если надо - очищаем
-            if (file.exists())
+            if (file.exists() && file.canWrite())
             {
-                if (file.canWrite()) {
-                    try {
-                        BufferedWriter bf = new BufferedWriter(new FileWriter(file));
-                        bf.write("");
-                        bf.close();
-                    } catch (IOException ex) {
-                        Logger.getLogger(Project.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+                try {
+                    BufferedWriter bf = new BufferedWriter(new FileWriter(file));
+                    bf.write("");
+                    bf.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(Project.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
             //--проверяем существование файла, если надо - очищаем
