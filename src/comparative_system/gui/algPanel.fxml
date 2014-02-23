@@ -4,12 +4,20 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="327.0" prefWidth="554.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="comparative_system.controller.FXMLguiController">
-  <children><ListView fx:id="algList" focusTraversable="false" layoutX="10.0" layoutY="60.0" prefHeight="286.0" prefWidth="556.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="42.0" /><HBox id="" fx:id="hBoxZeroAlgs" layoutY="43.0" prefHeight="23.0" prefWidth="554.0" style="-fx-alignment: top-center;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+<AnchorPane id="AnchorPane" prefHeight="513.0" prefWidth="914.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="comparative_system.controller.FXMLguiController">
+  <children><SplitPane dividerPositions="0.21162280701754385" focusTraversable="true" layoutX="-1.0" layoutY="-1.0" prefHeight="513.0" prefWidth="914.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="-1.0" xmlns:fx="http://javafx.com/fxml">
+  <items>
+    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+<children><ListView fx:id="algList" prefHeight="511.0" prefWidth="190.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="-1.0" />
+</children></AnchorPane>
+    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+<children><HBox id="" fx:id="hBoxZeroAlgs" layoutY="43.0" prefHeight="23.0" prefWidth="554.0" style="-fx-alignment: top-center;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
 <children>
     <Label layoutX="188.0" layoutY="152.0" prefHeight="24.0" prefWidth="91.0" text="Алгоритмов нет." />
     <Hyperlink layoutX="284.0" layoutY="149.0" onAction="#handleAddAlgClicked" text="[добавить...]" />
 </children></HBox>
-    <Label layoutX="10.0" layoutY="14.0" text="Алгоритмы должны представлять собой один или несколько компилируемых java-классов" />
+</children></AnchorPane>
+  </items>
+</SplitPane>
   </children>
 </AnchorPane>

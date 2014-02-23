@@ -49,13 +49,15 @@ import javafx.stage.Stage;
 public class FXMLguiController implements Initializable {
     private static Stage primaryStage;
     
-    @FXML private static Label project_name;
     @FXML private static ToggleGroup toggles;
     @FXML private static ToggleButton algButton;
     @FXML private static ToggleButton dataButton;
     @FXML private static ToggleButton testsButton;
     @FXML private static AnchorPane mainPanel;
     //@FXML private TabPane algTabs;
+//    toggles.getToggles().add(algButton);
+//    toggles.getToggles().add(dataButton);
+//    toggles.getToggles().add(testsButton);
     @FXML private static ListView algList;
     @FXML private static HBox hBoxZeroAlgs;
     
@@ -75,7 +77,7 @@ public class FXMLguiController implements Initializable {
         File new_proj_file = fileChooser.showSaveDialog(primaryStage);
         if (new_proj_file != null) {
             Preferences.updateLastPathForFileChooser(new_proj_file.getParent());
-            Project.createNewProject(new_proj_file);
+            Project.createNewProject(new_proj_file);//TODO: сделать проверку на успешное создание файла
             CompSys.openProject(new_proj_file);
         }
     }
@@ -129,12 +131,11 @@ public class FXMLguiController implements Initializable {
     public static Parent testsPanel;
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-
+        
     }
 
     public static void setAllEnabled(boolean enabled) {
         mainPanel.setDisable(!enabled);
-        project_name.setDisable(!enabled);
         algButton.setDisable(!enabled);
         dataButton.setDisable(!enabled);
         testsButton.setDisable(!enabled);
@@ -173,7 +174,6 @@ public class FXMLguiController implements Initializable {
     }
 
     public static void openProject(Project project) {
-        project_name.setTooltip(new Tooltip(project.getFilePath()));
         algList.getItems().clear();
         hBoxZeroAlgs.setVisible(true);
         if (project.getCountOfAlgorithms() > 0) {
