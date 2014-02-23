@@ -59,7 +59,7 @@ public class DataGenerator {
      * Метод для очистки списка параметров методов вызова. Параметры также удаляются из БД.
      * Если существуют сгенерированные исходные данные для тестов, то они тоже удаляются.
      */
-    private static void clearParamsList() {//TODO: сделать удаление данных из бд
+    private static void clearParamsList() {
         params.clear();//TODO:удаление из бд и удаление данных
     }
 
