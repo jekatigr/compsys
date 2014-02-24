@@ -6,6 +6,13 @@
 
 package comparative_system.gui;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.web.WebView;
 
@@ -29,9 +36,9 @@ public class CodeEditor extends AnchorPane {
     "<!doctype html>" +
     "<html>" +
     "<head>" +
-    " <link rel=\"stylesheet\" href=\"lib/codemirror.css\">" +
-    " <script src=\"lib/codemirror.js\"></script>" +
-    " <script src=\"lib/clike.js\"></script>" +
+    " <style type=\"text/css\">${codemirrorcss}</style>" +
+    " <script>${codemirrorjs}</script>" +
+    " <script>${clikejs}</script>" +
     "</head>" +
     "<body style=\"margin:0px;\">" +
     "<form><textarea id=\"code\" name=\"code\">\n" +
@@ -47,10 +54,18 @@ public class CodeEditor extends AnchorPane {
     "</script>" +
     "</body>" +
     "</html>";
+    
+    private static String codemirrorjs = "";
+    private static String codemirrorcss = "";
+    private static String clikejs = "";
 
     /** applies the editing template to the editing code to create the html+javascript source for a code editor. */
     private String applyEditingTemplate() {
-    return editingTemplate.replace("${code}", editingCode);
+        String res = editingTemplate.replace("${code}", editingCode);
+        res = res.replace("${codemirrorjs}", codemirrorjs);
+        res = res.replace("${codemirrorcss}", codemirrorcss);
+        res = res.replace("${clikejs}", clikejs);
+        return res;
     }
 
     /** sets the current code in the editor and creates an editing snapshot of the code which can be reverted to. */
@@ -75,22 +90,56 @@ public class CodeEditor extends AnchorPane {
     * @param editingCode the initial code to be edited in the code editor.
     */
     public CodeEditor(String editingCode) {
-    this.editingCode = editingCode;
-    
-    //webview.setPrefSize(USE_PREF_SIZE, USE_PREF_SIZE);
-    //webview.setMinSize(USE_PREF_SIZE, USE_PREF_SIZE);
-    //webview.setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE);
-    
-    //this.setPrefSize(USE_PREF_SIZE, USE_PREF_SIZE);
-    //this.setMinSize(USE_PREF_SIZE, USE_PREF_SIZE);
-    //this.setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE);
-    
-    AnchorPane.setTopAnchor(webview, 0.0); 
-    AnchorPane.setLeftAnchor(webview, 0.0); 
-    AnchorPane.setBottomAnchor(webview, 0.0); 
-    AnchorPane.setRightAnchor(webview, 0.0); 
-    webview.getEngine().loadContent(applyEditingTemplate());
-
-    this.getChildren().add(webview);
+        try {            
+            this.editingCode = editingCode;
+            
+            if (clikejs.length() == 0) {
+                File clike = new File("lib/clike.js");
+                StringBuilder temp = new StringBuilder();
+                BufferedReader bufferedReader = new BufferedReader(new FileReader(clike));
+                String text;
+                while ((text = bufferedReader.readLine()) != null) {
+                    temp.append("\n"+text);
+                }
+                clikejs = temp.toString();
+            }
+            
+            if (codemirrorjs.length() == 0) {
+                File clike = new File("lib/codemirror.js");
+                StringBuilder temp = new StringBuilder();
+                BufferedReader bufferedReader = new BufferedReader(new FileReader(clike));
+                String text;
+                while ((text = bufferedReader.readLine()) != null) {
+                    temp.append("\n"+text);
+                }
+                codemirrorjs = temp.toString();
+            }
+            
+            if (codemirrorcss.length() == 0) {
+                File clike = new File("lib/codemirror.css");
+                StringBuilder temp = new StringBuilder();
+                BufferedReader bufferedReader = new BufferedReader(new FileReader(clike));
+                String text;
+                while ((text = bufferedReader.readLine()) != null) {
+                    temp.append("\n"+text);
+                }
+                codemirrorcss = temp.toString();
+            }
+            //webview.setPrefSize(USE_PREF_SIZE, USE_PREF_SIZE);
+            //webview.setMinSize(USE_PREF_SIZE, USE_PREF_SIZE);
+            //webview.setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE);
+            //this.setPrefSize(USE_PREF_SIZE, USE_PREF_SIZE);
+            //this.setMinSize(USE_PREF_SIZE, USE_PREF_SIZE);
+            //this.setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE);
+            AnchorPane.setTopAnchor(webview, 0.0);
+            AnchorPane.setLeftAnchor(webview, 0.0);
+            AnchorPane.setBottomAnchor(webview, 0.0);
+            AnchorPane.setRightAnchor(webview, 0.0);
+            webview.getEngine().loadContent(applyEditingTemplate());
+            this.getChildren().add(webview);
+        } catch (IOException ex) {
+            Logger.getLogger(CodeEditor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+      
     }
 }
