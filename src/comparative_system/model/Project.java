@@ -205,7 +205,7 @@ public class Project {
                 int alg_id = st.columnInt(0);
                 //коды алгоритмов
                 ArrayList<Code> codes = new ArrayList<>();
-                SQLiteStatement st2 = db.prepare("SELECT * FROM codes WHERE alg_id='"+ alg_id +"'");
+                SQLiteStatement st2 = db.prepare("SELECT * FROM codes WHERE alg_id="+ alg_id +"");
                 while(st2.step()) {
                     codes.add(new Code(st2.columnInt(0), st2.columnString(1), st2.columnString(2)));
                 }
