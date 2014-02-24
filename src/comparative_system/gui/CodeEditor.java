@@ -29,9 +29,9 @@ public class CodeEditor extends AnchorPane {
     "<!doctype html>" +
     "<html>" +
     "<head>" +
-    " <link rel=\"stylesheet\" href=\"http://codemirror.net/lib/codemirror.css\">" +
-    " <script src=\"http://codemirror.net/lib/codemirror.js\"></script>" +
-    " <script src=\"http://codemirror.net/mode/clike/clike.js\"></script>" +
+    " <link rel=\"stylesheet\" href=\"lib/codemirror.css\">" +
+    " <script src=\"lib/codemirror.js\"></script>" +
+    " <script src=\"lib/clike.js\"></script>" +
     "</head>" +
     "<body style=\"margin:0px;\">" +
     "<form><textarea id=\"code\" name=\"code\">\n" +
