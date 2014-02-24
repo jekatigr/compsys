@@ -12,6 +12,8 @@ import java.io.File;
 import java.util.ArrayList;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
@@ -28,7 +30,7 @@ import javafx.stage.Stage;
 public class CompSys extends Application {
     private static Project project;
     private static Stage primaryStage;
-    
+   
     @Override
     public void start(Stage stage) throws Exception {
         FXMLguiController.setStage(stage);        
@@ -50,6 +52,14 @@ public class CompSys extends Application {
                 Platform.exit();
             }
         });
+        
+        FXMLguiController.algList.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                FXMLguiController.loadAlgorithmView(FXMLguiController.algList.getSelectionModel().getSelectedIndex());
+            }
+        });
+        
         //при первом открытии отключаем все элементы и ставим вкладку алгоритмов.
         FXMLguiController.setAllEnabled(false);
         FXMLguiController.switchShowMode(0);
@@ -113,6 +123,14 @@ public class CompSys extends Application {
         //}
     }
 
+    /**
+     * Метод возвращает текущий проект.
+     * @return Текущий проект.
+     */
+    public static Project getProject() {
+        return project;
+    }
+    
     /**
      * Метод возвращает количество алгоритмов в текущем проекте.
      * @return Количество алгоритмов.

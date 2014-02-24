@@ -1,21 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.lang.*?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
 <AnchorPane id="AnchorPane" prefHeight="513.0" prefWidth="914.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="comparative_system.controller.FXMLguiController">
   <children><SplitPane dividerPositions="0.21162280701754385" focusTraversable="true" layoutX="-1.0" layoutY="-1.0" prefHeight="513.0" prefWidth="914.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="-1.0" xmlns:fx="http://javafx.com/fxml">
   <items>
-    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
-<children><ListView fx:id="algList" prefHeight="511.0" prefWidth="190.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="-1.0" />
+    <AnchorPane maxWidth="200.0" minHeight="0.0" minWidth="100.0" prefHeight="160.0" prefWidth="100.0">
+<children><ListView fx:id="algList" editable="true" prefHeight="511.0" prefWidth="190.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="-1.0" />
 </children></AnchorPane>
     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
 <children><HBox id="" fx:id="hBoxZeroAlgs" layoutY="43.0" prefHeight="23.0" prefWidth="554.0" style="-fx-alignment: top-center;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
 <children>
     <Label layoutX="188.0" layoutY="152.0" prefHeight="24.0" prefWidth="91.0" text="Алгоритмов нет." />
     <Hyperlink layoutX="284.0" layoutY="149.0" onAction="#handleAddAlgClicked" text="[добавить...]" />
-</children></HBox>
+</children></HBox><ComboBox layoutX="23.0" layoutY="82.0" prefHeight="25.0" prefWidth="607.0" promptText="Выберите метод вызова алгоритма..." AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="96.0" xmlns:fx="http://javafx.com/fxml" /><Button layoutX="654.0" layoutY="82.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="78.0" text="Сохранить" AnchorPane.rightAnchor="12.0" /><Separator layoutX="-12.0" layoutY="50.0" prefHeight="0.0" prefWidth="718.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" /><TabPane fx:id="codesOfAlgorithmsTabPane" layoutX="-1.0" layoutY="126.0" prefHeight="381.0" prefWidth="718.0" rotateGraphic="false" side="TOP" tabClosingPolicy="SELECTED_TAB" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="132.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<tabs>
+<Tab text="Новый класс">
+<content>
+<AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="330.0" prefWidth="884.0" />
+</content>
+</Tab><Tab fx:id="addTab" closable="false" text="+">
+  <content>
+    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+  </content>
+</Tab>
+</tabs>
+</TabPane><BorderPane layoutX="14.0" layoutY="14.0" minWidth="100.0" prefHeight="25.0" prefWidth="697.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="7.0" AnchorPane.topAnchor="14.0">
+<left><TextField fx:id="algNameTextField" layoutX="23.0" layoutY="18.0" maxWidth="500.0" minWidth="50.0" prefHeight="34.0" prefWidth="500.0" promptText="Введите имя алгоритма..." AnchorPane.leftAnchor="23.0" AnchorPane.rightAnchor="195.0" AnchorPane.topAnchor="18.0">
+<BorderPane.margin>
+<Insets right="30.0" />
+</BorderPane.margin></TextField>
+</left>
+<right><Button layoutX="680.0" layoutY="18.0" mnemonicParsing="false" prefHeight="29.0" prefWidth="28.0" text="X" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="18.0" />
+</right></BorderPane>
 </children></AnchorPane>
   </items>
 </SplitPane>

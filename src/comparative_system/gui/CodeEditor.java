@@ -6,14 +6,14 @@
 
 package comparative_system.gui;
 
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.web.WebView;
 
 /**
  *
  * @author TireX
  */
-public class CodeEditor extends StackPane {
+public class CodeEditor extends AnchorPane {
     /** a webview used to encapsulate the CodeMirror JavaScript. */
     final WebView webview = new WebView();
 
@@ -33,7 +33,7 @@ public class CodeEditor extends StackPane {
     " <script src=\"http://codemirror.net/lib/codemirror.js\"></script>" +
     " <script src=\"http://codemirror.net/mode/clike/clike.js\"></script>" +
     "</head>" +
-    "<body>" +
+    "<body style=\"margin:0px;\">" +
     "<form><textarea id=\"code\" name=\"code\">\n" +
     "${code}" +
     "</textarea></form>" +
@@ -43,6 +43,7 @@ public class CodeEditor extends StackPane {
     " matchBrackets: true," +
     " mode: \"text/x-java\"" +
     " });" +
+    " editor.setSize(\"100%\", \"100%\"); " +
     "</script>" +
     "</body>" +
     "</html>";
@@ -73,11 +74,21 @@ public class CodeEditor extends StackPane {
     * Create a new code editor.
     * @param editingCode the initial code to be edited in the code editor.
     */
-    CodeEditor(String editingCode) {
+    public CodeEditor(String editingCode) {
     this.editingCode = editingCode;
-
-    webview.setPrefSize(650, 325);
-    webview.setMinSize(650, 325);
+    
+    //webview.setPrefSize(USE_PREF_SIZE, USE_PREF_SIZE);
+    //webview.setMinSize(USE_PREF_SIZE, USE_PREF_SIZE);
+    //webview.setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE);
+    
+    //this.setPrefSize(USE_PREF_SIZE, USE_PREF_SIZE);
+    //this.setMinSize(USE_PREF_SIZE, USE_PREF_SIZE);
+    //this.setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE);
+    
+    AnchorPane.setTopAnchor(webview, 0.0); 
+    AnchorPane.setLeftAnchor(webview, 0.0); 
+    AnchorPane.setBottomAnchor(webview, 0.0); 
+    AnchorPane.setRightAnchor(webview, 0.0); 
     webview.getEngine().loadContent(applyEditingTemplate());
 
     this.getChildren().add(webview);

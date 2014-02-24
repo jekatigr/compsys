@@ -7,8 +7,9 @@
 package comparative_system.controller;
 import comparative_system.CompSys;
 import comparative_system.Preferences;
+import comparative_system.gui.CodeEditor;
 import comparative_system.model.Algorithm;
-
+import comparative_system.model.Code;
 import comparative_system.model.Project;
 import java.io.File;
 import java.io.IOException;
@@ -18,6 +19,8 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -30,7 +33,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Dialogs;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
@@ -58,8 +64,10 @@ public class FXMLguiController implements Initializable {
 //    toggles.getToggles().add(algButton);
 //    toggles.getToggles().add(dataButton);
 //    toggles.getToggles().add(testsButton);
-    @FXML private static ListView algList;
+    @FXML public static ListView algList;
     @FXML private static HBox hBoxZeroAlgs;
+    @FXML private static TextField algNameTextField;
+    @FXML private static TabPane codesOfAlgorithmsTabPane;
     
 
     @FXML private void handleSaveNewProject(ActionEvent event) {
@@ -125,6 +133,9 @@ public class FXMLguiController implements Initializable {
         }
     }
     
+    @FXML private void handleAlgInListClicked() {
+        
+    }
     
     public static Parent algPanel;
     public static Parent dataPanel;
@@ -200,6 +211,34 @@ public class FXMLguiController implements Initializable {
     public static void addAlgInList(int index, Algorithm alg) {
         hBoxZeroAlgs.setVisible(false);
         algList.getItems().add(alg.getName());
+    }
+    
+    /**
+     * Метод для одображения алгоритма в главном окне.
+     * @param index Индекс алгоритма в списке проекта, либо -1 для добавления нового алгоритма.
+     */
+    public static void loadAlgorithmView(int index) {
+       if (index == -1) {//добавление нового
+           
+       } else {//отображение сохраненного
+           Algorithm alg = CompSys.getProject().getAlgorithm(index);
+           algNameTextField.setText(alg.getName());
+      
+           codesOfAlgorithmsTabPane.getTabs().clear();
+           for (Code c : alg.getCodes()) {
+               Tab tab = new Tab();
+                tab.setText("Новый класс");
+                    CodeEditor ce = new CodeEditor(c.getSourceCode());
+                    ce.setId("ce");
+                    //sourceCodeTextArea.setPromptText("Исходный код алгоритма (java)...");
+                    AnchorPane.setTopAnchor(ce, -5.0);
+                    AnchorPane.setRightAnchor(ce, 0.0);
+                    AnchorPane.setBottomAnchor(ce, -5.0);
+                    AnchorPane.setLeftAnchor(ce, -5.0);
+                tab.setContent(ce);
+                codesOfAlgorithmsTabPane.getTabs().add(tab);
+           }    //codesOfAlgorithmsTabPane.getSelectionModel().select(tab);
+       }        
     }
 }
 
