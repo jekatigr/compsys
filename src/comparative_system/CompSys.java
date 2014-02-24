@@ -19,9 +19,6 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Dialogs;
-import javafx.scene.control.Dialogs.DialogResponse;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 /**
  *

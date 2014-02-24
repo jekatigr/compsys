@@ -8,7 +8,6 @@ package comparative_system.gui;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -125,12 +124,7 @@ public class CodeEditor extends AnchorPane {
                 }
                 codemirrorcss = temp.toString();
             }
-            //webview.setPrefSize(USE_PREF_SIZE, USE_PREF_SIZE);
-            //webview.setMinSize(USE_PREF_SIZE, USE_PREF_SIZE);
-            //webview.setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE);
-            //this.setPrefSize(USE_PREF_SIZE, USE_PREF_SIZE);
-            //this.setMinSize(USE_PREF_SIZE, USE_PREF_SIZE);
-            //this.setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE);
+            
             AnchorPane.setTopAnchor(webview, 0.0);
             AnchorPane.setLeftAnchor(webview, 0.0);
             AnchorPane.setBottomAnchor(webview, 0.0);

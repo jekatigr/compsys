@@ -6,8 +6,6 @@
 
 package comparative_system.model;
 
-import java.util.ArrayList;
-
 /**
  * Класс для представления одного набора исходных данных.
  * @author TireX

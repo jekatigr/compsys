@@ -9,7 +9,6 @@ package comparative_system.model;
 import com.almworks.sqlite4java.SQLiteConnection;
 import com.almworks.sqlite4java.SQLiteException;
 import com.almworks.sqlite4java.SQLiteStatement;
-import comparative_system.CompSys;
 import comparative_system.Proccessor;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -19,8 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 
 /**
  *

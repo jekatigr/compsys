@@ -8,14 +8,11 @@ package comparative_system;
 
 import comparative_system.model.Code;
 import java.util.ArrayList;
-import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.SimpleName;
-import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
 /**
  *
