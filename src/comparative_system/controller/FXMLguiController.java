@@ -49,9 +49,6 @@ public class FXMLguiController implements Initializable {
     @FXML private static ToggleButton testsButton;
     @FXML private static AnchorPane mainPanel;
     //@FXML private TabPane algTabs;
-//    toggles.getToggles().add(algButton);
-//    toggles.getToggles().add(dataButton);
-//    toggles.getToggles().add(testsButton);
     @FXML public static ListView algList;
     @FXML private static HBox hBoxZeroAlgs;
     @FXML private static TextField algNameTextField;
@@ -81,7 +78,11 @@ public class FXMLguiController implements Initializable {
     @FXML private void handleOpenProject(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Открыть проект...");
-        fileChooser.setInitialDirectory(new File(Preferences.getLastPathForFileChooser()));
+        String initial_dir_for_filechooser = Preferences.getLastPathForFileChooser();
+        if (initial_dir_for_filechooser != null && new File(initial_dir_for_filechooser).exists())
+        {
+            fileChooser.setInitialDirectory(new File(initial_dir_for_filechooser));
+        }
         fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("project","*.db"), new FileChooser.ExtensionFilter("all files","*.*"));
 
         File proj_file = fileChooser.showOpenDialog(primaryStage);

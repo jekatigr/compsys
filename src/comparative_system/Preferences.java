@@ -38,7 +38,8 @@ public class Preferences {
         try {
             //читаем данные из файла
             StringBuilder fileContent = new StringBuilder();
-            File file = new File(preferences_file_path);
+            File file = new File(preferences_file_path);//TODO: сделать проверку на существование файла
+            if (file.exists()) {
             BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
             String text;
             while ((text = bufferedReader.readLine()) != null) {
@@ -57,6 +58,9 @@ public class Preferences {
             }
             last_path_for_filechooser = String.valueOf(data.get("last_path_for_filechooser"));
             //--сохраняем данные в переменные
+            } else {
+                Preferences.savePreferences();
+            }
             return true;
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Preferences.class.getName()).log(Level.SEVERE, null, ex);//TODO: сделать нормальный вывод ошибок.
