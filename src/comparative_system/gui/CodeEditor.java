@@ -89,7 +89,7 @@ public class CodeEditor extends AnchorPane {
     * @param editingCode the initial code to be edited in the code editor.
     */
     public CodeEditor(String editingCode) {
-        try {            
+        try {            //TODO: сделать нормальную подгрузку скриптов.
             this.editingCode = editingCode;
             
             if (clikejs.length() == 0) {
