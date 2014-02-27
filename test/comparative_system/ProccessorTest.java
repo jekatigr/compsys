@@ -8,6 +8,7 @@ package comparative_system;
 
 import comparative_system.model.Code;
 import java.util.ArrayList;
+import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -18,7 +19,44 @@ import static org.junit.Assert.*;
  */
 public class ProccessorTest {
     
+    
+    private static final String counterName = "counter123";
+    
+//    String code = "public class A{\n" +
+//"    public static int res() {\n" +
+//"		int result = 0;\n" +
+//"		for (int i = 0; i < 100; i++) {\n" +
+//"			result -= i;\n" +
+//"			for (int j = 0; j < 100; j++) {\n" +
+//"				if (i*j % 5 == 0)\n" +
+//"					result += i*j;\n" +
+//"					result %= 10;\n" +
+//"			}\n" +
+//"		}\n"
+//                + "int res = (10 > 12) ? 0 : 1;\n" +
+//"        \n" +
+//"        int c,i;\n" +
+//"        i = c = 19;" +
+//"		return result;\n" +
+//"	}\n" +
+//"}";
     public ProccessorTest() {
+    }
+
+    /**
+     * Test of getGeneratedCode method, of class Proccessor.
+     */
+    @Test
+    public void testGetGeneratedCode() {
+        System.out.println("getGeneratedCode");
+        
+        String code = "int i; i = 12 + 3;";
+        
+        String expResult = "";
+        String result = Proccessor.getGeneratedCode(counterName, code);
+        assertEquals(expResult, result);
+        
+        fail("Just fail.");
     }
 
     /**
@@ -63,5 +101,59 @@ public class ProccessorTest {
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
-    
+
+    /**
+     * Test of countOperationsInExpression method, of class Proccessor.
+     */
+    @Test
+    public void testCountOperationsInExpression() {
+        System.out.println("countOperationsInExpression");
+        Expression ex = null;
+        int expResult = 0;
+        int result = Proccessor.countOperationsInExpression(ex);
+        assertEquals(expResult, result);
+        // TODO review the generated test code and remove the default call to fail.
+        fail("The test case is a prototype.");
+    }
+
+    /**
+     * Test of buildNewMap method, of class Proccessor.
+     */
+    @Test
+    public void testBuildNewMap() {
+        System.out.println("buildNewMap");
+        
+        String code = "public static class A {\n" +
+"    public int res() {\n" +
+"		int result = 0;\n" +
+"		result = 17 + 20;\n" +
+"		return result;\n" +
+"	}\n" +
+"	class B {\n" +
+"		int l;\n" +
+"	}\n" +
+"}";        
+        
+        Proccessor.Map expResult = null;
+        Proccessor.Map result = Proccessor.buildNewMap(code);
+        assertEquals(expResult, result);
+        // TODO review the generated test code and remove the default call to fail.
+        fail("The test case is a prototype.");
+    }
+
+    /**
+     * Test of putCountersInCodeFromMap method, of class Proccessor.
+     */
+    @Test
+    public void testPutCountersInCodeFromMap() {
+        System.out.println("putCountersInCodeFromMap");
+        Proccessor.Map map = null;
+        String counterName = "";
+        String code = "";
+        String expResult = "";
+        String result = Proccessor.putCountersInCodeFromMap(map, counterName, code);
+        assertEquals(expResult, result);
+        // TODO review the generated test code and remove the default call to fail.
+        fail("The test case is a prototype.");
+    }
 }
