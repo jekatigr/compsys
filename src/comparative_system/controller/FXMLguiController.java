@@ -115,16 +115,13 @@ public class FXMLguiController implements Initializable {
             Parent root = FXMLLoader.load(CompSys.class.getResource("gui/addEditAlgWindow.fxml"));
             Scene scene = new Scene(root);
             stage.setScene(scene);
-            AddEditAlgWindowController.setStage(stage);
+            //AddEditAlgWindowController.setStage(stage);
             stage.show();
         } catch (IOException ex) {
             Logger.getLogger(FXMLguiController.class.getName()).log(Level.SEVERE, null, ex);//TODO: сделать нормалиный вывод ошибок
         }
     }
     
-    @FXML private void handleAlgInListClicked() {
-        
-    }
     
     public static Parent algPanel;
     public static Parent dataPanel;
