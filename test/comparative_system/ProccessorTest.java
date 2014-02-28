@@ -22,24 +22,17 @@ public class ProccessorTest {
     
     private static final String counterName = "counter123";
     
-//    String code = "public class A{\n" +
-//"    public static int res() {\n" +
+//    String code = "public static class A {\n" +
+//"    public int res() {\n" +
 //"		int result = 0;\n" +
-//"		for (int i = 0; i < 100; i++) {\n" +
-//"			result -= i;\n" +
-//"			for (int j = 0; j < 100; j++) {\n" +
-//"				if (i*j % 5 == 0)\n" +
-//"					result += i*j;\n" +
-//"					result %= 10;\n" +
-//"			}\n" +
-//"		}\n"
-//                + "int res = (10 > 12) ? 0 : 1;\n" +
-//"        \n" +
-//"        int c,i;\n" +
-//"        i = c = 19;" +
+//"		result = 17 + 20;\n" +
 //"		return result;\n" +
 //"	}\n" +
-//"}";
+//"	class B {\n" +
+//"		int l;\n" +
+//"	}\n" +
+//"}";        
+    
     public ProccessorTest() {
     }
 
@@ -123,16 +116,26 @@ public class ProccessorTest {
     public void testBuildNewMap() {
         System.out.println("buildNewMap");
         
-        String code = "public static class A {\n" +
-"    public int res() {\n" +
+        String code = "public class A{\n" +
+"    public static int res() {\n" +
 "		int result = 0;\n" +
-"		result = 17 + 20;\n" +
+"		for (int i = 0; i < 100; i++) {\n" +
+"			result -= i;\n" +
+"			for (int j = 0; j < 100; j++) {\n" +
+"				if (i*j % 5 == 0)\n" +
+"					result += i*j;\n" +
+"					result %= 10;\n" +
+"			}\n" +
+"		}\n" +
 "		return result;\n" +
 "	}\n" +
-"	class B {\n" +
-"		int l;\n" +
+"	public int meth() {\n" +
+"		int h = 0;\n" +
+"		int start;\n" +
+"		h = start = h + res();\n" +
+"		System.out.print(h + 10);\n" +
 "	}\n" +
-"}";        
+"}";
         
         Proccessor.Map expResult = null;
         Proccessor.Map result = Proccessor.buildNewMap(code);

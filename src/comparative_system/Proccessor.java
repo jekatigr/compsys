@@ -13,6 +13,7 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.Expression;
@@ -20,6 +21,7 @@ import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.Initializer;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.ParenthesizedExpression;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
@@ -28,14 +30,15 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
  * @author TireX
  */
 public class Proccessor {
+    private static AST AST;
     
     static class Map {
         private static class MapNode {
             private int codeStart;
             private int codeLength;
-            private ASTNode type;
+            private String type;
             private int countOfOperations;
-            public MapNode(int codeStart, int codeLength, ASTNode type, int countOfOperations) {
+            public MapNode(int codeStart, int codeLength, String type, int countOfOperations) {
                 this.codeStart = codeStart;
                 this.codeLength = codeLength;
                 this.type = type;
@@ -48,8 +51,11 @@ public class Proccessor {
         public Map() {
             list = new ArrayList<>();
         }
+        
+        private void addParsedExpression(int startPosition, int length, String expression, int countOperations) {
+            this.list.add(new MapNode(startPosition, length, expression, countOperations));
+        }
     }
-    
     
     
     private static final ASTParser parser = ASTParser.newParser(AST.JLS3);
@@ -115,21 +121,16 @@ public class Proccessor {
     }
 
     static Map buildNewMap(String code) {
-        Map map = new Map();
+        final Map map = new Map();
         
         parser.setSource(code.toCharArray());
         parser.setKind(ASTParser.K_COMPILATION_UNIT);
         final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
 
         cu.accept(new ASTVisitor() {
-            //public boolean visit(TypeDeclaration node) {// заходим внутрь каждого класса, в т.ч. внутренних
-                //node.accept(new ASTVisitor() {
-                    public boolean visit(MethodDeclaration method) {// заходим внутрь каждого метода
-                        System.out.println("-- "+method.toString());
-                        return true;
-                //    }
-                //});
-                //return true;
+            public boolean visit(ExpressionStatement expression) {// ходим по всем действиям
+                map.addParsedExpression(expression.getStartPosition(), expression.getLength(), "Expression", countOperations(expression.getExpression()));
+                return true;
             }
         });
         return map;
@@ -137,5 +138,18 @@ public class Proccessor {
 
     static String putCountersInCodeFromMap(Map map, String counterName, String code) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    private static int count = 0;
+    static int countOperations(Expression ex) {
+        count = 0;
+        ex.accept(new ASTVisitor() {
+            public boolean visit(Assignment ass) {// ходим по всем выражениям с оператором присваивания
+                System.out.println("--" + ass.toString());
+                count++;
+                return false; // если вернуть true, то (h = s = 11) пройдет дважды с (s = 11)
+            }
+        });
+        return count;
     }
 }
