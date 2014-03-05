@@ -8,10 +8,15 @@ package comparative_system;
 
 import comparative_system.model.Code;
 import java.util.ArrayList;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.fail;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
 
 /**
  *
