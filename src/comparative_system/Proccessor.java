@@ -18,14 +18,20 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
+import org.eclipse.jdt.core.dom.AssertStatement;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
+import org.eclipse.jdt.core.dom.BreakStatement;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.ConstructorInvocation;
 import org.eclipse.jdt.core.dom.ContinueStatement;
+import org.eclipse.jdt.core.dom.DoStatement;
 import org.eclipse.jdt.core.dom.EmptyStatement;
+import org.eclipse.jdt.core.dom.EnhancedForStatement;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
+import org.eclipse.jdt.core.dom.ForStatement;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.InfixExpression;
 import org.eclipse.jdt.core.dom.Initializer;
@@ -36,10 +42,18 @@ import org.eclipse.jdt.core.dom.ParenthesizedExpression;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.StructuralPropertyDescriptor;
+import org.eclipse.jdt.core.dom.SuperConstructorInvocation;
 import org.eclipse.jdt.core.dom.SuperMethodInvocation;
+import org.eclipse.jdt.core.dom.SwitchStatement;
+import org.eclipse.jdt.core.dom.SynchronizedStatement;
+import org.eclipse.jdt.core.dom.ThrowStatement;
+import org.eclipse.jdt.core.dom.TryStatement;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.eclipse.jdt.core.dom.TypeDeclarationStatement;
 import org.eclipse.jdt.core.dom.VariableDeclarationExpression;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
+import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
+import org.eclipse.jdt.core.dom.WhileStatement;
 
 /**
  * 
@@ -130,10 +144,6 @@ public class Proccessor {
         Map map = buildNewMap(code);
         return putCountersInCodeFromMap(map, counterName, code);
     }
-    
-    static int countOperationsInExpression(Expression ex) {
-        return 0;       
-    }
 
     static Map buildNewMap(String code) {
         final Map map = new Map();
@@ -170,7 +180,7 @@ public class Proccessor {
     }
     
     private static int count = 0;
-    static int countOperationsInExpression(ASTNode ex) {
+    static int countOperationsInExpression(Expression ex) {
         if (ex instanceof MethodInvocation) {
             for (Object e : ((MethodInvocation)ex).arguments()) 
             {
@@ -224,10 +234,10 @@ public class Proccessor {
         return count;
     }
     
-    private static void countOperationsInStatement(Statement st) {
+    private static int countOperationsInStatement(Statement st) {
         
         if (st instanceof EmptyStatement || st instanceof ContinueStatement || st instanceof BreakStatement ) {
-            return;
+            return 0;
         }
         
         if (st instanceof ExpressionStatement) {
@@ -247,5 +257,97 @@ public class Proccessor {
         if (st instanceof ReturnStatement) {
             countOperationsInExpression(((ReturnStatement)st).getExpression());
         }
+        
+        if (st instanceof AssertStatement) {
+            countOperationsInExpression(((AssertStatement)st).getExpression());
+        }
+        
+        if (st instanceof ConstructorInvocation) {
+            for (Object e : ((ConstructorInvocation)st).arguments()) {
+                countOperationsInExpression((Expression)e);
+            }
+        }
+        
+        if (st instanceof SuperConstructorInvocation) {
+            for (Object e : ((SuperConstructorInvocation)st).arguments()) {
+                countOperationsInExpression((Expression)e);
+            }
+        }
+        
+        if (st instanceof DoStatement) {
+            countOperationsInStatement(((DoStatement)st).getBody());
+            countOperationsInExpression(((DoStatement)st).getExpression());            
+        }
+        
+        if (st instanceof ForStatement) {
+            for (Object e : ((ForStatement)st).initializers()) {
+                countOperationsInExpression((Expression)e);
+            }
+            
+            countOperationsInExpression(((ForStatement)st).getExpression());
+            
+            for (Object e : ((ForStatement)st).updaters()) {
+                countOperationsInExpression((Expression)e);
+            }           
+        }
+        
+        if (st instanceof IfStatement) {
+            countOperationsInExpression(((IfStatement)st).getExpression());//условие
+            countOperationsInStatement(((IfStatement)st).getThenStatement());
+            if (((IfStatement)st).getElseStatement() != null) {
+                countOperationsInStatement(((IfStatement)st).getElseStatement());
+            }
+        }
+        
+        if (st instanceof SwitchStatement) {
+            countOperationsInExpression(((SwitchStatement)st).getExpression());
+            for (Object e : ((SwitchStatement)st).statements()) {
+                countOperationsInStatement((Statement)e);//TODO: при чем тут SwitchCase класс?
+            }  
+        }
+        
+        if (st instanceof SynchronizedStatement) {
+            countOperationsInExpression(((SynchronizedStatement)st).getExpression());
+            countOperationsInStatement(((SynchronizedStatement)st).getBody());
+        }
+        
+        if (st instanceof ThrowStatement) {
+            countOperationsInExpression(((ThrowStatement)st).getExpression());
+        }
+        
+        if (st instanceof TryStatement) {
+            for (Object e : ((TryStatement)st).resources()) {
+                countOperationsInExpression((Expression)e);
+            }  
+            countOperationsInStatement(((TryStatement)st).getBody());
+        }
+        
+        if (st instanceof TypeDeclarationStatement) {
+            for(MethodDeclaration m : ((TypeDeclaration)((TypeDeclarationStatement)st).getDeclaration()).getMethods()) {                
+                for (Object s : m.getBody().statements()) {         
+                    countOperationsInStatement((Statement)s);
+                }
+            }
+        }
+        
+        if (st instanceof VariableDeclarationStatement) {
+            for (Object e : ((VariableDeclarationStatement)st).fragments()) 
+            {
+                countOperationsInExpression(((VariableDeclarationFragment)e).getInitializer());
+            }
+        }
+        
+        if (st instanceof WhileStatement) {
+            countOperationsInExpression(((WhileStatement)st).getExpression());            
+            countOperationsInStatement(((WhileStatement)st).getBody());
+        }
+        
+        if (st instanceof EnhancedForStatement) {
+            countOperationsInExpression(((EnhancedForStatement)st).getExpression());            
+            countOperationsInStatement(((EnhancedForStatement)st).getBody());
+        }
+        
+        
+        return 0;
     }
 }
