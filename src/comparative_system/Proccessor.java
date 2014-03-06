@@ -380,7 +380,7 @@ public class Proccessor {
         if (ex instanceof PrefixExpression)              { return proccessPrefixExpression((PrefixExpression)ex); }             
         if (ex instanceof PostfixExpression)             { return proccessPostfixExpression((PostfixExpression)ex); }           
         if (ex instanceof InfixExpression)               { return proccessInfixExpression((InfixExpression)ex); }          
-        if (ex instanceof  Assignment)                   { return proccessAssignmentExpression((Assignment)ex); }
+        if (ex instanceof Assignment)                    { return proccessAssignmentExpression((Assignment)ex); }
              
         return 0;
     }

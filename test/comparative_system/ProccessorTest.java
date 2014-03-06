@@ -7,7 +7,10 @@
 package comparative_system;
 
 import comparative_system.model.Code;
+import java.awt.Point;
 import java.util.ArrayList;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 import org.eclipse.jdt.core.dom.Expression;
@@ -23,7 +26,6 @@ public class ProccessorTest {
     
     
     private static final String counterName = "counter123";
-    
 //    String code = "public static class A {\n" +
 //"    public int res() {\n" +
 //"		int result = 0;\n" +
@@ -136,13 +138,14 @@ public class ProccessorTest {
     public void testFillNewMap() {
         System.out.println("fillNewMap");
         String code = "public class A{\n" +
-"    public static int res() {\n"
-                + "int k;" +
-"		int result = 0;\n"
-                + "int kos = k = (10 * 10) + 10 - 2;" +
+"    public static int[] res() {\n" +
+"		int result[] = {12, 1-2, 3+44, 4};\n" +
+"		for (int i = 0, j = 10 * (12-10); i < 100; i++) {\n" +
+"			result[i] += (((((i + 1) + 2) + 3) + 4) + 5);\n" +
+"		}\n" +
 "		return result;\n" +
 "	}\n" +
-"}";
+"}  ";
         Proccessor.fillNewMap(code);
         // TODO review the generated test code and remove the default call to fail.
         assertEquals(1, 1);
