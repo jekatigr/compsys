@@ -105,8 +105,8 @@ public class Proccessor {
         }
         
         private void addParsedExpression(int startPosition, int length, String expression, int countOperations) {
-            if (countOperations > 0) {
-                System.out.println(startPosition + " - " + length + " - " + expression + " - " + countOperations);
+            if (countOperations >= 0) {
+                System.out.println(startPosition + " - " + length + " - " + expression + " - " + countOperations+"\n\n");
                 this.list.add(new MapNode(startPosition, length, expression, countOperations));
             }
         }
@@ -172,7 +172,8 @@ public class Proccessor {
         for (Object e : cu.types()) {        
             if (e instanceof TypeDeclaration) {//если класс
                 for(MethodDeclaration m : ((TypeDeclaration)e).getMethods()) {                
-                    for (Object s : m.getBody().statements()) {                    
+                    for (Object s : m.getBody().statements()) {  
+                        System.out.print(s+"   ");
                         countOperationsInStatement((Statement)s);
                     }
                 }
@@ -194,134 +195,6 @@ public class Proccessor {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
-    static int countOperationsInExpression(Expression ex) {
-        int c = 0;
-        if (ex == null ||
-                ex instanceof BooleanLiteral || 
-                ex instanceof CharacterLiteral || 
-                ex instanceof NullLiteral || 
-                ex instanceof NumberLiteral || 
-                ex instanceof StringLiteral || 
-                ex instanceof TypeLiteral ||
-                ex instanceof Name ||
-                ex instanceof SuperFieldAccess ||
-                ex instanceof ThisExpression) {
-            return 0;
-        }
-        
-        if (ex instanceof MethodInvocation) {
-            for (Object e : ((MethodInvocation)ex).arguments()) 
-            {
-                c += countOperationsInExpression((Expression)e);
-            }
-        }
-        
-        if (ex instanceof SuperMethodInvocation) {
-            for (Object e : ((SuperMethodInvocation)ex).arguments()) 
-            {
-                c += countOperationsInExpression((Expression)e);
-            }
-        }
-        
-        if (ex instanceof VariableDeclarationExpression) {
-            for (Object e : ((VariableDeclarationExpression)ex).fragments()) 
-            {
-                c += countOperationsInExpression(((VariableDeclarationFragment)e).getInitializer());
-            }
-        }
-        
-        if (ex instanceof Annotation) {
-            if (ex instanceof NormalAnnotation) {
-                for(Object m : ((NormalAnnotation)ex).values()) {
-                    c += countOperationsInExpression(((MemberValuePair)m).getValue());
-                }
-            }
-            if (ex instanceof SingleMemberAnnotation) {
-                c += countOperationsInExpression(((SingleMemberAnnotation)ex).getValue());
-            }
-        }
-        
-        if (ex instanceof CastExpression) {
-            c += countOperationsInExpression(((CastExpression)ex).getExpression());
-        }
-        
-        if (ex instanceof ConditionalExpression) {
-            c += countOperationsInExpression(((ConditionalExpression)ex).getExpression());
-            c += countOperationsInExpression(((ConditionalExpression)ex).getThenExpression());
-            c += countOperationsInExpression(((ConditionalExpression)ex).getElseExpression());
-        }
-        
-        if (ex instanceof FieldAccess) {
-            c += countOperationsInExpression(((FieldAccess)ex).getExpression());
-        }
-        
-        if (ex instanceof InstanceofExpression) {
-            c += countOperationsInExpression(((InstanceofExpression)ex).getLeftOperand());
-        }
-        
-        if (ex instanceof ParenthesizedExpression) {
-            c += countOperationsInExpression(((ParenthesizedExpression)ex).getExpression());
-        }
-        
-        if (ex instanceof ArrayCreation) {
-            c += countOperationsInExpression(((ArrayCreation)ex).getInitializer());
-        }
-        
-        if (ex instanceof ArrayInitializer) {
-            for (Object e : ((ArrayInitializer)ex).expressions()) 
-            {
-                c += countOperationsInExpression((Expression)e);
-            }
-        }
-        
-        if (ex instanceof ArrayAccess) {
-            c += countOperationsInExpression(((ArrayAccess)ex).getArray());
-            c += countOperationsInExpression(((ArrayAccess)ex).getIndex());
-        }
-        
-        if (ex instanceof ClassInstanceCreation) {
-            c += countOperationsInExpression(((ClassInstanceCreation)ex).getExpression());
-            for (Object e : ((ClassInstanceCreation)ex).arguments()) 
-            {
-                c += countOperationsInExpression((Expression)e);
-            }
-            
-            for (Object e : ((ClassInstanceCreation)ex).getAnonymousClassDeclaration().bodyDeclarations()) 
-            {
-                if (e instanceof MethodDeclaration)
-                    countOperationsInStatement(((MethodDeclaration)e).getBody());
-            }
-            
-            c += countOperationsInExpression(((ClassInstanceCreation)ex).getExpression());
-        }
-        
-        if (ex instanceof PrefixExpression) {
-            c += 1; // префиксные ++, --, +, -, ~ и !.
-            c += countOperationsInExpression(((PrefixExpression)ex).getOperand());
-        }
-        
-        if (ex instanceof PostfixExpression) {
-            c += 1; // постфиксные ++ и --.
-            c += countOperationsInExpression(((PostfixExpression)ex).getOperand());
-        }
-        
-        if (ex instanceof InfixExpression) {
-            c += 1;
-            c += countOperationsInExpression(((InfixExpression)ex).getLeftOperand());
-            c += countOperationsInExpression(((InfixExpression)ex).getRightOperand());
-            if (((InfixExpression)ex).hasExtendedOperands()) System.out.println("\n\nДополнительные элементы!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        }
-        
-        if (ex instanceof  Assignment) {
-            c += 1;
-            c += countOperationsInExpression(((Assignment)ex).getLeftHandSide());
-            c += countOperationsInExpression(((Assignment)ex).getRightHandSide());
-        }
-              
-        
-        
-        return c;
-    }
     
     private static void countOperationsInStatement(Statement st) {
         
@@ -449,8 +322,11 @@ public class Proccessor {
             int c = 0;
             for (Object e : ((VariableDeclarationStatement)st).fragments()) 
             {
-                c += countOperationsInExpression(((VariableDeclarationFragment)e).getInitializer());
-                c += 1;
+                if (((VariableDeclarationFragment)e).getInitializer() != null)
+                {
+                    c += countOperationsInExpression(((VariableDeclarationFragment)e).getInitializer());
+                    c += 1;
+                }
             }
             map.addParsedExpression(st.getStartPosition(), st.getLength(), "VariableDeclarationStatement", c);
         }
@@ -468,8 +344,175 @@ public class Proccessor {
             
             countOperationsInStatement(((EnhancedForStatement)st).getBody());
         }
-        
-        
-        return;
     }
+
+    static int countOperationsInExpression(Expression ex) {
+        if (ex == null ||
+                ex instanceof BooleanLiteral || 
+                ex instanceof CharacterLiteral || 
+                ex instanceof NullLiteral || 
+                ex instanceof NumberLiteral || 
+                ex instanceof StringLiteral || 
+                ex instanceof TypeLiteral ||
+                ex instanceof Name ||
+                ex instanceof SuperFieldAccess ||
+                ex instanceof ThisExpression) {
+            return 0;
+        }
+        
+        if (ex instanceof Annotation) {
+            if (ex instanceof NormalAnnotation)       { return proccessNormalAnnotationExpression((NormalAnnotation)ex); }
+            if (ex instanceof SingleMemberAnnotation) { return proccessSingleMemberAnnotationExpression((SingleMemberAnnotation)ex); }
+        }
+        
+        if (ex instanceof MethodInvocation)              { return proccessMethodInvocationExpression((MethodInvocation)ex); }
+        if (ex instanceof SuperMethodInvocation)         { return proccessSuperMethodInvocationExpression((SuperMethodInvocation)ex); }
+        if (ex instanceof VariableDeclarationExpression) { return proccessVariableDeclarationExpression((VariableDeclarationExpression)ex); }
+        if (ex instanceof CastExpression)                { return proccessCastExpression((CastExpression)ex); }
+        if (ex instanceof ConditionalExpression)         { return proccessConditionalExpression((ConditionalExpression)ex); }        
+        if (ex instanceof FieldAccess)                   { return proccessFieldAccessExpression((FieldAccess)ex); }              
+        if (ex instanceof InstanceofExpression)          { return proccessInstanceofExpression((InstanceofExpression)ex); }           
+        if (ex instanceof ParenthesizedExpression)       { return proccessParenthesizedExpression((ParenthesizedExpression)ex); }            
+        if (ex instanceof ArrayCreation)                 { return proccessArrayCreationExpression((ArrayCreation)ex); }              
+        if (ex instanceof ArrayInitializer)              { return proccessArrayInitializerExpression((ArrayInitializer)ex); }             
+        if (ex instanceof ArrayAccess)                   { return proccessArrayAccessExpression((ArrayAccess)ex); }      
+        if (ex instanceof ClassInstanceCreation)         { return proccessClassInstanceCreationExpression((ClassInstanceCreation)ex); }             
+        if (ex instanceof PrefixExpression)              { return proccessPrefixExpression((PrefixExpression)ex); }             
+        if (ex instanceof PostfixExpression)             { return proccessPostfixExpression((PostfixExpression)ex); }           
+        if (ex instanceof InfixExpression)               { return proccessInfixExpression((InfixExpression)ex); }          
+        if (ex instanceof  Assignment)                   { return proccessAssignmentExpression((Assignment)ex); }
+             
+        return 0;
+    }
+    
+    //<editor-fold defaultstate="collapsed" desc="Методы разбора типов-потомков Expression.">
+    private static int proccessAssignmentExpression(Assignment ex) {
+        int c = 1;
+        c += countOperationsInExpression(((Assignment)ex).getLeftHandSide());
+        c += countOperationsInExpression(((Assignment)ex).getRightHandSide());
+        return c;
+    }
+    private static int proccessInfixExpression(InfixExpression ex) {
+        int c = 1;
+        c += countOperationsInExpression(((InfixExpression)ex).getLeftOperand());
+        c += countOperationsInExpression(((InfixExpression)ex).getRightOperand());
+        return c;
+    }
+    private static int proccessPostfixExpression(PostfixExpression ex) {
+        int c = 1; // постфиксные ++ и --.
+        c += countOperationsInExpression(((PostfixExpression)ex).getOperand());
+        return c;
+    }
+    private static int proccessPrefixExpression(PrefixExpression ex) {
+        int c = 1; // префиксные ++, --, +, -, ~ и !.
+        c += countOperationsInExpression(ex.getOperand());
+        return c;
+    } 
+    private static int proccessClassInstanceCreationExpression(ClassInstanceCreation ex) {
+        int c = 0;
+        
+        c += countOperationsInExpression(ex.getExpression());
+        for (Object e : ex.arguments()) 
+        {
+            c += countOperationsInExpression((Expression)e);
+        }
+
+        if (ex.getAnonymousClassDeclaration() != null) {
+            for (Object e : ex.getAnonymousClassDeclaration().bodyDeclarations()) 
+            {
+                if (e instanceof MethodDeclaration)
+                    countOperationsInStatement(((MethodDeclaration)e).getBody());
+            }
+        }
+
+        c += countOperationsInExpression(ex.getExpression());
+        
+        return c;
+    }
+    private static int proccessArrayAccessExpression(ArrayAccess ex) {
+        int c = 1; 
+        c += countOperationsInExpression(ex.getArray());
+        c += countOperationsInExpression(ex.getIndex());
+        return c;
+    }
+    private static int proccessArrayInitializerExpression(ArrayInitializer ex) {
+        int c = 0; 
+        for (Object e : ex.expressions()) 
+        {
+            c += countOperationsInExpression((Expression)e);
+        }
+        return c;
+    }
+    private static int proccessArrayCreationExpression(ArrayCreation ex) {
+        int c = 0; 
+        c += countOperationsInExpression(ex.getInitializer());
+        return c;
+    } 
+    private static int proccessParenthesizedExpression(ParenthesizedExpression ex) {
+        int c = 0; 
+        c += countOperationsInExpression(ex.getExpression());
+        return c;
+    } 
+    private static int proccessInstanceofExpression(InstanceofExpression ex) {
+        int c = 0; 
+        c += countOperationsInExpression(ex.getLeftOperand());
+        return c;
+    }
+    private static int proccessFieldAccessExpression(FieldAccess ex) {
+        int c = 0; 
+        c += countOperationsInExpression(ex.getExpression());
+        return c;
+    } 
+    private static int proccessCastExpression(CastExpression ex) {
+        int c = 0; 
+        c += countOperationsInExpression(ex.getExpression());
+        return c;
+    }
+    private static int proccessConditionalExpression(ConditionalExpression ex) {
+        int c = 0; 
+        c += countOperationsInExpression(ex.getExpression());
+        c += countOperationsInExpression(ex.getThenExpression());
+        c += countOperationsInExpression(ex.getElseExpression());
+        return c;
+    }
+    private static int proccessNormalAnnotationExpression(NormalAnnotation ex) {
+        int c = 0; 
+        for(Object m : ex.values()) {
+            c += countOperationsInExpression(((MemberValuePair)m).getValue());
+        }
+        return c;
+    }
+    private static int proccessSingleMemberAnnotationExpression(SingleMemberAnnotation ex) {
+        int c = 0; 
+        c += countOperationsInExpression(ex.getValue());
+        return c;
+    }
+    private static int proccessVariableDeclarationExpression(VariableDeclarationExpression ex) {
+        int c = 0; 
+        for (Object e : ex.fragments()) 
+        {
+            if (((VariableDeclarationFragment)e).getInitializer() != null) {
+                c += countOperationsInExpression(((VariableDeclarationFragment)e).getInitializer());
+                c += 1;
+            }
+        }
+        return c;
+    }
+    private static int proccessSuperMethodInvocationExpression(SuperMethodInvocation ex) {
+        int c = 0; 
+        for (Object e : ex.arguments()) 
+        {
+            c += countOperationsInExpression((Expression)e);
+        }
+        return c;
+    }
+    private static int proccessMethodInvocationExpression(MethodInvocation ex) {
+        int c = 0; 
+        for (Object e : ex.arguments()) 
+        {
+            c += countOperationsInExpression((Expression)e);
+        }
+        return c;
+    }
+    //</editor-fold>
 }
