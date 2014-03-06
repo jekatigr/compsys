@@ -9,9 +9,6 @@ package comparative_system;
 import comparative_system.model.Code;
 import java.util.ArrayList;
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
@@ -114,42 +111,8 @@ public class ProccessorTest {
         fail("The test case is a prototype.");
     }
 
-    /**
-     * Test of buildNewMap method, of class Proccessor.
-     */
-    @Test
-    public void testBuildNewMap() {
-        System.out.println("buildNewMap");
-        
-        String code = "public class A{\n" +
-"    public static int res() {\n" +
-"		int result = 0;\n" +
-"		for (int i = 0; i < 100; i++) {\n" +
-"			result -= i;\n" +
-"			for (int j = 0; j < 100; j++) {\n" +
-"				if (i*j % 5 == 0)\n" +
-"					result += i*j;\n" +
-"					result %= 10;\n" +
-"			}\n" +
-"		}\n" +
-"		return result;\n" +
-"	}\n" +
-"	public int meth() {\n" +
-"		int h = 0;\n" + 
-"               h = 12 * (12 - 90);\n" +
-"		int start;\n" +
-"		h = start = h + res();\n" +
-"		System.out.print(h + 10);\n" +
-"	}\n" +
-"}";
-        
-        Proccessor.Map expResult = null;
-        Proccessor.Map result = Proccessor.buildNewMap(code);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
+    
+    
     /**
      * Test of putCountersInCodeFromMap method, of class Proccessor.
      */
@@ -164,5 +127,24 @@ public class ProccessorTest {
         assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
+    }
+
+    /**
+     * Test of fillNewMap method, of class Proccessor.
+     */
+    @Test
+    public void testFillNewMap() {
+        System.out.println("fillNewMap");
+        String code = "public class A{\n" +
+"    public static int res() {\n"
+                + "int k;" +
+"		int result = 0;\n"
+                + "int kos = k = (10 * 10) + 10 - 2;" +
+"		return result;\n" +
+"	}\n" +
+"}";
+        Proccessor.fillNewMap(code);
+        // TODO review the generated test code and remove the default call to fail.
+        assertEquals(1, 1);
     }
 }

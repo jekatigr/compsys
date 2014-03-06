@@ -6,7 +6,7 @@
 
 package comparative_system.model;
 
-import com.almworks.sqlite4java.SQLiteConnection;
+import com.almworks.sqlite4java.SQLiteConnection; 
 import com.almworks.sqlite4java.SQLiteException;
 import com.almworks.sqlite4java.SQLiteStatement;
 import comparative_system.Proccessor;
@@ -56,8 +56,8 @@ public class Project {
      * @param counterName Имя счетчика операций.
      * @param codes Исходные и сгенерированные коды алгоритма.
      */
-    private void addAlgorithm(int id, String name, String mainMethod, String counterName, ArrayList<Code> codes) {
-        algorithms.add(new Algorithm(id, name, mainMethod, counterName, codes));
+    private void addAlgorithm(int id, String name, String mainMethod, ArrayList<Code> codes) {
+        algorithms.add(new Algorithm(id, name, mainMethod, codes));
     }
 
     /**
@@ -68,8 +68,7 @@ public class Project {
      * @param mainMethod Метод вызова алгоритма.
      */
     public void addAlgorithm(String name, ArrayList<String> codes, String mainMethod) { 
-        String counterName = Proccessor.getCounterName(codes);
-        algorithms.add(new Algorithm(name, mainMethod, counterName, Proccessor.putCounters(counterName, codes)));
+        algorithms.add(new Algorithm(name, mainMethod, Proccessor.putCounters(codes)));
         this.saveAlgorithmInDB(this.algorithms.size() - 1);
     }
     
@@ -145,10 +144,9 @@ public class Project {
             db.open();
             //--открываем базу данных проекта
             //сохраняем данные
-            db.exec("INSERT INTO algorithms (name, main, counter_name) "
+            db.exec("INSERT INTO algorithms (name, main) "
                     + "VALUES ('"+ algorithms.get(index).getName() 
-                    + "', '"+ algorithms.get(index).getMainMethod() 
-                    + "', '"+ algorithms.get(index).getCounterName() +"')");
+                    + "', '"+ algorithms.get(index).getMainMethod() +"')");
             
             long alg_id = algorithms.get(index).getId();
             if (alg_id == -1) { // значит алгорит новый, сохраняем впервые
@@ -207,7 +205,7 @@ public class Project {
                     codes.add(new Code(st2.columnInt(0), st2.columnString(2), st2.columnString(3)));
                 }
                 //--коды алгоритмов
-                project.addAlgorithm(alg_id, st.columnString(1), st.columnString(2), st.columnString(3), codes);
+                project.addAlgorithm(alg_id, st.columnString(1), st.columnString(2), codes);
             }
             //--алгоритмы
             //параметры методов вызова
@@ -269,7 +267,7 @@ public class Project {
             db.open();
             //--создаем базу данных проекта
             //создаем структуру БД
-            db.exec("CREATE TABLE algorithms(id INTEGER PRIMARY KEY, name, main, counter_name)");
+            db.exec("CREATE TABLE algorithms(id INTEGER PRIMARY KEY, name, main)");
             db.exec("CREATE TABLE codes(id INTEGER PRIMARY KEY, alg_id, sourse_code, generated_code)");
             db.exec("CREATE TABLE source_gen(id INTEGER PRIMARY KEY, name, code)");
             db.exec("CREATE TABLE results(id INTEGER PRIMARY KEY, alg_id, data_id, operations)");

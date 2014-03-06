@@ -19,6 +19,7 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.Annotation;
+import org.eclipse.jdt.core.dom.ArrayAccess;
 import org.eclipse.jdt.core.dom.ArrayCreation;
 import org.eclipse.jdt.core.dom.ArrayInitializer;
 import org.eclipse.jdt.core.dom.AssertStatement;
@@ -55,11 +56,12 @@ import org.eclipse.jdt.core.dom.NormalAnnotation;
 import org.eclipse.jdt.core.dom.NullLiteral;
 import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.ParenthesizedExpression;
+import org.eclipse.jdt.core.dom.PostfixExpression;
+import org.eclipse.jdt.core.dom.PrefixExpression;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.StringLiteral;
-import org.eclipse.jdt.core.dom.StructuralPropertyDescriptor;
 import org.eclipse.jdt.core.dom.SuperConstructorInvocation;
 import org.eclipse.jdt.core.dom.SuperFieldAccess;
 import org.eclipse.jdt.core.dom.SuperMethodInvocation;
@@ -103,12 +105,15 @@ public class Proccessor {
         }
         
         private void addParsedExpression(int startPosition, int length, String expression, int countOperations) {
-            this.list.add(new MapNode(startPosition, length, expression, countOperations));
+            if (countOperations > 0) {
+                System.out.println(startPosition + " - " + length + " - " + expression + " - " + countOperations);
+                this.list.add(new MapNode(startPosition, length, expression, countOperations));
+            }
         }
     }
     
     
-    private static final ASTParser parser = ASTParser.newParser(AST.JLS3);
+    private static final ASTParser parser = ASTParser.newParser(AST.JLS4);
     
     public static ArrayList<MethodDeclaration> getAllMethodsFromCodes(ArrayList<String> codes) {
         final ArrayList<MethodDeclaration> methods = new ArrayList<>();
@@ -133,24 +138,14 @@ public class Proccessor {
     }
 
     /**
-     * Метод для определения будущего имени счетчика операций.
-     * @param codes Исходные коды алгоритма.
-     * @return Будущее имя счетчика.
-     */
-    public static String getCounterName(ArrayList<String> codes) {//TODO: реализовать метод getCounterName
-        return "tempNameOfCounter";
-    }
-
-    /**
      * Метод для расстановки счетчиков операций в алгоритма. 
-     * @param counterName Имя счетчика.
      * @param codes Исходные коды алгоритма.
      * @return Коды с расставленными счетчиками.
      */
-    public static ArrayList<Code> putCounters(String counterName, ArrayList<String> codes) {
+    public static ArrayList<Code> putCounters(ArrayList<String> codes) {
         ArrayList<Code> gen_codes = new ArrayList<>();
         for (String code : codes) {
-            gen_codes.add(new Code(code, getGeneratedCode(counterName, code)));
+            gen_codes.add(new Code(code, getGeneratedCode(code)));
         }        
         return gen_codes;
     }   
@@ -161,13 +156,14 @@ public class Proccessor {
      * @param code Исходный код одного public-класса.
      * @return Код с вставленными счетчиками.
      */
-    static String getGeneratedCode(String counterName, String code) {
-        Map map = buildNewMap(code);
-        return putCountersInCodeFromMap(map, counterName, code);
+    static String getGeneratedCode(String code) {
+        fillNewMap(code);
+        return putCountersInCodeFromMap(code);
     }
 
-    static Map buildNewMap(String code) {
-        final Map map = new Map();
+    private static Map map;
+    public static void fillNewMap(String code) {
+        map = new Map();
         
         parser.setSource(code.toCharArray());
         parser.setKind(ASTParser.K_COMPILATION_UNIT);
@@ -177,7 +173,6 @@ public class Proccessor {
             if (e instanceof TypeDeclaration) {//если класс
                 for(MethodDeclaration m : ((TypeDeclaration)e).getMethods()) {                
                     for (Object s : m.getBody().statements()) {                    
-                        System.out.println(s.toString()+"\n\n");
                         countOperationsInStatement((Statement)s);
                     }
                 }
@@ -187,21 +182,20 @@ public class Proccessor {
 //        cu.accept(new ASTVisitor() {
 //            public boolean visit(BodyDeclaration node) {// ходим по всем действиям
 //                System.out.println();
-//                map.addParsedExpression(node.getStartPosition(), node.getLength(), "Expression", countOperations(node));
+//                //map.addParsedExpression(node.getStartPosition(), node.getLength(), "Expression", countOperations(node));
 //                System.out.println();
 //                System.out.println();
 //                return true;
 //            }
 //        });
-        return map;
     }
 
-    static String putCountersInCodeFromMap(Map map, String counterName, String code) {
+    static String putCountersInCodeFromMap(String code) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
-    private static int count = 0;
     static int countOperationsInExpression(Expression ex) {
+        int c = 0;
         if (ex == null ||
                 ex instanceof BooleanLiteral || 
                 ex instanceof CharacterLiteral || 
@@ -218,73 +212,78 @@ public class Proccessor {
         if (ex instanceof MethodInvocation) {
             for (Object e : ((MethodInvocation)ex).arguments()) 
             {
-                countOperationsInExpression((Expression)e);
+                c += countOperationsInExpression((Expression)e);
             }
         }
         
         if (ex instanceof SuperMethodInvocation) {
             for (Object e : ((SuperMethodInvocation)ex).arguments()) 
             {
-                countOperationsInExpression((Expression)e);
+                c += countOperationsInExpression((Expression)e);
             }
         }
         
         if (ex instanceof VariableDeclarationExpression) {
             for (Object e : ((VariableDeclarationExpression)ex).fragments()) 
             {
-                countOperationsInExpression(((VariableDeclarationFragment)e).getInitializer());
+                c += countOperationsInExpression(((VariableDeclarationFragment)e).getInitializer());
             }
         }
         
         if (ex instanceof Annotation) {
             if (ex instanceof NormalAnnotation) {
                 for(Object m : ((NormalAnnotation)ex).values()) {
-                    countOperationsInExpression(((MemberValuePair)m).getValue());
+                    c += countOperationsInExpression(((MemberValuePair)m).getValue());
                 }
             }
             if (ex instanceof SingleMemberAnnotation) {
-                countOperationsInExpression(((SingleMemberAnnotation)ex).getValue());
+                c += countOperationsInExpression(((SingleMemberAnnotation)ex).getValue());
             }
         }
         
         if (ex instanceof CastExpression) {
-            countOperationsInExpression(((CastExpression)ex).getExpression());
+            c += countOperationsInExpression(((CastExpression)ex).getExpression());
         }
         
         if (ex instanceof ConditionalExpression) {
-            countOperationsInExpression(((ConditionalExpression)ex).getExpression());
-            countOperationsInExpression(((ConditionalExpression)ex).getThenExpression());
-            countOperationsInExpression(((ConditionalExpression)ex).getElseExpression());
+            c += countOperationsInExpression(((ConditionalExpression)ex).getExpression());
+            c += countOperationsInExpression(((ConditionalExpression)ex).getThenExpression());
+            c += countOperationsInExpression(((ConditionalExpression)ex).getElseExpression());
         }
         
         if (ex instanceof FieldAccess) {
-            countOperationsInExpression(((FieldAccess)ex).getExpression());
+            c += countOperationsInExpression(((FieldAccess)ex).getExpression());
         }
         
         if (ex instanceof InstanceofExpression) {
-            countOperationsInExpression(((InstanceofExpression)ex).getLeftOperand());
+            c += countOperationsInExpression(((InstanceofExpression)ex).getLeftOperand());
         }
         
         if (ex instanceof ParenthesizedExpression) {
-            countOperationsInExpression(((ParenthesizedExpression)ex).getExpression());
+            c += countOperationsInExpression(((ParenthesizedExpression)ex).getExpression());
         }
         
         if (ex instanceof ArrayCreation) {
-            countOperationsInExpression(((ArrayCreation)ex).getInitializer());
+            c += countOperationsInExpression(((ArrayCreation)ex).getInitializer());
         }
         
         if (ex instanceof ArrayInitializer) {
             for (Object e : ((ArrayInitializer)ex).expressions()) 
             {
-                countOperationsInExpression((Expression)e);
+                c += countOperationsInExpression((Expression)e);
             }
         }
         
+        if (ex instanceof ArrayAccess) {
+            c += countOperationsInExpression(((ArrayAccess)ex).getArray());
+            c += countOperationsInExpression(((ArrayAccess)ex).getIndex());
+        }
+        
         if (ex instanceof ClassInstanceCreation) {
-            countOperationsInExpression(((ClassInstanceCreation)ex).getExpression());
+            c += countOperationsInExpression(((ClassInstanceCreation)ex).getExpression());
             for (Object e : ((ClassInstanceCreation)ex).arguments()) 
             {
-                countOperationsInExpression((Expression)e);
+                c += countOperationsInExpression((Expression)e);
             }
             
             for (Object e : ((ClassInstanceCreation)ex).getAnonymousClassDeclaration().bodyDeclarations()) 
@@ -293,24 +292,49 @@ public class Proccessor {
                     countOperationsInStatement(((MethodDeclaration)e).getBody());
             }
             
-            countOperationsInExpression(((ClassInstanceCreation)ex).getExpression());
+            c += countOperationsInExpression(((ClassInstanceCreation)ex).getExpression());
         }
         
+        if (ex instanceof PrefixExpression) {
+            c += 1; // префиксные ++, --, +, -, ~ и !.
+            c += countOperationsInExpression(((PrefixExpression)ex).getOperand());
+        }
         
-        return 0;
+        if (ex instanceof PostfixExpression) {
+            c += 1; // постфиксные ++ и --.
+            c += countOperationsInExpression(((PostfixExpression)ex).getOperand());
+        }
+        
+        if (ex instanceof InfixExpression) {
+            c += 1;
+            c += countOperationsInExpression(((InfixExpression)ex).getLeftOperand());
+            c += countOperationsInExpression(((InfixExpression)ex).getRightOperand());
+            if (((InfixExpression)ex).hasExtendedOperands()) System.out.println("\n\nДополнительные элементы!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        }
+        
+        if (ex instanceof  Assignment) {
+            c += 1;
+            c += countOperationsInExpression(((Assignment)ex).getLeftHandSide());
+            c += countOperationsInExpression(((Assignment)ex).getRightHandSide());
+        }
+              
+        
+        
+        return c;
     }
     
-    private static int countOperationsInStatement(Statement st) {
+    private static void countOperationsInStatement(Statement st) {
         
         if (st == null ||
                 st instanceof EmptyStatement || 
                 st instanceof ContinueStatement || 
                 st instanceof BreakStatement ) {
-            return 0;
+            return;
         }
         
         if (st instanceof ExpressionStatement) {
-            countOperationsInExpression(((ExpressionStatement)st).getExpression());
+            int c = countOperationsInExpression(((ExpressionStatement)st).getExpression());
+            map.addParsedExpression(st.getStartPosition(), st.getLength(), "ExpressionStatement", c);
         }
         
         if (st instanceof LabeledStatement) {
@@ -324,44 +348,58 @@ public class Proccessor {
         }
         
         if (st instanceof ReturnStatement) {
-            countOperationsInExpression(((ReturnStatement)st).getExpression());
+            int c = countOperationsInExpression(((ReturnStatement)st).getExpression());
+            map.addParsedExpression(st.getStartPosition(), st.getLength(), "ReturnStatement", c);
         }
         
         if (st instanceof AssertStatement) {
-            countOperationsInExpression(((AssertStatement)st).getExpression());
+            int c = countOperationsInExpression(((AssertStatement)st).getExpression());
+            map.addParsedExpression(st.getStartPosition(), st.getLength(), "AssertStatement", c);
         }
         
         if (st instanceof ConstructorInvocation) {
+            int c = 0;
             for (Object e : ((ConstructorInvocation)st).arguments()) {
-                countOperationsInExpression((Expression)e);
+                c += countOperationsInExpression((Expression)e);
             }
+            map.addParsedExpression(st.getStartPosition(), st.getLength(), "ConstructorInvocation", c);
         }
         
         if (st instanceof SuperConstructorInvocation) {
+            int c = 0;
             for (Object e : ((SuperConstructorInvocation)st).arguments()) {
-                countOperationsInExpression((Expression)e);
+                c += countOperationsInExpression((Expression)e);
             }
+            map.addParsedExpression(st.getStartPosition(), st.getLength(), "SuperConstructorInvocation", c);
         }
         
         if (st instanceof DoStatement) {
             countOperationsInStatement(((DoStatement)st).getBody());
-            countOperationsInExpression(((DoStatement)st).getExpression());            
+            int c = countOperationsInExpression(((DoStatement)st).getExpression());  
+            map.addParsedExpression(st.getStartPosition(), st.getLength(), "DoStatement", c);          
         }
         
         if (st instanceof ForStatement) {
+            int c = 0;
             for (Object e : ((ForStatement)st).initializers()) {
-                countOperationsInExpression((Expression)e);
+                c = countOperationsInExpression((Expression)e);
             }
+            map.addParsedExpression(st.getStartPosition(), st.getLength(), "ForStatement", c); 
             
-            countOperationsInExpression(((ForStatement)st).getExpression());
+            int c2 = countOperationsInExpression(((ForStatement)st).getExpression());
             
             for (Object e : ((ForStatement)st).updaters()) {
-                countOperationsInExpression((Expression)e);
+                c2 += countOperationsInExpression((Expression)e);
             }           
+            map.addParsedExpression(st.getStartPosition(), st.getLength(), "ForStatementIterators", c2);  
+            
+            countOperationsInStatement(((ForStatement)st).getBody());
         }
         
         if (st instanceof IfStatement) {
-            countOperationsInExpression(((IfStatement)st).getExpression());//условие
+            int c = countOperationsInExpression(((IfStatement)st).getExpression());//условие
+            map.addParsedExpression(st.getStartPosition(), st.getLength(), "IfStatement", c);  
+            
             countOperationsInStatement(((IfStatement)st).getThenStatement());
             if (((IfStatement)st).getElseStatement() != null) {
                 countOperationsInStatement(((IfStatement)st).getElseStatement());
@@ -369,25 +407,33 @@ public class Proccessor {
         }
         
         if (st instanceof SwitchStatement) {
-            countOperationsInExpression(((SwitchStatement)st).getExpression());
+            int c = countOperationsInExpression(((SwitchStatement)st).getExpression());
+            map.addParsedExpression(st.getStartPosition(), st.getLength(), "SwitchStatement", c);  
+            
             for (Object e : ((SwitchStatement)st).statements()) {
                 countOperationsInStatement((Statement)e);//TODO: при чем тут SwitchCase класс?
             }  
         }
         
         if (st instanceof SynchronizedStatement) {
-            countOperationsInExpression(((SynchronizedStatement)st).getExpression());
+            int c = countOperationsInExpression(((SynchronizedStatement)st).getExpression());
+            map.addParsedExpression(st.getStartPosition(), st.getLength(), "SynchronizedStatement", c);  
+            
             countOperationsInStatement(((SynchronizedStatement)st).getBody());
         }
         
         if (st instanceof ThrowStatement) {
-            countOperationsInExpression(((ThrowStatement)st).getExpression());
+            int c = countOperationsInExpression(((ThrowStatement)st).getExpression());
+            map.addParsedExpression(st.getStartPosition(), st.getLength(), "ThrowStatement", c);  
         }
         
         if (st instanceof TryStatement) {
+            int c = 0;
             for (Object e : ((TryStatement)st).resources()) {
-                countOperationsInExpression((Expression)e);
+                c += countOperationsInExpression((Expression)e);
             }  
+            map.addParsedExpression(st.getStartPosition(), st.getLength(), "TryStatement", c);  
+            
             countOperationsInStatement(((TryStatement)st).getBody());
         }
         
@@ -400,23 +446,30 @@ public class Proccessor {
         }
         
         if (st instanceof VariableDeclarationStatement) {
+            int c = 0;
             for (Object e : ((VariableDeclarationStatement)st).fragments()) 
             {
-                countOperationsInExpression(((VariableDeclarationFragment)e).getInitializer());
+                c += countOperationsInExpression(((VariableDeclarationFragment)e).getInitializer());
+                c += 1;
             }
+            map.addParsedExpression(st.getStartPosition(), st.getLength(), "VariableDeclarationStatement", c);
         }
         
         if (st instanceof WhileStatement) {
-            countOperationsInExpression(((WhileStatement)st).getExpression());            
+            int c = countOperationsInExpression(((WhileStatement)st).getExpression());        
+            map.addParsedExpression(st.getStartPosition(), st.getLength(), "WhileStatement", c);
+                        
             countOperationsInStatement(((WhileStatement)st).getBody());
         }
         
         if (st instanceof EnhancedForStatement) {
-            countOperationsInExpression(((EnhancedForStatement)st).getExpression());            
+            int c = countOperationsInExpression(((EnhancedForStatement)st).getExpression()); 
+            map.addParsedExpression(st.getStartPosition(), st.getLength(), "EnhancedForStatement", c + 4); // инкримент счетчика (2), сравнение счетика с размером контейнера (1), и присваивание значения из контейнера (1).
+            
             countOperationsInStatement(((EnhancedForStatement)st).getBody());
         }
         
         
-        return 0;
+        return;
     }
 }

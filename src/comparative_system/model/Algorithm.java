@@ -19,8 +19,6 @@ public class Algorithm {
     private String name;
     /** Метод вызова алгоритма. */
     private String mainMethod;
-    /** Имя счетчика операций в сгенерированных кодах. */
-    private String counterName;
     /** Исходные и сгенерированные коды алгоритма. */
     private ArrayList<Code> codes;
     
@@ -28,11 +26,10 @@ public class Algorithm {
      * Конструктор класса.
      * @param name Имя алгоритма.
      * @param mainMethod Метод вызова алгоритма.
-     * @param counterName Имя счетчика операций в сгенерированных кодах.
      * @param codes Исходные и сгенерированные коды алгоритма.
      */
-    public Algorithm(String name, String mainMethod, String counterName, ArrayList<Code> codes) {
-        this(-1, name, mainMethod, counterName, codes);
+    public Algorithm(String name, String mainMethod, ArrayList<Code> codes) {
+        this(-1, name, mainMethod, codes);
     }
     
     /**
@@ -43,11 +40,10 @@ public class Algorithm {
      * @param counterName Имя счетчика операций в сгенерированных кодах.
      * @param codes Исходные и сгенерированные коды алгоритма.
      */
-    public Algorithm(long id, String name, String mainMethod, String counterName, ArrayList<Code> codes) {
+    public Algorithm(long id, String name, String mainMethod, ArrayList<Code> codes) {
         this.id = id;
         this.name = name;
         this.mainMethod = mainMethod;
-        this.counterName = counterName;
         this.codes = codes;
     }
 
@@ -73,14 +69,6 @@ public class Algorithm {
      */
     public String getMainMethod() {
         return this.mainMethod;
-    }
-
-    /**
-     * Метод возвращает имя счетчика операций.
-     * @return Имя счетчика операций.
-     */
-    public String getCounterName() {
-        return this.counterName;
     }
 
     /**
