@@ -13,6 +13,10 @@ package comparative_system;
 import comparative_system.model.Code;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
@@ -58,7 +62,9 @@ import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.ParenthesizedExpression;
 import org.eclipse.jdt.core.dom.PostfixExpression;
 import org.eclipse.jdt.core.dom.PrefixExpression;
+import org.eclipse.jdt.core.dom.QualifiedName;
 import org.eclipse.jdt.core.dom.ReturnStatement;
+import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.StringLiteral;
@@ -77,6 +83,13 @@ import org.eclipse.jdt.core.dom.VariableDeclarationExpression;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.WhileStatement;
+import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
+import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.Document;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.text.edits.MalformedTreeException;
+import org.eclipse.text.edits.TextEdit;
 
 /**
  * 
@@ -162,24 +175,48 @@ public class Proccessor {
     }
 
     private static Map map;
+    
+    private static ASTRewrite rewriter = null;
+    private static CompilationUnit cu = null;
+    private static Document codeDoc = null;
     public static void fillNewMap(String code) {
-        map = new Map();
-        
-        parser.setSource(code.toCharArray());
-        parser.setKind(ASTParser.K_COMPILATION_UNIT);
-        final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
-
-        for (Object e : cu.types()) {        
-            if (e instanceof TypeDeclaration) {//если класс
-                for(MethodDeclaration m : ((TypeDeclaration)e).getMethods()) {                
-                    for (Object s : m.getBody().statements()) {  
-                        System.out.print(s+"   ");
-                        countOperationsInStatement((Statement)s);
+        try {
+            map = new Map();
+            
+            codeDoc = new Document(code);
+            parser.setSource(code.toCharArray());
+            parser.setKind(ASTParser.K_COMPILATION_UNIT);
+            cu = (CompilationUnit) parser.createAST(null);
+            AST ast = cu.getAST();
+            rewriter = ASTRewrite.create(ast);
+            
+            
+            //counterMethod.arguments().add(ast.newNumberLiteral("56"));
+            
+            //ExpressionStatement ex = ast.newExpressionStatement(counterMethod);
+            //block.statements().add(expressionStatement);
+            //methodDeclaration.setBody(block);
+            //type.bodyDeclarations().add(methodDeclaration);
+            
+            
+            //System.out.println(counterMethod.toString());
+            //counterMethod.arguments().add();
+            
+            for (Object e : cu.types()) {
+                if (e instanceof TypeDeclaration) {//если класс
+                    for(MethodDeclaration m : ((TypeDeclaration)e).getMethods()) {
+                        for (Object s : m.getBody().statements()) {
+                            System.out.print(s+"   ");
+                            countOperationsInStatement((Statement)s);
+                        }
                     }
                 }
             }
-        }
-        
+            
+            TextEdit edits = rewriter.rewriteAST(codeDoc, null);
+            edits.apply(codeDoc);
+            System.out.println("\n\n\n"+codeDoc.get()+"\n\n");
+            
 //        cu.accept(new ASTVisitor() {
 //            public boolean visit(BodyDeclaration node) {// ходим по всем действиям
 //                System.out.println();
@@ -189,15 +226,22 @@ public class Proccessor {
 //                return true;
 //            }
 //        });
+        } catch (MalformedTreeException ex) {
+            Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (BadLocationException ex) {
+            Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     static String putCountersInCodeFromMap(String code) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String res = "";
+        
+        return res;
     }
     
     
     private static void countOperationsInStatement(Statement st) {
-        
+        //if (astRewrite == null) return;
         if (st == null ||
                 st instanceof EmptyStatement || 
                 st instanceof ContinueStatement || 
@@ -206,8 +250,11 @@ public class Proccessor {
         }
         
         if (st instanceof ExpressionStatement) {
-            int c = countOperationsInExpression(((ExpressionStatement)st).getExpression());
-            map.addParsedExpression(st.getStartPosition(), st.getLength(), "ExpressionStatement", c);
+          
+                int c = countOperationsInExpression(((ExpressionStatement)st).getExpression());
+                insertCounter(st, c);
+                map.addParsedExpression(st.getStartPosition(), st.getLength(), "ExpressionStatement", c);
+            
         }
         
         if (st instanceof LabeledStatement) {
@@ -387,8 +434,14 @@ public class Proccessor {
     
     //<editor-fold defaultstate="collapsed" desc="Методы разбора типов-потомков Expression.">
     private static int proccessAssignmentExpression(Assignment ex) {
-        int c = 1;
-        c += countOperationsInExpression(((Assignment)ex).getLeftHandSide());
+        int c = 0;
+        int c2 = countOperationsInExpression(((Assignment)ex).getLeftHandSide());
+        if (ex.getOperator().equals(Assignment.Operator.ASSIGN)) {// из-за result[i]+=1 -> result[i]=result[i] + 1, а не result[i]=result+1;
+            c = c2 + 1;
+        } else {
+            c = c2 * 2 + 2;
+        }
+        
         c += countOperationsInExpression(((Assignment)ex).getRightHandSide());
         return c;
     }
@@ -399,13 +452,18 @@ public class Proccessor {
         return c;
     }
     private static int proccessPostfixExpression(PostfixExpression ex) {
-        int c = 1; // постфиксные ++ и --.
-        c += countOperationsInExpression(((PostfixExpression)ex).getOperand());
+        int c = 2; // постфиксные ++ и --.
+        c += 2 * countOperationsInExpression(((PostfixExpression)ex).getOperand());
         return c;
     }
     private static int proccessPrefixExpression(PrefixExpression ex) {
-        int c = 1; // префиксные ++, --, +, -, ~ и !.
-        c += countOperationsInExpression(ex.getOperand());
+        int c = 0, c2; // префиксные ++, --, +, -, ~ и !.
+        if (ex.getOperator().equals(PrefixExpression.Operator.INCREMENT) || ex.getOperator().equals(PrefixExpression.Operator.DECREMENT)) {
+            c2 = 2 + 2 * countOperationsInExpression(ex.getOperand());
+        } else {
+            c2 = 1 + countOperationsInExpression(ex.getOperand());
+        }
+        c += c2;
         return c;
     } 
     private static int proccessClassInstanceCreationExpression(ClassInstanceCreation ex) {
@@ -515,4 +573,31 @@ public class Proccessor {
         return c;
     }
     //</editor-fold>
+
+    private static void insertCounter(Statement st, int c) {
+        try {
+            Object o = st.getParent();
+            Object o2 = st.getLocationInParent();
+            
+            AST ast = st.getAST();
+            MethodInvocation counterMethod = ast.newMethodInvocation();
+            counterMethod.setExpression(ast.newSimpleName("Counter"));
+            counterMethod.setName(ast.newSimpleName("add"));
+            ExpressionStatement countExpr = ast.newExpressionStatement(counterMethod);
+            
+            ListRewrite lrw = rewriter.getListRewrite(st.getParent(), Block.STATEMENTS_PROPERTY);
+            ((MethodInvocation)countExpr.getExpression()).arguments().clear();
+            ((MethodInvocation)countExpr.getExpression()).arguments().add(st.getAST().newNumberLiteral(""+c));
+            Statement placeHolder = (Statement) rewriter.createStringPlaceholder("", ASTNode.EMPTY_STATEMENT);
+	    lrw.insertBefore(placeHolder, st, null);
+            lrw.insertBefore(countExpr, st, null);
+            
+            
+            
+        } catch (IllegalArgumentException ex) {
+            Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (MalformedTreeException ex) {
+            Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 }

@@ -138,14 +138,26 @@ public class ProccessorTest {
     public void testFillNewMap() {
         System.out.println("fillNewMap");
         String code = "public class A{\n" +
-"    public static int[] res() {\n" +
-"		int result[] = {12, 1-2, 3+44, 4};\n" +
-"		for (int i = 0, j = 10 * (12-10); i < 100; i++) {\n" +
-"			result[i] += (((((i + 1) + 2) + 3) + 4) + 5);\n" +
+"    public static int res() {\n" +
+"		int result = 0;\n" +
+"		for (int i = 0; i < 100; i++) {\n" +
+"			result -= i;\n" +
+"			for (int j = 0; j < 100; j++) {\n" +
+"				if (i*j % 5 == 0) {\n" +
+"					result += i*j;\n" +
+"				}\n" +
+"				result %= 10;\n" +
+"			}\n" +
 "		}\n" +
 "		return result;\n" +
 "	}\n" +
-"}  ";
+"	public int meth() {\n" +
+"		int h = 0;\n" +
+"		int start;\n" +
+"		h = start = h + res();\n" +
+"		System.out.print(h + 10);\n" +
+"	}\n" +
+"}";
         Proccessor.fillNewMap(code);
         // TODO review the generated test code and remove the default call to fail.
         assertEquals(1, 1);
