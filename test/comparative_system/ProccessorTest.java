@@ -121,7 +121,7 @@ public class ProccessorTest {
     @Test
     public void testPutCountersInCodeFromMap() {
         //System.out.println("putCountersInCodeFromMap");
-        Proccessor.Map map = null;
+        
         String counterName = "";
         String code = "";
         String expResult = "";
@@ -140,16 +140,14 @@ public class ProccessorTest {
         String code = "public class A{\n" +
 "    public static int res() {\n" +
 "		int result = 0;\n" +
-"		for (int i = 0; i < 100; i++) {\n" +
+"		for (int i = 1+2; i < 100+1+1+1; i++) {\n" +
 "			result -= i;\n" +
-"			for (int j = 0; j < 100; j++) {\n" +
-"				if (i*j % 5 == 0) {\n" +
-"					result += i*j;\n" +
-"				}\n" +
+"			for (int j = 0; j < 100; j++) \n" +
+"							\n" +
 "				result %= 10;\n" +
-"			}\n" +
+"			\n" +
 "		}\n" +
-"		return result;\n" +
+"		return result + 1;\n" +
 "	}\n" +
 "	public int meth() {\n" +
 "		int h = 0;\n" +

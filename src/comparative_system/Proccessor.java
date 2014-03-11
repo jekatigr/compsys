@@ -95,37 +95,7 @@ import org.eclipse.text.edits.TextEdit;
  * 
  * @author TireX
  */
-public class Proccessor {
-    
-    static class Map {
-        private static class MapNode {
-            private int codeStart;
-            private int codeLength;
-            private String type;
-            private int countOfOperations;
-            public MapNode(int codeStart, int codeLength, String type, int countOfOperations) {
-                this.codeStart = codeStart;
-                this.codeLength = codeLength;
-                this.type = type;
-                this.countOfOperations = countOfOperations;
-            }
-        }
-        
-        ArrayList<MapNode> list; 
-        
-        public Map() {
-            list = new ArrayList<>();
-        }
-        
-        private void addParsedExpression(int startPosition, int length, String expression, int countOperations) {
-            if (countOperations >= 0) {
-                System.out.println(startPosition + " - " + length + " - " + expression + " - " + countOperations+"\n\n");
-                this.list.add(new MapNode(startPosition, length, expression, countOperations));
-            }
-        }
-    }
-    
-    
+public class Proccessor { 
     private static final ASTParser parser = ASTParser.newParser(AST.JLS4);
     
     public static ArrayList<MethodDeclaration> getAllMethodsFromCodes(ArrayList<String> codes) {
@@ -174,15 +144,11 @@ public class Proccessor {
         return putCountersInCodeFromMap(code);
     }
 
-    private static Map map;
-    
     private static ASTRewrite rewriter = null;
     private static CompilationUnit cu = null;
     private static Document codeDoc = null;
     public static void fillNewMap(String code) {
         try {
-            map = new Map();
-            
             codeDoc = new Document(code);
             parser.setSource(code.toCharArray());
             parser.setKind(ASTParser.K_COMPILATION_UNIT);
@@ -190,23 +156,10 @@ public class Proccessor {
             AST ast = cu.getAST();
             rewriter = ASTRewrite.create(ast);
             
-            
-            //counterMethod.arguments().add(ast.newNumberLiteral("56"));
-            
-            //ExpressionStatement ex = ast.newExpressionStatement(counterMethod);
-            //block.statements().add(expressionStatement);
-            //methodDeclaration.setBody(block);
-            //type.bodyDeclarations().add(methodDeclaration);
-            
-            
-            //System.out.println(counterMethod.toString());
-            //counterMethod.arguments().add();
-            
             for (Object e : cu.types()) {
                 if (e instanceof TypeDeclaration) {//если класс
                     for(MethodDeclaration m : ((TypeDeclaration)e).getMethods()) {
                         for (Object s : m.getBody().statements()) {
-                            System.out.print(s+"   ");
                             countOperationsInStatement((Statement)s);
                         }
                     }
@@ -236,7 +189,7 @@ public class Proccessor {
     static String putCountersInCodeFromMap(String code) {
         String res = "";
         
-        return res;
+        return res;   
     }
     
     
@@ -250,11 +203,8 @@ public class Proccessor {
         }
         
         if (st instanceof ExpressionStatement) {
-          
-                int c = countOperationsInExpression(((ExpressionStatement)st).getExpression());
-                insertCounter(st, c);
-                map.addParsedExpression(st.getStartPosition(), st.getLength(), "ExpressionStatement", c);
-            
+            int c = countOperationsInExpression(((ExpressionStatement)st).getExpression());
+            if (c>0) { insertCounter(st, c); }
         }
         
         if (st instanceof LabeledStatement) {
@@ -269,12 +219,12 @@ public class Proccessor {
         
         if (st instanceof ReturnStatement) {
             int c = countOperationsInExpression(((ReturnStatement)st).getExpression());
-            map.addParsedExpression(st.getStartPosition(), st.getLength(), "ReturnStatement", c);
+            if (c>0) { insertCounter(st, c); }
         }
         
         if (st instanceof AssertStatement) {
             int c = countOperationsInExpression(((AssertStatement)st).getExpression());
-            map.addParsedExpression(st.getStartPosition(), st.getLength(), "AssertStatement", c);
+            if (c>0) { insertCounter(st, c); }
         }
         
         if (st instanceof ConstructorInvocation) {
@@ -282,7 +232,7 @@ public class Proccessor {
             for (Object e : ((ConstructorInvocation)st).arguments()) {
                 c += countOperationsInExpression((Expression)e);
             }
-            map.addParsedExpression(st.getStartPosition(), st.getLength(), "ConstructorInvocation", c);
+            if (c>0) { insertCounter(st, c); }
         }
         
         if (st instanceof SuperConstructorInvocation) {
@@ -290,13 +240,13 @@ public class Proccessor {
             for (Object e : ((SuperConstructorInvocation)st).arguments()) {
                 c += countOperationsInExpression((Expression)e);
             }
-            map.addParsedExpression(st.getStartPosition(), st.getLength(), "SuperConstructorInvocation", c);
+            if (c>0) { insertCounter(st, c); }
         }
         
         if (st instanceof DoStatement) {
             countOperationsInStatement(((DoStatement)st).getBody());
             int c = countOperationsInExpression(((DoStatement)st).getExpression());  
-            map.addParsedExpression(st.getStartPosition(), st.getLength(), "DoStatement", c);          
+            if (c>0) { insertCounter(st, c); }    
         }
         
         if (st instanceof ForStatement) {
@@ -304,21 +254,23 @@ public class Proccessor {
             for (Object e : ((ForStatement)st).initializers()) {
                 c = countOperationsInExpression((Expression)e);
             }
-            map.addParsedExpression(st.getStartPosition(), st.getLength(), "ForStatement", c); 
+            if (c>0) { insertCounter(st, c); }                
             
             int c2 = countOperationsInExpression(((ForStatement)st).getExpression());
             
             for (Object e : ((ForStatement)st).updaters()) {
                 c2 += countOperationsInExpression((Expression)e);
-            }           
-            map.addParsedExpression(st.getStartPosition(), st.getLength(), "ForStatementIterators", c2);  
+            }     
+            if (c > 0) {
+                insertCounter(((ForStatement)st).getBody(), c);
+            }
             
             countOperationsInStatement(((ForStatement)st).getBody());
         }
         
         if (st instanceof IfStatement) {
             int c = countOperationsInExpression(((IfStatement)st).getExpression());//условие
-            map.addParsedExpression(st.getStartPosition(), st.getLength(), "IfStatement", c);  
+            if (c>0) { insertCounter(st, c); }
             
             countOperationsInStatement(((IfStatement)st).getThenStatement());
             if (((IfStatement)st).getElseStatement() != null) {
@@ -328,7 +280,7 @@ public class Proccessor {
         
         if (st instanceof SwitchStatement) {
             int c = countOperationsInExpression(((SwitchStatement)st).getExpression());
-            map.addParsedExpression(st.getStartPosition(), st.getLength(), "SwitchStatement", c);  
+            if (c>0) { insertCounter(st, c); } 
             
             for (Object e : ((SwitchStatement)st).statements()) {
                 countOperationsInStatement((Statement)e);//TODO: при чем тут SwitchCase класс?
@@ -337,14 +289,16 @@ public class Proccessor {
         
         if (st instanceof SynchronizedStatement) {
             int c = countOperationsInExpression(((SynchronizedStatement)st).getExpression());
-            map.addParsedExpression(st.getStartPosition(), st.getLength(), "SynchronizedStatement", c);  
+            if (c>0) {
+                if (c>0) { insertCounter(st, c); }
+            }
             
             countOperationsInStatement(((SynchronizedStatement)st).getBody());
         }
         
         if (st instanceof ThrowStatement) {
             int c = countOperationsInExpression(((ThrowStatement)st).getExpression());
-            map.addParsedExpression(st.getStartPosition(), st.getLength(), "ThrowStatement", c);  
+            if (c>0) { insertCounter(st, c); }
         }
         
         if (st instanceof TryStatement) {
@@ -352,7 +306,7 @@ public class Proccessor {
             for (Object e : ((TryStatement)st).resources()) {
                 c += countOperationsInExpression((Expression)e);
             }  
-            map.addParsedExpression(st.getStartPosition(), st.getLength(), "TryStatement", c);  
+            if (c>0) { insertCounter(st, c); }
             
             countOperationsInStatement(((TryStatement)st).getBody());
         }
@@ -375,20 +329,20 @@ public class Proccessor {
                     c += 1;
                 }
             }
-            map.addParsedExpression(st.getStartPosition(), st.getLength(), "VariableDeclarationStatement", c);
+            if (c>0) { insertCounter(st, c); }
         }
         
         if (st instanceof WhileStatement) {
             int c = countOperationsInExpression(((WhileStatement)st).getExpression());        
-            map.addParsedExpression(st.getStartPosition(), st.getLength(), "WhileStatement", c);
+            if (c>0) { insertCounter(st, c); }
                         
             countOperationsInStatement(((WhileStatement)st).getBody());
         }
         
         if (st instanceof EnhancedForStatement) {
             int c = countOperationsInExpression(((EnhancedForStatement)st).getExpression()); 
-            map.addParsedExpression(st.getStartPosition(), st.getLength(), "EnhancedForStatement", c + 4); // инкримент счетчика (2), сравнение счетика с размером контейнера (1), и присваивание значения из контейнера (1).
-            
+            if (c>0) { insertCounter(st, c + 4); } // инкримент счетчика (2), сравнение счетика с размером контейнера (1), и присваивание значения из контейнера (1).
+                           
             countOperationsInStatement(((EnhancedForStatement)st).getBody());
         }
     }
@@ -576,24 +530,23 @@ public class Proccessor {
 
     private static void insertCounter(Statement st, int c) {
         try {
-            Object o = st.getParent();
-            Object o2 = st.getLocationInParent();
-            
             AST ast = st.getAST();
             MethodInvocation counterMethod = ast.newMethodInvocation();
             counterMethod.setExpression(ast.newSimpleName("Counter"));
             counterMethod.setName(ast.newSimpleName("add"));
             ExpressionStatement countExpr = ast.newExpressionStatement(counterMethod);
-            
-            ListRewrite lrw = rewriter.getListRewrite(st.getParent(), Block.STATEMENTS_PROPERTY);
             ((MethodInvocation)countExpr.getExpression()).arguments().clear();
             ((MethodInvocation)countExpr.getExpression()).arguments().add(st.getAST().newNumberLiteral(""+c));
-            Statement placeHolder = (Statement) rewriter.createStringPlaceholder("", ASTNode.EMPTY_STATEMENT);
-	    lrw.insertBefore(placeHolder, st, null);
-            lrw.insertBefore(countExpr, st, null);
             
-            
-            
+            if (st.getParent() instanceof Block) {
+                ListRewrite lrw = rewriter.getListRewrite(st.getParent(), Block.STATEMENTS_PROPERTY);
+                lrw.insertBefore(countExpr, st, null);
+            } else {
+                Block block = ast.newBlock();
+                block.statements().add(countExpr);
+                block.statements().add(rewriter.createCopyTarget(st));
+                rewriter.replace(st, block, null);
+            }            
         } catch (IllegalArgumentException ex) {
             Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
         } catch (MalformedTreeException ex) {
