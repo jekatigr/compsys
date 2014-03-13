@@ -6,6 +6,14 @@
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
+ *//*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ *//*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
  */
 
 package comparative_system;
@@ -140,19 +148,18 @@ public class Proccessor {
      * @return Код с вставленными счетчиками.
      */
     static String getGeneratedCode(String code) {
-        fillNewMap(code);
-        return putCountersInCodeFromMap(code);
+        putCountersInCode(code);
+        return codeDoc.get();
     }
 
-    private static ASTRewrite rewriter = null;
-    private static CompilationUnit cu = null;
     private static Document codeDoc = null;
-    public static void fillNewMap(String code) {
+    private static ASTRewrite rewriter = null;
+    public static void putCountersInCode(String code) {
         try {
             codeDoc = new Document(code);
             parser.setSource(code.toCharArray());
             parser.setKind(ASTParser.K_COMPILATION_UNIT);
-            cu = (CompilationUnit) parser.createAST(null);
+            CompilationUnit cu = (CompilationUnit) parser.createAST(null);
             AST ast = cu.getAST();
             rewriter = ASTRewrite.create(ast);
             
@@ -219,12 +226,6 @@ public class Proccessor {
         } catch (BadLocationException ex) {
             Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-
-    static String putCountersInCodeFromMap(String code) {
-        String res = "";
-        
-        return res;   
     }
     
     
