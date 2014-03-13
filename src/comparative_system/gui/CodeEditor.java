@@ -123,7 +123,7 @@ public class CodeEditor extends AnchorPane {
             }
             
             if (codemirrorcss.length() == 0) {
-                File clike = new File("lib/codemirror5.css");
+                File clike = new File("lib/codemirror.css");
                 StringBuilder temp = new StringBuilder();
                 BufferedReader bufferedReader = new BufferedReader(new FileReader(clike));
                 String text;
