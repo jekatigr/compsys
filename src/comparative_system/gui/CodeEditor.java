@@ -69,19 +69,19 @@ public class CodeEditor extends AnchorPane {
 
     /** sets the current code in the editor and creates an editing snapshot of the code which can be reverted to. */
     public void setCode(String newCode) {
-    this.editingCode = newCode;
-    webview.getEngine().loadContent(applyEditingTemplate());
+        this.editingCode = newCode;
+        webview.getEngine().loadContent(applyEditingTemplate());
     }
 
     /** returns the current code in the editor and updates an editing snapshot of the code which can be reverted to. */
     public String getCodeAndSnapshot() {
-    this.editingCode = (String ) webview.getEngine().executeScript("editor.getValue();");
-    return editingCode;
+        this.editingCode = (String)webview.getEngine().executeScript("editor.getValue();");
+        return editingCode;
     }
 
     /** revert edits of the code to the last edit snapshot taken. */
     public void revertEdits() {
-    setCode(editingCode);
+        setCode(editingCode);
     }
 
     /**
@@ -89,16 +89,24 @@ public class CodeEditor extends AnchorPane {
     * @param editingCode the initial code to be edited in the code editor.
     */
     public CodeEditor(String editingCode) {
-        try {            //TODO: сделать нормальную подгрузку скриптов.
-            this.editingCode = editingCode;
-            
+        this.editingCode = editingCode;
+        AnchorPane.setTopAnchor(webview, 0.0);
+        AnchorPane.setLeftAnchor(webview, 0.0);
+        AnchorPane.setBottomAnchor(webview, 0.0);
+        AnchorPane.setRightAnchor(webview, 0.0);
+        webview.getEngine().loadContent(applyEditingTemplate());
+        this.getChildren().add(webview);      
+    }
+    
+    public static boolean loadCodeMirrorLibs() {
+        try {
             if (clikejs.length() == 0) {
                 File clike = new File("lib/clike.js");
                 StringBuilder temp = new StringBuilder();
                 BufferedReader bufferedReader = new BufferedReader(new FileReader(clike));
                 String text;
                 while ((text = bufferedReader.readLine()) != null) {
-                    temp.append("\n"+text);
+                    temp.append("\n").append(text);
                 }
                 clikejs = temp.toString();
             }
@@ -109,31 +117,25 @@ public class CodeEditor extends AnchorPane {
                 BufferedReader bufferedReader = new BufferedReader(new FileReader(clike));
                 String text;
                 while ((text = bufferedReader.readLine()) != null) {
-                    temp.append("\n"+text);
+                    temp.append("\n").append(text);
                 }
                 codemirrorjs = temp.toString();
             }
             
             if (codemirrorcss.length() == 0) {
-                File clike = new File("lib/codemirror.css");
+                File clike = new File("lib/codemirror5.css");
                 StringBuilder temp = new StringBuilder();
                 BufferedReader bufferedReader = new BufferedReader(new FileReader(clike));
                 String text;
                 while ((text = bufferedReader.readLine()) != null) {
-                    temp.append("\n"+text);
+                    temp.append("\n").append(text);
                 }
                 codemirrorcss = temp.toString();
             }
-            
-            AnchorPane.setTopAnchor(webview, 0.0);
-            AnchorPane.setLeftAnchor(webview, 0.0);
-            AnchorPane.setBottomAnchor(webview, 0.0);
-            AnchorPane.setRightAnchor(webview, 0.0);
-            webview.getEngine().loadContent(applyEditingTemplate());
-            this.getChildren().add(webview);
+            return true;
         } catch (IOException ex) {
             Logger.getLogger(CodeEditor.class.getName()).log(Level.SEVERE, null, ex);
         }
-      
+        return false;
     }
 }

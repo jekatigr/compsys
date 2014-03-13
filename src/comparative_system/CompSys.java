@@ -7,6 +7,7 @@
 package comparative_system;
 
 import comparative_system.controller.FXMLguiController;
+import comparative_system.gui.CodeEditor;
 import comparative_system.model.*;
 import java.io.File;
 import java.util.ArrayList;
@@ -14,11 +15,15 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.concurrent.Task;
+import javafx.concurrent.Worker;
+import javafx.concurrent.Worker.State;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Dialogs;
 import javafx.stage.Stage;
 /**
  *
@@ -72,6 +77,32 @@ public class CompSys extends Application {
         //--открываем последний проект, если он есть
         primaryStage = stage;
         stage.show();
+        
+        final Task loadCodeMirrorLibsTask = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                if (CodeEditor.loadCodeMirrorLibs()) {
+                    this.updateMessage("true"); 
+                } else {
+                    this.updateMessage("false"); 
+                }
+                return null;
+            }
+        };
+        
+        loadCodeMirrorLibsTask.stateProperty().addListener(new ChangeListener<Worker.State>() {
+            @Override
+            public void changed(ObservableValue<? extends Worker.State> ov, Worker.State oldState, Worker.State newState) {
+                if (Worker.State.FAILED == newState) {
+                    exitWithError("", "Ошибка при загрузке библиотек!", "Загрузка библиотек...");
+                }
+                if (Worker.State.SUCCEEDED == newState && !loadCodeMirrorLibsTask.getMessage().equals("true")) {
+                    exitWithError("", "Ошибка при загрузке библиотек!", "Загрузка библиотек...");
+                }
+            }
+        });
+        
+        new Thread(loadCodeMirrorLibsTask).start();
     }
 
     /**
@@ -120,6 +151,17 @@ public class CompSys extends Application {
         //}
     }
 
+    /**
+     * Метод для закрытия приложения в случае фатальной ошибки с показом сообщения.
+     * @param info Подробное описание ошибки.
+     * @param head Заголовок описания ошибки.
+     * @param title Надпись в заголовке всплывающего окна.
+     */
+    private void exitWithError(String info, String head, String title) {
+        Dialogs.showErrorDialog(primaryStage, info, head, title);
+        Platform.exit();
+    }
+    
     /**
      * Метод возвращает текущий проект.
      * @return Текущий проект.
