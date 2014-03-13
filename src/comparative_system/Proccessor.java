@@ -168,17 +168,52 @@ public class Proccessor {
             
             TextEdit edits = rewriter.rewriteAST(codeDoc, null);
             edits.apply(codeDoc);
-            System.out.println("\n\n\n"+codeDoc.get()+"\n\n");
             
-//        cu.accept(new ASTVisitor() {
-//            public boolean visit(BodyDeclaration node) {// ходим по всем действиям
-//                System.out.println();
-//                //map.addParsedExpression(node.getStartPosition(), node.getLength(), "Expression", countOperations(node));
-//                System.out.println();
-//                System.out.println();
-//                return true;
-//            }
-//        });
+            parser.setSource(codeDoc.get().toCharArray());
+            parser.setKind(ASTParser.K_COMPILATION_UNIT);
+            cu = (CompilationUnit) parser.createAST(null);
+            ast = cu.getAST();
+            rewriter = ASTRewrite.create(ast);
+            
+            cu.accept(new ASTVisitor() {
+                @Override
+                public boolean visit(WhileStatement st) {
+                    int c = countOperationsInExpression(st.getExpression());        
+                    if (c > 0) { insertIterationsCounterInCycle(st, c); }
+                    return true;
+                }
+                
+                @Override
+                public boolean visit(DoStatement st) {
+                    int c = countOperationsInExpression(st.getExpression());  
+                    if (c > 0) { insertIterationsCounterInCycle(st, c); }    
+                    return true;
+                }
+                
+                @Override
+                public boolean visit(ForStatement st) {
+                    int c = 0;
+                    for (Object e : st.updaters()) {
+                        c += countOperationsInExpression((Expression)e);
+                    }     
+                    c += countOperationsInExpression(st.getExpression());
+                    
+                    if (c > 0) { insertIterationsCounterInCycle(st, c); }
+                    return true;
+                }
+                
+                @Override
+                public boolean visit(EnhancedForStatement st) {
+                    int c = countOperationsInExpression(st.getExpression()); 
+                    if (c > 0) { insertIterationsCounterInCycle(st, c + 4); } // инкримент счетчика (2), сравнение счетика с размером контейнера (1), и присваивание значения из контейнера (1).
+                    return true;
+                }
+            });
+            
+            edits = rewriter.rewriteAST(codeDoc, null);
+            edits.apply(codeDoc);
+            
+            System.out.println("\n\n\n"+codeDoc.get()+"\n\n");
         } catch (MalformedTreeException ex) {
             Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
         } catch (BadLocationException ex) {
@@ -194,7 +229,6 @@ public class Proccessor {
     
     
     private static void countOperationsInStatement(Statement st) {
-        //if (astRewrite == null) return;
         if (st == null ||
                 st instanceof EmptyStatement || 
                 st instanceof ContinueStatement || 
@@ -245,8 +279,6 @@ public class Proccessor {
         
         if (st instanceof DoStatement) {
             countOperationsInStatement(((DoStatement)st).getBody());
-            int c = countOperationsInExpression(((DoStatement)st).getExpression());  
-            if (c>0) { insertCounter(st, c); }    
         }
         
         if (st instanceof ForStatement) {
@@ -254,16 +286,10 @@ public class Proccessor {
             for (Object e : ((ForStatement)st).initializers()) {
                 c = countOperationsInExpression((Expression)e);
             }
-            if (c>0) { insertCounter(st, c); }                
             
             int c2 = countOperationsInExpression(((ForStatement)st).getExpression());
             
-            for (Object e : ((ForStatement)st).updaters()) {
-                c2 += countOperationsInExpression((Expression)e);
-            }     
-            if (c > 0) {
-                insertCounter(((ForStatement)st).getBody(), c);
-            }
+            if (c + c2 > 0) { insertCounter(st, c + c2); } //сравнение выполняется 1 раз всегда. Счетчики для обновления "счетчиков" и сравнения вставляются позже.             
             
             countOperationsInStatement(((ForStatement)st).getBody());
         }
@@ -341,7 +367,7 @@ public class Proccessor {
         
         if (st instanceof EnhancedForStatement) {
             int c = countOperationsInExpression(((EnhancedForStatement)st).getExpression()); 
-            if (c>0) { insertCounter(st, c + 4); } // инкримент счетчика (2), сравнение счетика с размером контейнера (1), и присваивание значения из контейнера (1).
+            if (c>0) { insertCounter(st, c + 1); } //только сравнение(1).
                            
             countOperationsInStatement(((EnhancedForStatement)st).getBody());
         }
@@ -528,7 +554,7 @@ public class Proccessor {
     }
     //</editor-fold>
 
-    private static void insertCounter(Statement st, int c) {
+    private static void insertCounter(Statement st, int c) {        
         try {
             AST ast = st.getAST();
             MethodInvocation counterMethod = ast.newMethodInvocation();
@@ -547,6 +573,54 @@ public class Proccessor {
                 block.statements().add(rewriter.createCopyTarget(st));
                 rewriter.replace(st, block, null);
             }            
+        } catch (IllegalArgumentException ex) {
+            Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (MalformedTreeException ex) {
+            Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private static void insertIterationsCounterInCycle(Statement st, int c) {
+        try {
+            AST ast = st.getAST();
+            MethodInvocation counterMethod = ast.newMethodInvocation();
+            counterMethod.setExpression(ast.newSimpleName("Counter"));
+            counterMethod.setName(ast.newSimpleName("add"));
+            ExpressionStatement countExpr = ast.newExpressionStatement(counterMethod);
+            ((MethodInvocation)countExpr.getExpression()).arguments().clear();
+            ((MethodInvocation)countExpr.getExpression()).arguments().add(st.getAST().newNumberLiteral(""+c));
+            
+            Block cycleBody = ast.newBlock();
+            
+            if (st instanceof WhileStatement) {
+                cycleBody.statements().add(countExpr);  
+                cycleBody.statements().add(rewriter.createCopyTarget(((WhileStatement)st).getBody()));
+                rewriter.replace(((WhileStatement)st).getBody(), cycleBody, null);
+                return;
+            }
+            
+            if (st instanceof DoStatement) {
+                cycleBody.statements().add(rewriter.createCopyTarget(((DoStatement)st).getBody()));
+                cycleBody.statements().add(countExpr);  
+                rewriter.replace(((DoStatement)st).getBody(), cycleBody, null);
+                return;
+            }
+            
+            if (st instanceof ForStatement) {
+                cycleBody.statements().add(countExpr);  
+                cycleBody.statements().add(rewriter.createCopyTarget(((ForStatement)st).getBody()));
+                rewriter.replace(((ForStatement)st).getBody(), cycleBody, null);
+                return;
+            }
+            
+            if (st instanceof EnhancedForStatement) {
+                cycleBody.statements().add(countExpr);  
+                cycleBody.statements().add(rewriter.createCopyTarget(((EnhancedForStatement)st).getBody()));
+                rewriter.replace(((EnhancedForStatement)st).getBody(), cycleBody, null);
+                return;
+            }
+            
+            throw new IllegalArgumentException("Переданный параметр не является циклом!");
         } catch (IllegalArgumentException ex) {
             Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
         } catch (MalformedTreeException ex) {
