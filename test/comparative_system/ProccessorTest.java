@@ -23,39 +23,9 @@ import org.junit.Test;
  * @author TireX
  */
 public class ProccessorTest {
-    
-    
-    private static final String counterName = "counter123";
-//    String code = "public static class A {\n" +
-//"    public int res() {\n" +
-//"		int result = 0;\n" +
-//"		result = 17 + 20;\n" +
-//"		return result;\n" +
-//"	}\n" +
-//"	class B {\n" +
-//"		int l;\n" +
-//"	}\n" +
-//"}";        
-    
+  
     public ProccessorTest() {
     }
-
-    /**
-     * Test of getGeneratedCode method, of class Proccessor.
-     */
-    @Test
-    public void testGetGeneratedCode() {
-        //System.out.println("getGeneratedCode");
-        
-        String code = "int i; i = 12 + 3;";
-        
-        String expResult = "";
-        String result = "";//Proccessor.getGeneratedCode(counterName, code);
-        assertEquals(expResult, result);
-        
-        fail("Just fail.");
-    }
-
     /**
      * Test of getAllMethodsFromCodes method, of class Proccessor.
      */
@@ -71,93 +41,127 @@ public class ProccessorTest {
     }
 
     /**
-     * Test of getCounterName method, of class Proccessor.
+     * Test of putCountersInCode method, of class Proccessor.
      */
     @Test
-    public void testGetCounterName() {
-        //System.out.println("getCounterName");
-        ArrayList<String> codes = null;
-        String expResult = "";
-        String result = "";//Proccessor.getCounterName(codes);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of putCounters method, of class Proccessor.
-     */
-    @Test
-    public void testPutCounters() {
-        //System.out.println("putCounters");
-        String counterName = "";
-        ArrayList<String> codes = null;
-        ArrayList<Code> expResult = null;
-        ArrayList<Code> result = null;//Proccessor.putCounters(counterName, codes);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of countOperationsInExpression method, of class Proccessor.
-     */
-    @Test
-    public void testCountOperationsInExpression() {
-        //System.out.println("countOperationsInExpression");
-        Expression ex = null;
-        int expResult = 0;
-        int result = 0;//Proccessor.countOperationsInExpression(ex);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    
-    
-    /**
-     * Test of putCountersInCodeFromMap method, of class Proccessor.
-     */
-    @Test
-    public void testPutCountersInCodeFromMap() {
-        //System.out.println("putCountersInCodeFromMap");
-        
-        String counterName = "";
-        String code = "";
-        String expResult = "";
-        String result = "";//Proccessor.putCountersInCodeFromMap(map, counterName, code);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of fillNewMap method, of class Proccessor.
-     */
-    @Test
-    public void testFillNewMap() {
-        System.out.println("fillNewMap");
+    public void testPutCountersInCodeInfixExpression() {
+        System.out.println("putCountersInCodeInfixExpression1");
         String code = "public class A{\n" +
-"    public static int res() {\n" +
-"		int result = 0;\n" +
-"		for (int i = 1+2; i < 100+1+1+1; i++) {\n" +
-"			result -= i;\n" +
-"			for (int j = 0; j < 100; j++) \n" +
-"							\n" +
-"				result %= 10;\n" +
-"			\n" +
-"		}\n" +
-"		return result + 1;\n" +
-"	}\n" +
-"	public int meth() {\n" +
-"		int h = 0;\n" +
-"		int start;\n" +
-"		h = start = h + res();\n" +
-"		System.out.print(h + 10);\n" +
+"    public static int[] res(int k) {\n" +
+"		String i = 10 + 5 / 2;\n" +
 "	}\n" +
 "}";
-        Proccessor.fillNewMap(code);
-        // TODO review the generated test code and remove the default call to fail.
-        assertEquals(1, 1);
+        String exp = "public class A{\n" +
+"    public static int[] res(int k) { Counter.add(3);\n" +
+"		String i = 10 + 5 / 2;\n" +
+"	}\n" +
+"}";
+        String newCode = Proccessor.getGeneratedCode(code);
+        assertEquals(removeEmptyChars(exp), removeEmptyChars(newCode));
+    }
+    
+    /**
+     * Test of putCountersInCode method, of class Proccessor.
+     */
+    @Test
+    public void testPutCountersInCodeInfixExpression2() {
+        System.out.println("putCountersInCodeInfixExpression2");
+        
+        String code = "public class A{\n" +
+"    public static int[] res(int k) {\n" +
+"		Data.getSomething(k * 2 + 1)[k + 1]++;\n" +
+"	}\n" +
+"}";
+        String exp = "public class A{\n" +
+"    public static int[] res(int k) { Counter.add(10);\n" +
+"		Data.getSomething(k * 2 + 1)[k + 1]++;\n" +
+"	}\n" +
+"}";
+        String newCode = Proccessor.getGeneratedCode(code);
+        assertEquals(removeEmptyChars(exp), removeEmptyChars(newCode));
+    }
+    
+    /**
+     * Test of putCountersInCode method, of class Proccessor.
+     */
+    @Test
+    public void testPutCountersInCodeInfixExpression3() {
+        System.out.println("putCountersInCodeInfixExpression3");
+        
+        String code = "public class A{\n" +
+"    public static int[] res(int k) {\n" +
+"		String i = md(\"re\"+\"43\")[10*11]++ + 10*(21+12-4/3);\n" +
+"	}\n" +
+"}";
+        String exp = "public class A{\n" +
+"    public static int[] res(int k) {Counter.add(14);\n" +
+"		String i = md(\"re\"+\"43\")[10*11]++ + 10*(21+12-4/3);\n" +
+"	}\n" +
+"}";
+        String newCode = Proccessor.getGeneratedCode(code);
+        assertEquals(removeEmptyChars(exp), removeEmptyChars(newCode));
+    }
+    
+    /**
+     * Test of putCountersInCode method, of class Proccessor.
+     */
+    @Test
+    public void testPutCountersInCodeInfixExpression4() {
+        System.out.println("putCountersInCodeInfixExpression4");
+        
+        String code = "public class A{\n" +
+"    public static void res(int k) {\n" +
+"                int i = 0;\n" +
+"                int k2 = 0;\n" +
+"                int k3 = k2 + 13 + i++ + k2--;\n" +
+"	}\n" +
+"}";
+        String exp = "public class A{\n" +
+"    public static void res(int k) {Counter.add(1);\n" +
+"                int i = 0;\n" +
+"				Counter.add(1);\n" +
+"                int k2 = 0;\n" +
+"				Counter.add(8);\n" +
+"                int k3 = k2 + 13 + i++ + k2--;\n" +
+"	}\n" +
+"}";
+        String newCode = Proccessor.getGeneratedCode(code);
+        assertEquals(removeEmptyChars(exp), removeEmptyChars(newCode));
+    }
+    
+    /**
+     * Test of putCountersInCode method, of class Proccessor.
+     */
+    @Test
+    public void testPutCountersInCodeInfixExpression5() {
+        System.out.println("putCountersInCodeInfixExpression5");
+        
+        String code = "public class A{\n" +
+"    public static void res(int k) {\n" +
+"        for (int i = 12+5, k = 12 + 12 + 120; i + 15 < (i * i) / 2; i++) {\n" +
+"			System.out.print(i);\n" +
+"		}\n" +
+"	}\n" +
+"}";
+        String exp = "public class A{\n" +
+"    public static void res(int k) {\n" +
+"	Counter.add(9);\n" +
+"        for (int i = 12+5, k = 12 + 12 + 120; i + 15 < (i * i) / 2; i++) {\n" +
+"		Counter.add(6);{\n" +
+"			System.out.print(i);\n" +
+"			}\n" +
+"		}\n" +
+"	}\n" +
+"}";
+        String newCode = Proccessor.getGeneratedCode(code);
+        assertEquals(removeEmptyChars(exp), removeEmptyChars(newCode));
+    }
+    
+    private static String removeEmptyChars(String str) {
+        String res = str.replace("\n", "");
+        res = res.replace("\r", "");
+        res = res.replace("\t", "");
+        res = res.replace(" ", "");
+        return res;
     }
 }
