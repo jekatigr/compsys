@@ -154,7 +154,7 @@ public class Proccessor {
 
     private static Document codeDoc = null;
     private static ASTRewrite rewriter = null;
-    public static void putCountersInCode(String code) {
+    private static void putCountersInCode(String code) {
         try {
             codeDoc = new Document(code);
             parser.setSource(code.toCharArray());
@@ -219,8 +219,6 @@ public class Proccessor {
             
             edits = rewriter.rewriteAST(codeDoc, null);
             edits.apply(codeDoc);
-            
-            System.out.println("\n\n\n"+codeDoc.get()+"\n\n");
         } catch (MalformedTreeException ex) {
             Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
         } catch (BadLocationException ex) {
