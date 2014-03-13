@@ -430,6 +430,10 @@ public class Proccessor {
         int c = 1;
         c += countOperationsInExpression(((InfixExpression)ex).getLeftOperand());
         c += countOperationsInExpression(((InfixExpression)ex).getRightOperand());
+        for (Object o : ex.extendedOperands()) {
+            c += 1;
+            c += countOperationsInExpression((Expression)o);
+        }
         return c;
     }
     private static int proccessPostfixExpression(PostfixExpression ex) {
