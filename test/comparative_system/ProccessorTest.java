@@ -133,8 +133,8 @@ public class ProccessorTest {
      * Test of putCountersInCode method, of class Proccessor.
      */
     @Test
-    public void testPutCountersInCodeInfixExpression5() {
-        System.out.println("putCountersInCodeInfixExpression5");
+    public void testPutCountersInCodeForSt1() {
+        System.out.println("putCountersInCodeForSt1");
         
         String code = "public class A{\n" +
 "    public static void res(int k) {\n" +
@@ -156,6 +156,60 @@ public class ProccessorTest {
         String newCode = Proccessor.getGeneratedCode(code);
         assertEquals(removeEmptyChars(exp), removeEmptyChars(newCode));
     }
+    
+    /**
+     * Test of putCountersInCode method, of class Proccessor.
+     */
+    @Test
+    public void testPutCountersInCodeForSt2() {
+        System.out.println("putCountersInCodeForSt2");
+        
+        String code = "public class A{\n" +
+"    public static void res(int k) {\n" +
+"        for (;;) {\n" +
+"	\n" +
+"			System.out.print(k*k*k*k);\n" +
+"		}\n" +
+"	}\n" +
+"}";
+        String exp = "public class A{\n" +
+"    public static void res(int k) {\n" +
+"        for (;;) {\n" +
+"			\n" +
+"			Counter.add(3);\n" +
+"			System.out.print(k*k*k*k);\n" +
+"		}\n" +
+"	}\n" +
+"}";
+        String newCode = Proccessor.getGeneratedCode(code);
+        assertEquals(removeEmptyChars(exp), removeEmptyChars(newCode));
+    }
+    
+    /**
+     * Test of putCountersInCode method, of class Proccessor.
+     */
+    @Test
+    public void testPutCountersInCodeForSt3() {
+        System.out.println("putCountersInCodeForSt3");
+        
+        String code = "public class A{\n" +
+"    public static void res(int k) {\n" +
+"        for (;;i++) {\n" +
+"			\n" +
+"		}\n" +
+"	}\n" +
+"}";
+        String exp = "public class A{\n" +
+"    public static void res(int k) {\n" +
+"        for (;;i++) {\n" +
+"			Counter.add(2);{}\n" +
+"		}\n" +
+"	}\n" +
+"}";
+        String newCode = Proccessor.getGeneratedCode(code);
+        assertEquals(removeEmptyChars(exp), removeEmptyChars(newCode));
+    }
+    
     
     private static String removeEmptyChars(String str) {
         String res = str.replace("\n", "");
