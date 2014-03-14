@@ -18,7 +18,11 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -26,6 +30,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Dialogs;
 import javafx.scene.control.ListView;
+import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
@@ -48,11 +53,13 @@ public class FXMLguiController implements Initializable {
     @FXML private static ToggleButton dataButton;
     @FXML private static ToggleButton testsButton;
     @FXML private static AnchorPane mainPanel;
-    //@FXML private TabPane algTabs;
-    @FXML public static ListView algList;
+    @FXML private static ListView algList;
     @FXML private static HBox hBoxZeroAlgs;
     @FXML private static TextField algNameTextField;
+    
     @FXML private static TabPane codesOfAlgorithmsTabPane;
+    private static int currentAlgCodeTab;
+    
     
 
     @FXML private void handleSaveNewProject(ActionEvent event) {
@@ -129,6 +136,24 @@ public class FXMLguiController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         
+    }
+    
+    public static void initialize() {
+        algList.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                FXMLguiController.loadAlgorithmView(algList.getSelectionModel().getSelectedIndex());
+            }
+        });
+        
+        codesOfAlgorithmsTabPane.getSelectionModel().selectedIndexProperty().addListener(
+            new ChangeListener<Number>() {
+                @Override
+                public void changed(ObservableValue<? extends Number> ov, Number t, Number t1) {
+                    currentAlgCodeTab = t1.intValue();
+                }
+            }
+        );
     }
 
     public static void setAllEnabled(boolean enabled) {
@@ -224,7 +249,8 @@ public class FXMLguiController implements Initializable {
                 tab.setContent(ce);
                 codesOfAlgorithmsTabPane.getTabs().add(tab);
            }    //codesOfAlgorithmsTabPane.getSelectionModel().select(tab);
-       }        
+           
+       }     
     }
 }
 

@@ -54,14 +54,10 @@ public class CompSys extends Application {
                 Platform.exit();
             }
         });
-        
-        FXMLguiController.algList.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                FXMLguiController.loadAlgorithmView(FXMLguiController.algList.getSelectionModel().getSelectedIndex());
-            }
-        });
-        
+        //инициализируем интерфейс
+        FXMLguiController.initialize();
+        //--инициализируем интерфейс
+                               
         //при первом открытии отключаем все элементы и ставим вкладку алгоритмов.
         FXMLguiController.setAllEnabled(false);
         FXMLguiController.switchShowMode(0);
@@ -78,6 +74,7 @@ public class CompSys extends Application {
         primaryStage = stage;
         stage.show();
         
+        //загружаем файлы библиотек для подсветки кода
         final Task loadCodeMirrorLibsTask = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
@@ -103,6 +100,7 @@ public class CompSys extends Application {
         });
         
         new Thread(loadCodeMirrorLibsTask).start();
+        //--загружаем файлы библиотек для подсветки кода
     }
 
     /**
@@ -142,7 +140,7 @@ public class CompSys extends Application {
     }
     
     /**
-     * Метод для остановки запущенных проектов и данных программы перед закрытием.
+     * Метод для остановки запущенных проектов и сохранения данных программы перед закрытием.
      */
     public static void saveAllBeforeClose() {
         //this thing is useless
