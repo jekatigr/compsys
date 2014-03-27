@@ -18,7 +18,11 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -26,6 +30,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Dialogs;
 import javafx.scene.control.ListView;
+import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
@@ -48,11 +53,13 @@ public class FXMLguiController implements Initializable {
     @FXML private static ToggleButton dataButton;
     @FXML private static ToggleButton testsButton;
     @FXML private static AnchorPane mainPanel;
-    //@FXML private TabPane algTabs;
-    @FXML public static ListView algList;
+    @FXML private static ListView algList;
     @FXML private static HBox hBoxZeroAlgs;
     @FXML private static TextField algNameTextField;
+    
     @FXML private static TabPane codesOfAlgorithmsTabPane;
+    private static int currentAlgCodeTab;
+    private static Tab addClassTab = null;
     
 
     @FXML private void handleSaveNewProject(ActionEvent event) {
@@ -130,6 +137,32 @@ public class FXMLguiController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         
     }
+    
+    /**
+     * Метод для инициализации интерфейса при запуске программы.
+     */
+    public static void initialize() {
+        algList.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                FXMLguiController.loadAlgorithmView(algList.getSelectionModel().getSelectedIndex());
+            }
+        });
+        
+        codesOfAlgorithmsTabPane.getSelectionModel().selectedIndexProperty().addListener(
+            new ChangeListener<Number>() {
+                @Override
+                public void changed(ObservableValue<? extends Number> ov, Number t, Number t1) {
+                    currentAlgCodeTab = t1.intValue(); //последняя вкладка для добавления класса
+                    System.out.println(currentAlgCodeTab);
+                }
+            }
+        );
+        
+        //при первом открытии отключаем все элементы и ставим вкладку алгоритмов.
+        FXMLguiController.setAllEnabled(false);
+        FXMLguiController.switchShowMode(0);
+    }
 
     public static void setAllEnabled(boolean enabled) {
         mainPanel.setDisable(!enabled);
@@ -204,6 +237,21 @@ public class FXMLguiController implements Initializable {
      * @param index Индекс алгоритма в списке проекта, либо -1 для добавления нового алгоритма.
      */
     public static void loadAlgorithmView(int index) {
+        //готовим вкладку для добавления класса
+        if (addClassTab == null) {
+            addClassTab = new Tab();
+            addClassTab.setText("+");
+                CodeEditor ce = new CodeEditor("/*\n   Вставьте сюда код класса\n   или перетащите файл java\n   в окно программы...\n                           */");
+                ce.setId("addCe");
+                AnchorPane.setTopAnchor(ce, -5.0);
+                AnchorPane.setRightAnchor(ce, 0.0);
+                AnchorPane.setBottomAnchor(ce, -5.0);
+                AnchorPane.setLeftAnchor(ce, -5.0);
+            addClassTab.setContent(ce);
+            addClassTab.setClosable(false);
+        }
+        
+        
        if (index == -1) {//добавление нового
            
        } else {//отображение сохраненного
@@ -212,11 +260,10 @@ public class FXMLguiController implements Initializable {
       
            codesOfAlgorithmsTabPane.getTabs().clear();
            for (Code c : alg.getCodes()) {
-               Tab tab = new Tab();
+                Tab tab = new Tab();
                 tab.setText("Новый класс");
                     CodeEditor ce = new CodeEditor(c.getSourceCode());
                     ce.setId("ce");
-                    //sourceCodeTextArea.setPromptText("Исходный код алгоритма (java)...");
                     AnchorPane.setTopAnchor(ce, -5.0);
                     AnchorPane.setRightAnchor(ce, 0.0);
                     AnchorPane.setBottomAnchor(ce, -5.0);
@@ -224,7 +271,8 @@ public class FXMLguiController implements Initializable {
                 tab.setContent(ce);
                 codesOfAlgorithmsTabPane.getTabs().add(tab);
            }    //codesOfAlgorithmsTabPane.getSelectionModel().select(tab);
-       }        
+           codesOfAlgorithmsTabPane.getTabs().add(addClassTab);
+       }     
     }
 }
 

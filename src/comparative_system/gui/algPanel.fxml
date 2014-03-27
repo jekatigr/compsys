@@ -16,7 +16,7 @@
 <children>
     <Label layoutX="188.0" layoutY="152.0" prefHeight="24.0" prefWidth="91.0" text="Алгоритмов нет." />
     <Hyperlink layoutX="284.0" layoutY="149.0" onAction="#handleAddAlgClicked" text="[добавить...]" />
-</children></HBox><ComboBox layoutX="23.0" layoutY="82.0" prefHeight="25.0" prefWidth="607.0" promptText="Выберите метод вызова алгоритма..." AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="96.0" xmlns:fx="http://javafx.com/fxml" /><Button layoutX="654.0" layoutY="82.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="78.0" text="Сохранить" AnchorPane.rightAnchor="12.0" /><Separator layoutX="-12.0" layoutY="50.0" prefHeight="0.0" prefWidth="718.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" /><TabPane fx:id="codesOfAlgorithmsTabPane" layoutX="-1.0" layoutY="126.0" prefHeight="381.0" prefWidth="718.0" rotateGraphic="false" side="TOP" tabClosingPolicy="SELECTED_TAB" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="132.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+</children></HBox><Separator layoutX="-12.0" layoutY="50.0" prefHeight="0.0" prefWidth="718.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" /><TabPane fx:id="codesOfAlgorithmsTabPane" layoutX="-1.0" layoutY="126.0" prefHeight="446.0" prefWidth="433.0" rotateGraphic="false" side="TOP" tabClosingPolicy="SELECTED_TAB" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="286.0" AnchorPane.topAnchor="68.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
 <tabs>
 <Tab text="Новый класс">
 <content>
@@ -35,7 +35,9 @@
 </BorderPane.margin></TextField>
 </left>
 <right><Button layoutX="680.0" layoutY="18.0" mnemonicParsing="false" prefHeight="29.0" prefWidth="28.0" text="X" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="18.0" />
-</right></BorderPane>
+</right></BorderPane><Separator layoutX="429.0" layoutY="68.0" orientation="VERTICAL" pickOnBounds="false" prefHeight="446.0" prefWidth="0.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.rightAnchor="281.0" AnchorPane.topAnchor="68.0" /><AnchorPane layoutX="444.0" layoutY="69.0" prefHeight="200.0" prefWidth="264.0" AnchorPane.rightAnchor="10.0">
+<children><Button layoutX="93.0" layoutY="119.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="78.0" text="Сохранить" BorderPane.alignment="CENTER" /><CheckBox layoutX="14.0" layoutY="36.0" mnemonicParsing="false" text="показать счетчики" BorderPane.alignment="CENTER" /><ComboBox layoutX="10.0" layoutY="2.0" prefHeight="25.0" prefWidth="245.0" promptText="Выберите метод вызова алгоритма..." BorderPane.alignment="CENTER" />
+</children></AnchorPane>
 </children></AnchorPane>
   </items>
 </SplitPane>
