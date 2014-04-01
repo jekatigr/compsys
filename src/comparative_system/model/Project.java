@@ -9,6 +9,7 @@ package comparative_system.model;
 import com.almworks.sqlite4java.SQLiteConnection; 
 import com.almworks.sqlite4java.SQLiteException;
 import com.almworks.sqlite4java.SQLiteStatement;
+import comparative_system.CompSys;
 import comparative_system.Proccessor;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
 
 /**
  *
@@ -58,8 +60,8 @@ public class Project {
      * @param counterName Имя счетчика операций.
      * @param codes Исходные и сгенерированные коды алгоритма.
      */
-    private void addAlgorithm(int id, String name, String mainMethod, ArrayList<Code> codes, ArrayList<String> classesTabsNames) {
-        algorithms.add(new Algorithm(id, name, mainMethod, codes, classesTabsNames));
+    private void addAlgorithm(int id, String name, String mainMethod, ArrayList<Code> codes, ArrayList<String> classesTabsNames, ArrayList<MethodDeclaration> methods) {
+        algorithms.add(new Algorithm(id, name, mainMethod, codes, classesTabsNames, methods));
     }
 
     /**
@@ -70,7 +72,7 @@ public class Project {
      * @param mainMethod Метод вызова алгоритма.
      */
     public void addAlgorithm(String name, String mainMethod, ArrayList<String> codes) { 
-        algorithms.add(new Algorithm(name, mainMethod, Proccessor.putCounters(codes), Proccessor.getClassNames(codes)));
+        algorithms.add(new Algorithm(name, mainMethod, Proccessor.putCounters(codes), Proccessor.getClassNames(codes), Proccessor.getAllMethodsFromCodes(codes)));
         this.saveAlgorithmInDB(this.algorithms.size() - 1);
     }
     
@@ -211,13 +213,15 @@ public class Project {
                 //коды алгоритмов
                 ArrayList<Code> codes = new ArrayList<>();
                 ArrayList<String> classesTabNames = new ArrayList<>();
+                ArrayList<MethodDeclaration> methods = new ArrayList<>();
                 SQLiteStatement st2 = db.prepare("SELECT * FROM codes WHERE alg_id="+ alg_id +"");
                 while(st2.step()) {
                     codes.add(new Code(st2.columnInt(0), st2.columnString(2), st2.columnString(3)));
                     classesTabNames.add(Proccessor.getClassName(st2.columnString(2)));
+                    methods.addAll(Proccessor.getAllMethodsFromCode(st2.columnString(2)));
                 }
-                //--коды алгоритмов
-                project.addAlgorithm(alg_id, st.columnString(1), st.columnString(2), codes, classesTabNames);
+                //--коды алгоритмов        
+                project.addAlgorithm(alg_id, st.columnString(1), st.columnString(2), codes, classesTabNames, methods);
             }
             //--алгоритмы
             //параметры методов вызова
