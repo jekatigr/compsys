@@ -58,8 +58,8 @@ public class Project {
      * @param counterName Имя счетчика операций.
      * @param codes Исходные и сгенерированные коды алгоритма.
      */
-    private void addAlgorithm(int id, String name, String mainMethod, ArrayList<Code> codes) {
-        algorithms.add(new Algorithm(id, name, mainMethod, codes));
+    private void addAlgorithm(int id, String name, String mainMethod, ArrayList<Code> codes, ArrayList<String> classesTabsNames) {
+        algorithms.add(new Algorithm(id, name, mainMethod, codes, classesTabsNames));
     }
 
     /**
@@ -69,8 +69,8 @@ public class Project {
      * @param codes Исходные коды алгоритма.
      * @param mainMethod Метод вызова алгоритма.
      */
-    public void addAlgorithm(String name, ArrayList<String> codes, String mainMethod) { 
-        algorithms.add(new Algorithm(name, mainMethod, Proccessor.putCounters(codes)));
+    public void addAlgorithm(String name, String mainMethod, ArrayList<String> codes) { 
+        algorithms.add(new Algorithm(name, mainMethod, Proccessor.putCounters(codes), Proccessor.getClassNames(codes)));
         this.saveAlgorithmInDB(this.algorithms.size() - 1);
     }
     
@@ -186,6 +186,10 @@ public class Project {
         return this.currentGuiAlg;
     }
     
+    public void setCurrentGuiAlg(int index) {
+        this.currentGuiAlg = index;
+    }
+    
     
     /**
      * Метод загружает проект из файла.
@@ -206,12 +210,14 @@ public class Project {
                 int alg_id = st.columnInt(0);
                 //коды алгоритмов
                 ArrayList<Code> codes = new ArrayList<>();
+                ArrayList<String> classesTabNames = new ArrayList<>();
                 SQLiteStatement st2 = db.prepare("SELECT * FROM codes WHERE alg_id="+ alg_id +"");
                 while(st2.step()) {
                     codes.add(new Code(st2.columnInt(0), st2.columnString(2), st2.columnString(3)));
+                    classesTabNames.add(Proccessor.getClassName(st2.columnString(2)));
                 }
                 //--коды алгоритмов
-                project.addAlgorithm(alg_id, st.columnString(1), st.columnString(2), codes);
+                project.addAlgorithm(alg_id, st.columnString(1), st.columnString(2), codes, classesTabNames);
             }
             //--алгоритмы
             //параметры методов вызова

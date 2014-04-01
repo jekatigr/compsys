@@ -129,8 +129,8 @@ public class CompSys extends Application {
      * @param codes Исходные коды алгоритма.
      * @param method Метод вызова алгоритма. 
      */
-    public static void addAlgorithm(String name, ArrayList<String> codes, String method) {
-        project.addAlgorithm(name, codes, method);
+    public static void addAlgorithm(String name, String method, ArrayList<String> codes) {
+        project.addAlgorithm(name, method, codes);
         FXMLguiController.addAlgInList(project.getCountOfAlgorithms() - 1, project.getAlgorithm(project.getCountOfAlgorithms() - 1));
     }
     

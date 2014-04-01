@@ -630,4 +630,24 @@ public class Proccessor {
             Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
+    public static String getClassName(String code) {
+        parser.setSource(code.toCharArray());
+        parser.setKind(ASTParser.K_COMPILATION_UNIT);
+        final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+        for (Object e : cu.types()) {
+            if (e instanceof TypeDeclaration) {//если класс
+                return ((TypeDeclaration)e).getName().toString();
+            }
+        }
+        return "tab";
+    }
+
+    public static ArrayList<String> getClassNames(ArrayList<String> codes) {
+        ArrayList<String> res = new ArrayList<>();
+        for (String code : codes) {
+            res.add(getClassName(code));
+        }
+        return res;
+    }
 }
