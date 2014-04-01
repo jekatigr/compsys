@@ -22,10 +22,6 @@
 <content>
 <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="330.0" prefWidth="884.0" />
 </content>
-</Tab><Tab fx:id="addTab" closable="false" text="+">
-  <content>
-    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
-  </content>
 </Tab>
 </tabs>
 </TabPane><BorderPane layoutX="14.0" layoutY="14.0" minWidth="100.0" prefHeight="25.0" prefWidth="697.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="7.0" AnchorPane.topAnchor="14.0">
@@ -35,8 +31,8 @@
 </BorderPane.margin></TextField>
 </left>
 <right><Button layoutX="680.0" layoutY="18.0" mnemonicParsing="false" prefHeight="29.0" prefWidth="28.0" text="X" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="18.0" />
-</right></BorderPane><Separator layoutX="429.0" layoutY="68.0" orientation="VERTICAL" pickOnBounds="false" prefHeight="446.0" prefWidth="0.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.rightAnchor="281.0" AnchorPane.topAnchor="68.0" /><AnchorPane layoutX="444.0" layoutY="69.0" prefHeight="200.0" prefWidth="264.0" AnchorPane.rightAnchor="10.0">
-<children><Button layoutX="93.0" layoutY="119.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="78.0" text="Сохранить" BorderPane.alignment="CENTER" /><CheckBox fx:id="showCountersCheckBox" layoutX="14.0" layoutY="36.0" mnemonicParsing="false" onAction="#handleShowCountersCheckBoxClicked" text="показать счетчики" BorderPane.alignment="CENTER" /><ComboBox layoutX="10.0" layoutY="2.0" prefHeight="25.0" prefWidth="245.0" promptText="Выберите метод вызова алгоритма..." BorderPane.alignment="CENTER" />
+</right></BorderPane><Separator layoutX="429.0" layoutY="68.0" orientation="VERTICAL" pickOnBounds="false" prefHeight="446.0" prefWidth="0.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.rightAnchor="281.0" AnchorPane.topAnchor="68.0" /><AnchorPane layoutX="444.0" layoutY="69.0" prefHeight="200.0" prefWidth="274.0" AnchorPane.rightAnchor="0.0">
+<children><Button layoutX="93.0" layoutY="131.0" mnemonicParsing="false" onAction="#handleSaveAlgButtonClicked" prefHeight="25.0" prefWidth="78.0" text="Сохранить" BorderPane.alignment="CENTER" /><CheckBox fx:id="showCountersCheckBox" layoutX="14.0" layoutY="85.0" mnemonicParsing="false" onAction="#handleShowCountersCheckBoxClicked" text="показать счетчики" BorderPane.alignment="CENTER" /><ComboBox fx:id="algMethodsComboBox" layoutX="10.0" layoutY="51.0" prefHeight="25.0" prefWidth="223.0" promptText="Метод вызова алгоритма..." BorderPane.alignment="CENTER" /><Button fx:id="reloadMethodsListButton" layoutX="242.0" layoutY="51.0" maxHeight="25.0" maxWidth="25.0" mnemonicParsing="false" onAction="#handleReloadMethodsListButtonClicked" prefHeight="25.0" prefWidth="25.0" /><Button layoutX="10.0" layoutY="2.0" mnemonicParsing="false" onAction="#handleAddTabButtonClicked" prefHeight="25.0" prefWidth="113.0" text="Добавить класс" />
 </children></AnchorPane>
 </children></AnchorPane>
   </items>
