@@ -39,6 +39,8 @@ public class Project {
     ArrayList<Algorithm> algorithms;
     /* Результаты анализа. Элементы в списке соотносятся с соответствующими алгоритмами в списке алгоритмов. */
     //ArrayList<Result> results;
+    /** Индекс алгоритма, который в данный момент показывается в GUI. */
+    private int currentGuiAlg = -1;
 
     public Project(File file) {
         this.file = file;
@@ -178,6 +180,10 @@ public class Project {
      */
     public String getFilePath() {
         return this.file.toString();
+    }
+    
+    public int getCurrentGuiAlg() {
+        return this.currentGuiAlg;
     }
     
     

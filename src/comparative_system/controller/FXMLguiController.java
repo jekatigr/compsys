@@ -28,6 +28,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Dialogs;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SingleSelectionModel;
@@ -60,6 +61,7 @@ public class FXMLguiController implements Initializable {
     @FXML private static TabPane codesOfAlgorithmsTabPane;
     private static int currentAlgCodeTab;
     private static Tab addClassTab = null;
+    @FXML private static CheckBox showCountersCheckBox;
     
 
     @FXML private void handleSaveNewProject(ActionEvent event) {
@@ -126,6 +128,14 @@ public class FXMLguiController implements Initializable {
             stage.show();
         } catch (IOException ex) {
             Logger.getLogger(FXMLguiController.class.getName()).log(Level.SEVERE, null, ex);//TODO: сделать нормалиный вывод ошибок
+        }
+    }
+    
+    @FXML private void handleShowCountersCheckBoxClicked() {
+        if (showCountersCheckBox.selectedProperty().get()) {
+            CompSys.getProject().getAlgorithm(CompSys.getProject().getCurrentGuiAlg()).setShowCounters(true);
+        } else {
+            CompSys.getProject().getAlgorithm(CompSys.getProject().getCurrentGuiAlg()).setShowCounters(false);
         }
     }
     
@@ -257,12 +267,20 @@ public class FXMLguiController implements Initializable {
        } else {//отображение сохраненного
            Algorithm alg = CompSys.getProject().getAlgorithm(index);
            algNameTextField.setText(alg.getName());
-      
+                      
            codesOfAlgorithmsTabPane.getTabs().clear();
-           for (Code c : alg.getCodes()) {
+           for (int i = 0; i < alg.getCodes().size(); i++) {
                 Tab tab = new Tab();
-                tab.setText("Новый класс");
-                    CodeEditor ce = new CodeEditor(c.getSourceCode());
+                Code c = alg.getCodes().get(i);
+                tab.setText(alg.getClassTabName(i));
+                    CodeEditor ce = null;
+                    if (!alg.getShowCounters()) {
+                        ce = new CodeEditor(c.getSourceCode());
+                        showCountersCheckBox.selectedProperty().set(false);
+                    } else {
+                        ce = new CodeEditor(c.getGeneratedCode());                                
+                        showCountersCheckBox.selectedProperty().set(true);
+                    }
                     ce.setId("ce");
                     AnchorPane.setTopAnchor(ce, -5.0);
                     AnchorPane.setRightAnchor(ce, 0.0);
@@ -270,7 +288,7 @@ public class FXMLguiController implements Initializable {
                     AnchorPane.setLeftAnchor(ce, -5.0);
                 tab.setContent(ce);
                 codesOfAlgorithmsTabPane.getTabs().add(tab);
-           }    //codesOfAlgorithmsTabPane.getSelectionModel().select(tab);
+           }
            codesOfAlgorithmsTabPane.getTabs().add(addClassTab);
        }     
     }

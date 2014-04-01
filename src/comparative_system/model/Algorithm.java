@@ -21,6 +21,10 @@ public class Algorithm {
     private String mainMethod;
     /** Исходные и сгенерированные коды алгоритма. */
     private ArrayList<Code> codes;
+    /** Флаг для показа счетчиков в коде для GUI. */
+    private boolean showCounters = false;
+    /** Лист с названиями вкладок для кодов алгоритма. */
+    private ArrayList<String> classesTabNames;
     
     /**
      * Конструктор класса.
@@ -37,7 +41,6 @@ public class Algorithm {
      * @param id Индекс алгоритма в БД.
      * @param name Имя алгоритма.
      * @param mainMethod Метод вызова алгоритма.
-     * @param counterName Имя счетчика операций в сгенерированных кодах.
      * @param codes Исходные и сгенерированные коды алгоритма.
      */
     public Algorithm(long id, String name, String mainMethod, ArrayList<Code> codes) {
@@ -86,4 +89,29 @@ public class Algorithm {
     public ArrayList<Code> getCodes() {
         return this.codes;
     }
+    
+    public boolean getShowCounters() {
+        return this.showCounters;
+    }
+    
+    public void setShowCounters(boolean show) {
+        this.showCounters = show;
+    }
+
+    public String getClassTabName(int index) {
+        return classesTabNames.get(index);
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
