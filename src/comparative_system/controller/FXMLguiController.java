@@ -7,19 +7,25 @@
 package comparative_system.controller;
 import comparative_system.CompSys;
 import comparative_system.Preferences;
+import comparative_system.Proccessor;
 import comparative_system.gui.CodeEditor;
 import comparative_system.model.Algorithm;
 import comparative_system.model.Code;
+import comparative_system.model.DataGenerator;
 import comparative_system.model.Project;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.concurrent.Task;
+import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -28,19 +34,27 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialogs;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.MethodInvocation;
 
 /**
  *
@@ -48,6 +62,10 @@ import javafx.stage.Stage;
  */
 public class FXMLguiController implements Initializable {
     private static Stage primaryStage;
+    
+    public static Parent algPanel;
+    public static Parent dataPanel;
+    public static Parent testsPanel;
     
     @FXML private static ToggleGroup toggles;
     @FXML private static ToggleButton algButton;
@@ -60,7 +78,11 @@ public class FXMLguiController implements Initializable {
     
     @FXML private static TabPane codesOfAlgorithmsTabPane;
     private static int currentAlgCodeTab;
+    @FXML private static ComboBox algMethodsComboBox;
     @FXML private static CheckBox showCountersCheckBox;
+    @FXML private static Button reloadMethodsListButton;
+    private boolean addingNewAlg = false;
+    private boolean hasChanges = false;
     
 
     @FXML private void handleSaveNewProject(ActionEvent event) {
@@ -130,6 +152,22 @@ public class FXMLguiController implements Initializable {
         }
     }
     
+    @FXML private void handleAddTabButtonClicked() {
+        hasChanges = true;
+        
+        Tab tab = new Tab();
+            tab.setText("Класс (" + (codesOfAlgorithmsTabPane.getTabs().size() + 1) + ")");
+                CodeEditor ce = new CodeEditor("/*\n   Вставьте сюда код класса\n   или перетащите файл java\n   в окно программы и нажмите\n   кнопку \"Сохранить\"...     */");
+                ce.setId("ce");
+                AnchorPane.setTopAnchor(ce, -5.0);
+                AnchorPane.setRightAnchor(ce, 0.0);
+                AnchorPane.setBottomAnchor(ce, -5.0);
+                AnchorPane.setLeftAnchor(ce, -5.0);
+            tab.setContent(ce);
+            tab.setClosable(true);
+        codesOfAlgorithmsTabPane.getTabs().add(tab);
+    }
+    
     @FXML private void handleShowCountersCheckBoxClicked() {
         if (showCountersCheckBox.selectedProperty().get()) {
             CompSys.getProject().getAlgorithm(CompSys.getProject().getCurrentGuiAlg()).setShowCounters(true);
@@ -139,10 +177,61 @@ public class FXMLguiController implements Initializable {
         FXMLguiController.loadAlgorithmView(CompSys.getProject().getCurrentGuiAlg());
     }
     
+    @FXML private void handleReloadMethodsListButtonClicked() {
+        ArrayList<String> codes = new ArrayList<>();
+        for(Tab tab : codesOfAlgorithmsTabPane.getTabs()) {
+            codes.add(((CodeEditor)tab.getContent().lookup("#ce")).getCodeAndSnapshot());
+        }
+
+        CompSys.getProject().getAlgorithm(CompSys.getProject().getCurrentGuiAlg()).setMethodsList(Proccessor.getAllMethodsFromCodes(codes));
+        
+        algMethodsComboBox.getItems().clear();
+        ArrayList<MethodDeclaration> methods = CompSys.getProject().getAlgorithm(CompSys.getProject().getCurrentGuiAlg()).getMethodsList();
+        if (methods.size() > 0) {
+            for(MethodDeclaration method : methods) {
+                algMethodsComboBox.getItems().add(method.getName());
+            }
+        }
+    }
     
-    public static Parent algPanel;
-    public static Parent dataPanel;
-    public static Parent testsPanel;
+    @FXML private void handleSaveAlgButtonClicked() {
+        ArrayList<String> codes = new ArrayList<>();
+        for(Tab tab : codesOfAlgorithmsTabPane.getTabs()) {
+            codes.add(((CodeEditor)tab.getContent().lookup("#ce")).getCodeAndSnapshot());
+        }
+
+        //CompSys.getProject().getAlgorithm(CompSys.getProject().getCurrentGuiAlg()).setMethodsList(Proccessor.getAllMethodsFromCodes(codes));
+        
+        if (algNameTextField.getText().length() > 0) {//проверка имени
+            String compileRes = Proccessor.checkClassesCompilableInTabs(codes);
+            if (compileRes.length() == 0) {//проверка public-классов в вкладках на компилируемость
+//                int methodIndex = algMethodsComboBox.getSelectionModel().selectedIndexProperty().getValue();
+//                MethodDeclaration method = methods.get(methodIndex);
+//                List parameters = method.parameters();
+//                if (parameters.size() > 0) {//количество параметров должно быть > 0 
+//                    if (Project.methodParamsAreCompatible(parameters)) {//проверка на совместимость параметров методов.
+//                        CompSys.addAlgorithm(algNameTextField.getText(), codes, String.valueOf(methodsComboBox.getSelectionModel().selectedItemProperty().getValue()));
+//                    } else {//запрос на перезапись или исправление переметров методов
+//                        if (Dialogs.showConfirmDialog(primaryStage, "Перезаписать параметры?", "Параметры метода вызова алгоритма не совпадают с уже сохраненными!", "Параметры метода вызова...", Dialogs.DialogOptions.YES_NO) == Dialogs.DialogResponse.YES) {
+//                            //перезапись
+//                            List parameters = (methods.get(algMethodsComboBox.getSelectionModel().selectedIndexProperty().getValue())).parameters();
+//                            DataGenerator.saveNewMainMethodParams(parameters);
+//                            CompSys.addAlgorithm(algNameTextField.getText(), codes, String.valueOf(algMethodsComboBox.getSelectionModel().selectedItemProperty().getValue()));
+//                            primaryStage.close();
+//                        }
+//                    }
+//                } else {
+//                    Dialogs.showWarningDialog(primaryStage, "Метод вызова алгоритма должен содержать один или несколько параметров для передачи данных при последующих вычислениях трудоемкости.", "Ошибка при сохранении алгоритма.", "Параметры метода...");
+//                }
+            } else {
+                Dialogs.showWarningDialog(primaryStage, "Ошибка компиляции исходного кода.\nСообщение компилятора:\n\n" + compileRes, "Ошибка при компиляции алгоритма.", "Классы алгоритма...");
+            }                    
+        } else {
+            Dialogs.showWarningDialog(primaryStage, "Вы не ввели название алгоритма.", "Ошибка при сохранении алгоритма.", "Название алгоритма...");
+        }
+    }
+    
+    
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         
@@ -163,11 +252,14 @@ public class FXMLguiController implements Initializable {
             new ChangeListener<Number>() {
                 @Override
                 public void changed(ObservableValue<? extends Number> ov, Number t, Number t1) {
-                    currentAlgCodeTab = t1.intValue(); //последняя вкладка для добавления класса
-                    System.out.println(currentAlgCodeTab);
+                    currentAlgCodeTab = t1.intValue();
                 }
             }
         );
+        
+        reloadMethodsListButton.setGraphic(new ImageView(new Image(CompSys.class.getResourceAsStream("reload.png"))));
+        reloadMethodsListButton.setMinSize(30, 25);
+        reloadMethodsListButton.tooltipProperty().setValue(new Tooltip("Обновить список"));
         
         //при первом открытии отключаем все элементы и ставим вкладку алгоритмов.
         FXMLguiController.setAllEnabled(false);
@@ -247,41 +339,51 @@ public class FXMLguiController implements Initializable {
      * @param index Индекс алгоритма в списке проекта, либо -1 для добавления нового алгоритма.
      */
     public static void loadAlgorithmView(int index) {        
-       if (index == -1) {//добавление нового
+        if (index == -1) {//добавление нового
            
-       } else {//отображение сохраненного
-           Algorithm alg = CompSys.getProject().getAlgorithm(index);
-           CompSys.getProject().setCurrentGuiAlg(index);
-           alg.loadAddClassTab();
-           algNameTextField.setText(alg.getName());
-                      
-           codesOfAlgorithmsTabPane.getTabs().clear();
-           for (int i = 0; i < alg.getCodes().size(); i++) {
-                Tab tab = new Tab();
-                Code c = alg.getCodes().get(i);
-                tab.setText(alg.getClassTabName(i));
-                    CodeEditor ce = null;
-                    if (!alg.getShowCounters()) {
-                        ce = new CodeEditor(c.getSourceCode());
-                    } else {
-                        ce = new CodeEditor(c.getGeneratedCode());                   
-                    }
-                    ce.setId("ce");
-                    AnchorPane.setTopAnchor(ce, -5.0);
-                    AnchorPane.setRightAnchor(ce, 0.0);
-                    AnchorPane.setBottomAnchor(ce, -5.0);
-                    AnchorPane.setLeftAnchor(ce, -5.0);
-                tab.setContent(ce);
-                codesOfAlgorithmsTabPane.getTabs().add(tab);
-           }
-           codesOfAlgorithmsTabPane.getTabs().add(alg.getAddClassTab());
-           
+        } else {//отображение сохраненного
+            Algorithm alg = CompSys.getProject().getAlgorithm(index);
+            CompSys.getProject().setCurrentGuiAlg(index);
+            
+            algNameTextField.setText(alg.getName());
+
+            codesOfAlgorithmsTabPane.getTabs().clear();
+            for (int i = 0; i < alg.getCodes().size(); i++) {
+                 Tab tab = new Tab();
+                 Code c = alg.getCodes().get(i);
+                 tab.setText(alg.getClassTabName(i));
+                     CodeEditor ce = null;
+                     if (!alg.getShowCounters()) {
+                         ce = new CodeEditor(c.getSourceCode());
+                     } else {
+                         ce = new CodeEditor(c.getGeneratedCode());                   
+                     }
+                     ce.setId("ce");
+                     AnchorPane.setTopAnchor(ce, -5.0);
+                     AnchorPane.setRightAnchor(ce, 0.0);
+                     AnchorPane.setBottomAnchor(ce, -5.0);
+                     AnchorPane.setLeftAnchor(ce, -5.0);
+                 tab.setContent(ce);
+                 codesOfAlgorithmsTabPane.getTabs().add(tab);
+            }
+
+            algMethodsComboBox.getItems().clear();
+            int selectedIndex = 0;
+            ArrayList<MethodDeclaration> methods = alg.getMethodsList();
+            for (int i = 0; i < methods.size(); i++) {
+                algMethodsComboBox.getItems().add(methods.get(i).getName());
+                if (methods.get(i).getName().toString().equals(alg.getMainMethod())) {
+                    selectedIndex = i;
+                }
+            }
+            algMethodsComboBox.getSelectionModel().select(selectedIndex);
+            
             if (!alg.getShowCounters()) {
                 showCountersCheckBox.selectedProperty().set(false);
             } else {                              
                 showCountersCheckBox.selectedProperty().set(true);
             }
-       }     
+        }     
     }
 }
 

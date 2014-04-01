@@ -2,34 +2,23 @@
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
- *//*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- *//*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- *//*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
  */
 
 package comparative_system;
 
 import comparative_system.model.Code;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
-import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.ArrayAccess;
 import org.eclipse.jdt.core.dom.ArrayCreation;
@@ -37,7 +26,6 @@ import org.eclipse.jdt.core.dom.ArrayInitializer;
 import org.eclipse.jdt.core.dom.AssertStatement;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.Block;
-import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.BreakStatement;
 import org.eclipse.jdt.core.dom.CastExpression;
@@ -56,10 +44,8 @@ import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.ForStatement;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.InfixExpression;
-import org.eclipse.jdt.core.dom.Initializer;
 import org.eclipse.jdt.core.dom.InstanceofExpression;
 import org.eclipse.jdt.core.dom.LabeledStatement;
-import org.eclipse.jdt.core.dom.MarkerAnnotation;
 import org.eclipse.jdt.core.dom.MemberValuePair;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
@@ -70,9 +56,7 @@ import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.ParenthesizedExpression;
 import org.eclipse.jdt.core.dom.PostfixExpression;
 import org.eclipse.jdt.core.dom.PrefixExpression;
-import org.eclipse.jdt.core.dom.QualifiedName;
 import org.eclipse.jdt.core.dom.ReturnStatement;
-import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.StringLiteral;
@@ -95,7 +79,6 @@ import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.TextEdit;
 
@@ -116,17 +99,39 @@ public class Proccessor {
             final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
 
             cu.accept(new ASTVisitor() {
-                    @Override
-                    public boolean visit(MethodDeclaration node) {
-                            if (!node.isConstructor()) {
-                                methods.add(node);
-                            }
-                            return true;
+                @Override
+                public boolean visit(MethodDeclaration node) {
+                    if (!node.isConstructor()) {
+                        methods.add(node);
                     }
+                    return true;
+                }
             });
         }
         return methods;
     }
+    
+    public static ArrayList<MethodDeclaration> getAllMethodsFromCode(String code) {
+        final ArrayList<MethodDeclaration> methods = new ArrayList<>();
+        
+        parser.setSource(code.toCharArray());
+        parser.setKind(ASTParser.K_COMPILATION_UNIT);
+
+        final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+
+        cu.accept(new ASTVisitor() {
+            @Override
+            public boolean visit(MethodDeclaration node) {
+                if (!node.isConstructor()) {
+                    methods.add(node);
+                }
+                return true;
+            }
+        });
+        
+        return methods;
+    }
+    
 
     /**
      * Метод для расстановки счетчиков операций в алгоритма. 
@@ -647,6 +652,53 @@ public class Proccessor {
         ArrayList<String> res = new ArrayList<>();
         for (String code : codes) {
             res.add(getClassName(code));
+        }
+        return res;
+    }
+
+    public static String checkClassesCompilableInTabs(ArrayList<String> codes) {
+        String res = "";
+        for (String code : codes) {
+            res = compile(code);
+            if (res.length() > 0) return res;
+        }
+        return res;
+    }
+    
+    private static String compile(String code) {
+        String res = "";
+        try {
+            FileWriter fileW = null;
+            
+            File dir = new File("temp");
+            if (!dir.isDirectory()) {
+                dir.mkdir();
+            }
+            
+            File file = new File("temp/" + Proccessor.getClassName(code) + ".java");
+            fileW = new FileWriter(file);
+            fileW.write(code);
+            fileW.close();
+
+            ProcessBuilder procBuilder = new ProcessBuilder(Preferences.getJdkPath() + "/javac", file.getAbsolutePath());
+            procBuilder.redirectErrorStream(true);
+
+            Process process = procBuilder.start();
+
+            InputStream stdout = process.getInputStream();
+            InputStreamReader isrStdout = new InputStreamReader(stdout);
+            BufferedReader brStdout = new BufferedReader(isrStdout);
+
+            String line = "";
+            while((line = brStdout.readLine()) != null) {
+                res += line;
+            }
+
+            int exitVal = process.waitFor();
+        } catch (IOException ex) {
+            Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
         }
         return res;
     }
