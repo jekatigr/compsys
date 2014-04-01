@@ -154,4 +154,8 @@ public class Preferences {
     public static void updateLastPathForFileChooser(String path) {
         last_path_for_filechooser = path;
     }
+
+    public static String getJdkPath() {
+        return jdk_path;
+    }
 }
