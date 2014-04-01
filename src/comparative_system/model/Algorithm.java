@@ -10,6 +10,7 @@ import comparative_system.gui.CodeEditor;
 import java.util.ArrayList;
 import javafx.scene.control.Tab;
 import javafx.scene.layout.AnchorPane;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
 
 /**
  * Класс, реализующий алгоритм.
@@ -29,7 +30,8 @@ public class Algorithm {
     /** Лист с названиями вкладок для кодов алгоритма. */
     private ArrayList<String> classesTabsNames;
     
-    private Tab addClassGuiTab;
+    private ArrayList<MethodDeclaration> methods;
+    
     /**
      * Конструктор класса.
      * @param name Имя алгоритма.
@@ -37,8 +39,8 @@ public class Algorithm {
      * @param codes Исходные и сгенерированные коды алгоритма.
      * @param classesTabsNames Имена вкладок классов алгоритма для GUI.
      */
-    public Algorithm(String name, String mainMethod, ArrayList<Code> codes, ArrayList<String> classesTabsNames) {
-        this(-1, name, mainMethod, codes, classesTabsNames);
+    public Algorithm(String name, String mainMethod, ArrayList<Code> codes, ArrayList<String> classesTabsNames, ArrayList<MethodDeclaration> methods) {
+        this(-1, name, mainMethod, codes, classesTabsNames, methods);
     }
     
     /**
@@ -49,12 +51,13 @@ public class Algorithm {
      * @param codes Исходные и сгенерированные коды алгоритма.
      * @param classesTabsNames Имена вкладок классов алгоритма для GUI.
      */
-    public Algorithm(long id, String name, String mainMethod, ArrayList<Code> codes, ArrayList<String> classesTabsNames) {
+    public Algorithm(long id, String name, String mainMethod, ArrayList<Code> codes, ArrayList<String> classesTabsNames, ArrayList<MethodDeclaration> methods) {
         this.id = id;
         this.name = name;
         this.mainMethod = mainMethod;
         this.codes = codes;
         this.classesTabsNames = classesTabsNames;
+        this.methods = methods;
     }
 
     /**
@@ -108,24 +111,13 @@ public class Algorithm {
     public String getClassTabName(int index) {
         return classesTabsNames.get(index);
     }
-    
-    public Tab getAddClassTab() {
-        return this.addClassGuiTab;
+
+    public void setMethodsList(ArrayList<MethodDeclaration> methods) {
+        this.methods = methods;
     }
 
-    public void loadAddClassTab() {
-        if (addClassGuiTab == null) {
-            addClassGuiTab = new Tab();
-            addClassGuiTab.setText("+");
-                CodeEditor ce = new CodeEditor("/*\n   Вставьте сюда код класса\n   или перетащите файл java\n   в окно программы и нажмите\n   кнопку \"Сохранить\"...     */");
-                ce.setId("addCe");
-                AnchorPane.setTopAnchor(ce, -5.0);
-                AnchorPane.setRightAnchor(ce, 0.0);
-                AnchorPane.setBottomAnchor(ce, -5.0);
-                AnchorPane.setLeftAnchor(ce, -5.0);
-            addClassGuiTab.setContent(ce);
-            addClassGuiTab.setClosable(false);
-        }
+    public ArrayList<MethodDeclaration> getMethodsList() {
+        return this.methods;
     }
 }
 
