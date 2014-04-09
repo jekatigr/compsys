@@ -134,6 +134,11 @@ public class CompSys extends Application {
         FXMLguiController.addAlgInList(project.getCountOfAlgorithms() - 1, project.getAlgorithm(project.getCountOfAlgorithms() - 1));
     }
     
+    public static void saveAlgorithm(int index, String name, String method, ArrayList<String> codes) {
+        project.saveAlgorithm(index, name, method, codes);
+        FXMLguiController.loadAlgorithmView(Project.getCurrentGuiAlg());
+    }
+    
     /**
      * Метод для остановки запущенных проектов и сохранения данных программы перед закрытием.
      */

@@ -55,6 +55,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
+import org.eclipse.jdt.core.dom.Modifier;
 
 /**
  *
@@ -157,7 +158,7 @@ public class FXMLguiController implements Initializable {
         
         Tab tab = new Tab();
             tab.setText("Класс (" + (codesOfAlgorithmsTabPane.getTabs().size() + 1) + ")");
-                CodeEditor ce = new CodeEditor("/*\n   Вставьте сюда код класса\n   или перетащите файл java\n   в окно программы и нажмите\n   кнопку \"Сохранить\"...     */");
+                CodeEditor ce = new CodeEditor("/*\n   Вставьте сюда код класса\n   или перетащите файл java\n   в окно программы и нажмите\n   кнопку \"Сохранить\"...     */\n\n\n\n");
                 ce.setId("ce");
                 AnchorPane.setTopAnchor(ce, -5.0);
                 AnchorPane.setRightAnchor(ce, 0.0);
@@ -166,6 +167,7 @@ public class FXMLguiController implements Initializable {
             tab.setContent(ce);
             tab.setClosable(true);
         codesOfAlgorithmsTabPane.getTabs().add(tab);
+        codesOfAlgorithmsTabPane.getSelectionModel().select(tab);
     }
     
     @FXML private void handleShowCountersCheckBoxClicked() {
@@ -205,24 +207,39 @@ public class FXMLguiController implements Initializable {
         if (algNameTextField.getText().length() > 0) {//проверка имени
             String compileRes = Proccessor.checkClassesCompilableInTabs(codes);
             if (compileRes.length() == 0) {//проверка public-классов в вкладках на компилируемость
-//                int methodIndex = algMethodsComboBox.getSelectionModel().selectedIndexProperty().getValue();
-//                MethodDeclaration method = methods.get(methodIndex);
-//                List parameters = method.parameters();
-//                if (parameters.size() > 0) {//количество параметров должно быть > 0 
-//                    if (Project.methodParamsAreCompatible(parameters)) {//проверка на совместимость параметров методов.
-//                        CompSys.addAlgorithm(algNameTextField.getText(), codes, String.valueOf(methodsComboBox.getSelectionModel().selectedItemProperty().getValue()));
-//                    } else {//запрос на перезапись или исправление переметров методов
-//                        if (Dialogs.showConfirmDialog(primaryStage, "Перезаписать параметры?", "Параметры метода вызова алгоритма не совпадают с уже сохраненными!", "Параметры метода вызова...", Dialogs.DialogOptions.YES_NO) == Dialogs.DialogResponse.YES) {
-//                            //перезапись
-//                            List parameters = (methods.get(algMethodsComboBox.getSelectionModel().selectedIndexProperty().getValue())).parameters();
-//                            DataGenerator.saveNewMainMethodParams(parameters);
-//                            CompSys.addAlgorithm(algNameTextField.getText(), codes, String.valueOf(algMethodsComboBox.getSelectionModel().selectedItemProperty().getValue()));
-//                            primaryStage.close();
-//                        }
-//                    }
-//                } else {
-//                    Dialogs.showWarningDialog(primaryStage, "Метод вызова алгоритма должен содержать один или несколько параметров для передачи данных при последующих вычислениях трудоемкости.", "Ошибка при сохранении алгоритма.", "Параметры метода...");
-//                }
+                int methodIndex = algMethodsComboBox.getSelectionModel().selectedIndexProperty().getValue();
+                if (methodIndex >= 0) {
+                    ArrayList<MethodDeclaration> methods = CompSys.getProject().getAlgorithm(Project.getCurrentGuiAlg()).getMethodsList();
+                    MethodDeclaration method = methods.get(methodIndex);
+                    if (checkMainMethodModificators(method)) {//проверка метода на модификаторы public & static
+                        List parameters = method.parameters();
+                        if (parameters.size() > 0) {//количество параметров должно быть > 0 
+                            if (Project.methodParamsAreCompatible(parameters)) {//проверка на совместимость параметров методов.
+                                if (addingNewAlg == true) {
+                                    CompSys.addAlgorithm(algNameTextField.getText(), method.getName().getFullyQualifiedName(), codes);
+                                } else {
+                                    CompSys.saveAlgorithm(Project.getCurrentGuiAlg(), algNameTextField.getText(), method.getName().getFullyQualifiedName(), codes);//TODO: сделать изменение имени алгоритма в списке
+                                }
+                            } else {//запрос на перезапись или исправление переметров методов
+                                if (Dialogs.showConfirmDialog(primaryStage, "Перезаписать параметры?", "Параметры метода вызова алгоритма не совпадают с уже сохраненными! Параметры для всех алгоритмов должны совпадать.", "Параметры метода вызова...", Dialogs.DialogOptions.YES_NO) == Dialogs.DialogResponse.YES) {
+                                    //перезапись
+                                    DataGenerator.saveNewMainMethodParams(parameters);
+                                    if (addingNewAlg == true) {
+                                        CompSys.addAlgorithm(algNameTextField.getText(), method.getName().getFullyQualifiedName(), codes);
+                                    } else {
+                                        CompSys.saveAlgorithm(Project.getCurrentGuiAlg(), algNameTextField.getText(), method.getName().getFullyQualifiedName(), codes);//TODO: сделать изменение имени алгоритма в списке
+                                    }
+                                }
+                            }
+                        } else {
+                            Dialogs.showWarningDialog(primaryStage, "Метод вызова алгоритма должен содержать один или несколько параметров для передачи данных при последующих вычислениях трудоемкости.", "Ошибка при сохранении алгоритма.", "Параметры метода...");
+                        }
+                    } else {
+                        Dialogs.showWarningDialog(primaryStage, "Метод вызова алгоритма должен обладать модификаторами public и static.", "Ошибка при сохранении алгоритма.", "Метод вызова алгоритма...");
+                    }                    
+                } else {
+                    Dialogs.showWarningDialog(primaryStage, "Необходимо выбрать метод вызова алгоритма.", "Ошибка при сохранении алгоритма.", "Метод вызова алгоритма...");
+                }                    
             } else {
                 Dialogs.showWarningDialog(primaryStage, "Ошибка компиляции исходного кода.\nСообщение компилятора:\n\n" + compileRes, "Ошибка при компиляции алгоритма.", "Классы алгоритма...");
             }                    
@@ -343,7 +360,7 @@ public class FXMLguiController implements Initializable {
            
         } else {//отображение сохраненного
             Algorithm alg = CompSys.getProject().getAlgorithm(index);
-            CompSys.getProject().setCurrentGuiAlg(index);
+            Project.setCurrentGuiAlg(index);
             
             algNameTextField.setText(alg.getName());
 
@@ -384,6 +401,10 @@ public class FXMLguiController implements Initializable {
                 showCountersCheckBox.selectedProperty().set(true);
             }
         }     
+    }
+
+    private boolean checkMainMethodModificators(MethodDeclaration m) {
+        return (Modifier.isPublic(m.getModifiers()) && Modifier.isStatic(m.getModifiers()));
     }
 }
 

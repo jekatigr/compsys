@@ -38,6 +38,7 @@ public class Algorithm {
      * @param mainMethod Метод вызова алгоритма.
      * @param codes Исходные и сгенерированные коды алгоритма.
      * @param classesTabsNames Имена вкладок классов алгоритма для GUI.
+     * @param methods Список деклараций методов в исходных кодах алгоритма.
      */
     public Algorithm(String name, String mainMethod, ArrayList<Code> codes, ArrayList<String> classesTabsNames, ArrayList<MethodDeclaration> methods) {
         this(-1, name, mainMethod, codes, classesTabsNames, methods);
@@ -50,6 +51,7 @@ public class Algorithm {
      * @param mainMethod Метод вызова алгоритма.
      * @param codes Исходные и сгенерированные коды алгоритма.
      * @param classesTabsNames Имена вкладок классов алгоритма для GUI.
+     * @param methods Список деклараций методов в исходных кодах алгоритма.
      */
     public Algorithm(long id, String name, String mainMethod, ArrayList<Code> codes, ArrayList<String> classesTabsNames, ArrayList<MethodDeclaration> methods) {
         this.id = id;
@@ -75,6 +77,14 @@ public class Algorithm {
     public String getName() {
         return this.name;
     }
+    
+    /**
+     * Метод сохраняет имя алгоритма.
+     * @param name Новое имя.
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
 
     /**
      * Метод возвращает метод вызова алгоритма.
@@ -82,6 +92,14 @@ public class Algorithm {
      */
     public String getMainMethod() {
         return this.mainMethod;
+    }
+    
+    /**
+     * Метод задает имя метода вызова алгоритма.
+     * @param mainMethod Имя метода вызова алгоритма.
+     */
+    public void setMainMethod(String mainMethod) {
+        this.mainMethod = mainMethod;
     }
 
     /**
@@ -100,22 +118,59 @@ public class Algorithm {
         return this.codes;
     }
     
+    /**
+     * Метод сохраняет коды алгоритма.
+     * @param codes Коды для сохранения.
+     */
+    public void setCodes(ArrayList<Code> codes) {
+        this.codes = codes;
+    }
+    
+    /**
+     * Метод возвращает флаг для интерфейса.
+     * @return {@code true}, если счетчики показаны, иначе {@code false}.
+     */
     public boolean getShowCounters() {
         return this.showCounters;
     }
     
+    /**
+     * Метод задает флаг для интерфейса.
+     * @param show {@code true} для показа счетчиков, иначе {@code false}.
+     */
     public void setShowCounters(boolean show) {
         this.showCounters = show;
     }
 
+    /**
+     * Метод возвращает имя класса-вкладки для кодов алгоритма.
+     * @param index Индекс кода в списке.
+     * @return Имя класса.
+     */
     public String getClassTabName(int index) {
         return classesTabsNames.get(index);
     }
-
+    
+    /**
+     * Метод задает список имен вкладок для исходных кодов алгоритмов.
+     * @param classNames Список имен.
+     */
+    public void setClassNamesListList(ArrayList<String> classNames) {
+        this.classesTabsNames = classNames;
+    }
+    
+    /**
+     * Метод задает список деклараций всех методов в исходных кодах алгоритма.
+     * @param methods Список методов.
+     */
     public void setMethodsList(ArrayList<MethodDeclaration> methods) {
         this.methods = methods;
     }
 
+    /**
+     * Метод возвращает список деклараций методов из исходных кодов алгоритма.
+     * @return Список деклараций методов.
+     */
     public ArrayList<MethodDeclaration> getMethodsList() {
         return this.methods;
     }

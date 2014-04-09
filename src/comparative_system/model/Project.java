@@ -2,6 +2,10 @@
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
+ *//*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
  */
 
 package comparative_system.model;
@@ -42,7 +46,7 @@ public class Project {
     /* Результаты анализа. Элементы в списке соотносятся с соответствующими алгоритмами в списке алгоритмов. */
     //ArrayList<Result> results;
     /** Индекс алгоритма, который в данный момент показывается в GUI. */
-    private int currentGuiAlg = -1;
+    private static int currentGuiAlg = -1;
 
     public Project(File file) {
         this.file = file;
@@ -74,6 +78,23 @@ public class Project {
     public void addAlgorithm(String name, String mainMethod, ArrayList<String> codes) { 
         algorithms.add(new Algorithm(name, mainMethod, Proccessor.putCounters(codes), Proccessor.getClassNames(codes), Proccessor.getAllMethodsFromCodes(codes)));
         this.saveAlgorithmInDB(this.algorithms.size() - 1);
+    }
+    
+    /**
+     * Метод для сохранения алгоритма. Здесь снова расставляются 
+     * счетчики операций. После этого алгоритм сохраняется в БД по прежнему id.
+     * @param index Индекс алгоритма в списке проекта.
+     * @param name Имя алгоритма.
+     * @param codes Исходные коды алгоритма.
+     * @param mainMethod Метод вызова алгоритма.
+     */
+    public void saveAlgorithm(int index, String name, String mainMethod, ArrayList<String> codes) { 
+        algorithms.get(index).setName(name);
+        algorithms.get(index).setMainMethod(mainMethod);
+        algorithms.get(index).setCodes(Proccessor.putCounters(codes));
+        algorithms.get(index).setClassNamesListList(Proccessor.getClassNames(codes));
+        algorithms.get(index).setMethodsList(Proccessor.getAllMethodsFromCodes(codes));
+        this.saveAlgorithmInDB(index);
     }
     
     /**
@@ -137,7 +158,8 @@ public class Project {
     }
     
     /**
-     * Метод для сохранения алгоритма в БД. Здесь же ему сопоставляется id.
+     * Метод для сохранения алгоритма в БД. 
+     * Здесь же ему сопоставляется id, если он еще не сохранялся в БД.
      * @param index Индекс в списке, соответствующий алгоритму, 
      * который нужно сохранить в БД.  
      */
@@ -147,30 +169,27 @@ public class Project {
             SQLiteConnection db = new SQLiteConnection(this.file);
             db.open();
             //--открываем базу данных проекта
-            //сохраняем данные
-            db.exec("INSERT INTO algorithms (name, main) "
-                    + "VALUES ('"+ algorithms.get(index).getName() 
-                    + "', '"+ algorithms.get(index).getMainMethod() +"')");
-            
-            long alg_id = algorithms.get(index).getId();
-            if (alg_id == -1) { // значит алгорит новый, сохраняем впервые
-                alg_id = db.getLastInsertId();
-                algorithms.get(index).setId(alg_id);
+            //сохраняем данные алгоритма
+            Algorithm alg = algorithms.get(index);
+            long alg_id = alg.getId();
+            if (alg_id == -1) { //сохраняем, как новый
+                db.exec("INSERT INTO algorithms (name, main) "
+                        + "VALUES ('"+ alg.getName() 
+                        + "', '"+ alg.getMainMethod() +"')");
+                algorithms.get(index).setId(db.getLastInsertId());
+            } else {//обновляем существующий
+                db.exec("UPDATE algorithms SET name='" + alg.getName() + "', main='"+ alg.getMainMethod() +"' WHERE id="+ alg_id);
             }
-                 
-            ArrayList<Code> codes = algorithms.get(index).getCodes();
-            for(int i = 0; i < codes.size(); i++) {
+            //--сохраняем данные алгоритма
+            //сохраняем его коды
+            db.exec("DELETE FROM codes WHERE alg_id="+ alg_id);
+            ArrayList<Code> codes = alg.getCodes();
+            for (Code code : codes) {
                 db.exec("INSERT INTO codes (alg_id, sourse_code, generated_code) "
-                    + "VALUES ("+ alg_id 
-                    + ", '"+ codes.get(i).getSourceCode()
-                    + "', '"+ codes.get(i).getGeneratedCode() +"')");
-                long code_id = codes.get(i).getId();
-                if (code_id == -1) {
-                    code_id = db.getLastInsertId();
-                    codes.get(i).setId(code_id);
-                }
+                        + "VALUES ("+ alg_id
+                        + ", '" + code.getSourceCode() + "', '" + code.getGeneratedCode() + "')");
             }
-            //--сохраняем данные
+            //--сохраняем его коды            
         } catch (SQLiteException ex) {
             Logger.getLogger(Project.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -180,16 +199,16 @@ public class Project {
      * Метод возвращает путь к файлу проекта.
      * @return Путь к файлу проекта.
      */
-    public String getFilePath() {
+    public String getProjectFilePath() {
         return this.file.toString();
     }
     
-    public int getCurrentGuiAlg() {
-        return this.currentGuiAlg;
+    public static int getCurrentGuiAlg() {
+        return currentGuiAlg;
     }
     
-    public void setCurrentGuiAlg(int index) {
-        this.currentGuiAlg = index;
+    public static void setCurrentGuiAlg(int index) {
+        currentGuiAlg = index;
     }
     
     

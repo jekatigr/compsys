@@ -16,6 +16,8 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
@@ -56,7 +58,9 @@ import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.ParenthesizedExpression;
 import org.eclipse.jdt.core.dom.PostfixExpression;
 import org.eclipse.jdt.core.dom.PrefixExpression;
+import org.eclipse.jdt.core.dom.QualifiedName;
 import org.eclipse.jdt.core.dom.ReturnStatement;
+import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.StringLiteral;
@@ -658,29 +662,98 @@ public class Proccessor {
 
     public static String checkClassesCompilableInTabs(ArrayList<String> codes) {
         String res = "";
+        ArrayList<String> filesForCompile = new ArrayList<>();
+        //сохраняем исходники в каталогах согласно пакетам
         for (String code : codes) {
-            res = compile(code);
-            if (res.length() > 0) return res;
+            try {
+                parser.setSource(code.toCharArray());
+                parser.setKind(ASTParser.K_COMPILATION_UNIT);
+                final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+                Name packageForPath = (cu.getPackage() != null) ? cu.getPackage().getName() : null;
+                
+                FileWriter fileW = null;
+                
+                //создаем необходимые каталоги для пакета
+                String dirsString = "";
+                if (packageForPath != null) {
+                    while (packageForPath.isQualifiedName()) {
+                        dirsString = ((QualifiedName)packageForPath).getName().toString() + "/" + dirsString;
+                        packageForPath = ((QualifiedName)packageForPath).getQualifier();
+                    }
+                    dirsString = ((SimpleName)packageForPath).toString() + "/" + dirsString;
+                }
+                dirsString = "javatempfiles/" + dirsString;
+                File dirs = new File(dirsString);
+                dirs.mkdirs();
+                
+                String fileFullName = dirsString + Proccessor.getClassName(code) + ".java";
+                filesForCompile.add(fileFullName);
+                File file = new File(fileFullName);
+                fileW = new FileWriter(file);
+                fileW.write(code);
+                fileW.close();
+            } catch (IOException ex) {
+                Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        //компилим
+        for (String file : filesForCompile) {
+            try {
+                ProcessBuilder procBuilder = new ProcessBuilder(Preferences.getJdkPath() + "\\javac", "-sourcepath", "javatempfiles/", file);
+                procBuilder.redirectErrorStream(true);
+                
+                Process process = procBuilder.start();
+                
+                InputStream stdout = process.getInputStream();
+                InputStreamReader isrStdout = new InputStreamReader(stdout);
+                BufferedReader brStdout = new BufferedReader(isrStdout);
+                
+                String line = "";
+                while((line = brStdout.readLine()) != null) {
+                    res += line;
+                }
+                
+                int exitVal = process.waitFor();
+            } catch (IOException ex) {
+                Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         return res;
     }
     
     private static String compile(String code) {
+        parser.setSource(code.toCharArray());
+        parser.setKind(ASTParser.K_COMPILATION_UNIT);
+        final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+        Name packageForPath = cu.getPackage().getName();
+        
         String res = "";
         try {
             FileWriter fileW = null;
             
-            File dir = new File("temp");
-            if (!dir.isDirectory()) {
-                dir.mkdir();
+            //создаем необходимые каталоги для пакета
+            String dirsString = "";
+            if (packageForPath != null) {
+                while (packageForPath.isQualifiedName()) {
+                    dirsString = ((QualifiedName)packageForPath).getName().toString() + "/" + dirsString;
+                    packageForPath = ((QualifiedName)packageForPath).getQualifier();
+                }
+                dirsString = ((SimpleName)packageForPath).toString() + "/" + dirsString;
             }
+            dirsString = "javatempfiles/" + dirsString;
+            File dirs = new File(dirsString);
+            dirs.mkdirs();
             
-            File file = new File("temp/" + Proccessor.getClassName(code) + ".java");
+            
+            File file = new File(dirsString + Proccessor.getClassName(code) + ".java");
             fileW = new FileWriter(file);
             fileW.write(code);
             fileW.close();
 
-            ProcessBuilder procBuilder = new ProcessBuilder(Preferences.getJdkPath() + "/javac", file.getAbsolutePath());
+            ProcessBuilder procBuilder = new ProcessBuilder(Preferences.getJdkPath() + "\\javac", "-sourcepath", "javatempfiles/", dirsString + file.getName());
             procBuilder.redirectErrorStream(true);
 
             Process process = procBuilder.start();
