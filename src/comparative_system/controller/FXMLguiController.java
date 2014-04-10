@@ -38,6 +38,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialogs;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Tab;
@@ -51,6 +52,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
@@ -74,7 +77,6 @@ public class FXMLguiController implements Initializable {
     @FXML private static ToggleButton testsButton;
     @FXML private static AnchorPane mainPanel;
     @FXML private static ListView algList;
-    @FXML private static HBox hBoxZeroAlgs;
     @FXML private static TextField algNameTextField;
     
     @FXML private static TabPane codesOfAlgorithmsTabPane;
@@ -82,8 +84,8 @@ public class FXMLguiController implements Initializable {
     @FXML private static ComboBox algMethodsComboBox;
     @FXML private static CheckBox showCountersCheckBox;
     @FXML private static Button reloadMethodsListButton;
-    private boolean addingNewAlg = false;
-    private boolean hasChanges = false;
+    private static boolean addingNewAlg = false;
+    private static boolean hasChanges = false;
     
 
     @FXML private void handleSaveNewProject(ActionEvent event) {
@@ -139,19 +141,6 @@ public class FXMLguiController implements Initializable {
     @FXML private void handleTestsClicked() {
         switchShowMode(2);
     }
-
-    @FXML private void handleAddAlgClicked() {
-        try {
-            Stage stage = new Stage();
-            Parent root = FXMLLoader.load(CompSys.class.getResource("gui/addEditAlgWindow.fxml"));
-            Scene scene = new Scene(root);
-            stage.setScene(scene);
-            //AddEditAlgWindowController.setStage(stage);
-            stage.show();
-        } catch (IOException ex) {
-            Logger.getLogger(FXMLguiController.class.getName()).log(Level.SEVERE, null, ex);//TODO: сделать нормалиный вывод ошибок
-        }
-    }
     
     @FXML private void handleAddTabButtonClicked() {
         hasChanges = true;
@@ -172,11 +161,11 @@ public class FXMLguiController implements Initializable {
     
     @FXML private void handleShowCountersCheckBoxClicked() {
         if (showCountersCheckBox.selectedProperty().get()) {
-            CompSys.getProject().getAlgorithm(CompSys.getProject().getCurrentGuiAlg()).setShowCounters(true);
+            CompSys.getProject().getAlgorithm(Project.getCurrentGuiAlg()).setShowCounters(true);
         } else {
-            CompSys.getProject().getAlgorithm(CompSys.getProject().getCurrentGuiAlg()).setShowCounters(false);
+            CompSys.getProject().getAlgorithm(Project.getCurrentGuiAlg()).setShowCounters(false);
         }
-        FXMLguiController.loadAlgorithmView(CompSys.getProject().getCurrentGuiAlg());
+        FXMLguiController.loadAlgorithmView(Project.getCurrentGuiAlg());
     }
     
     @FXML private void handleReloadMethodsListButtonClicked() {
@@ -184,14 +173,22 @@ public class FXMLguiController implements Initializable {
         for(Tab tab : codesOfAlgorithmsTabPane.getTabs()) {
             codes.add(((CodeEditor)tab.getContent().lookup("#ce")).getCodeAndSnapshot());
         }
-
-        CompSys.getProject().getAlgorithm(CompSys.getProject().getCurrentGuiAlg()).setMethodsList(Proccessor.getAllMethodsFromCodes(codes));
         
         algMethodsComboBox.getItems().clear();
-        ArrayList<MethodDeclaration> methods = CompSys.getProject().getAlgorithm(CompSys.getProject().getCurrentGuiAlg()).getMethodsList();
-        if (methods.size() > 0) {
-            for(MethodDeclaration method : methods) {
-                algMethodsComboBox.getItems().add(method.getName());
+        if (addingNewAlg == false) {
+            ArrayList<MethodDeclaration> methods = Proccessor.getAllMethodsFromCodes(codes);
+            CompSys.getProject().getAlgorithm(Project.getCurrentGuiAlg()).setMethodsList(methods);
+            if (methods.size() > 0) {
+                for(MethodDeclaration method : methods) {
+                    algMethodsComboBox.getItems().add(method.getName());
+                }
+            }
+        } else {
+            ArrayList<MethodDeclaration> methods = Proccessor.getAllMethodsFromCodes(codes);
+            if (methods.size() > 0) {
+                for(MethodDeclaration method : methods) {
+                    algMethodsComboBox.getItems().add(method.getName());
+                }
             }
         }
     }
@@ -209,7 +206,12 @@ public class FXMLguiController implements Initializable {
             if (compileRes.length() == 0) {//проверка public-классов в вкладках на компилируемость
                 int methodIndex = algMethodsComboBox.getSelectionModel().selectedIndexProperty().getValue();
                 if (methodIndex >= 0) {
-                    ArrayList<MethodDeclaration> methods = CompSys.getProject().getAlgorithm(Project.getCurrentGuiAlg()).getMethodsList();
+                    ArrayList<MethodDeclaration> methods;
+                    if (!addingNewAlg) {
+                        methods = CompSys.getProject().getAlgorithm(Project.getCurrentGuiAlg()).getMethodsList();
+                    } else {
+                        methods = Proccessor.getAllMethodsFromCodes(codes);
+                    }
                     MethodDeclaration method = methods.get(methodIndex);
                     if (checkMainMethodModificators(method)) {//проверка метода на модификаторы public & static
                         List parameters = method.parameters();
@@ -258,9 +260,9 @@ public class FXMLguiController implements Initializable {
      * Метод для инициализации интерфейса при запуске программы.
      */
     public static void initialize() {
-        algList.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
+        algList.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
             @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                 FXMLguiController.loadAlgorithmView(algList.getSelectionModel().getSelectedIndex());
             }
         });
@@ -323,13 +325,8 @@ public class FXMLguiController implements Initializable {
     }
 
     public static void openProject(Project project) {
-        algList.getItems().clear();
-        hBoxZeroAlgs.setVisible(true);
-        if (project.getCountOfAlgorithms() > 0) {
-            for (int i = 0; i < project.getCountOfAlgorithms(); i++) {
-                addAlgInList(i, project.getAlgorithm(i));
-            }
-        }
+        reloadAlgList();
+        algList.getSelectionModel().select(0);
         setAllEnabled(true);
     }
     
@@ -342,13 +339,17 @@ public class FXMLguiController implements Initializable {
     }
 
     /**
-     * Метод для добавления алгоритма в ListView.
-     * @param index Индекс алгоритма в списке в проекте.
-     * @param alg Алгоритм типа {@code Algoritm}.
+     * Метод для обновления списка алгоритмов в ListView.
      */
-    public static void addAlgInList(int index, Algorithm alg) {
-        hBoxZeroAlgs.setVisible(false);
-        algList.getItems().add(alg.getName());
+    public static void reloadAlgList() {
+        algList.getItems().clear();
+        int algCount = CompSys.getCountOfAlgorithms();
+        for (int i = 0; i < algCount; i++) {
+            algList.getItems().add(CompSys.getProject().getAlgorithm(i).getName());                
+        }
+        Label l = new Label("Добавить...");
+        l.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, Font.getDefault().getSize() + 2));
+        algList.getItems().add(l);
     }
     
     /**
@@ -356,12 +357,30 @@ public class FXMLguiController implements Initializable {
      * @param index Индекс алгоритма в списке проекта, либо -1 для добавления нового алгоритма.
      */
     public static void loadAlgorithmView(int index) {        
-        if (index == -1) {//добавление нового
-           
+        if (index == algList.getItems().size() - 1) {//добавление нового
+            addingNewAlg = true;
+            Project.setCurrentGuiAlg(-1);
+            algNameTextField.setText("Новый алгоритм...");
+            codesOfAlgorithmsTabPane.getTabs().clear();
+            
+            Tab tab = new Tab();
+               tab.setText("Класс (1)");
+                   CodeEditor ce = new CodeEditor("/*\n   Вставьте сюда код класса\n   или перетащите файл java\n   в окно программы и нажмите\n   кнопку \"Сохранить\"...     */\n\n\n\n");
+                   ce.setId("ce");
+                   AnchorPane.setTopAnchor(ce, -5.0);
+                   AnchorPane.setRightAnchor(ce, 0.0);
+                   AnchorPane.setBottomAnchor(ce, -5.0);
+                   AnchorPane.setLeftAnchor(ce, -5.0);
+               tab.setContent(ce);
+               tab.setClosable(true);
+            codesOfAlgorithmsTabPane.getTabs().add(tab);
+            algMethodsComboBox.getItems().clear();                    
+            showCountersCheckBox.visibleProperty().set(false);
         } else {//отображение сохраненного
+            addingNewAlg = false;
             Algorithm alg = CompSys.getProject().getAlgorithm(index);
             Project.setCurrentGuiAlg(index);
-            
+
             algNameTextField.setText(alg.getName());
 
             codesOfAlgorithmsTabPane.getTabs().clear();
@@ -394,13 +413,13 @@ public class FXMLguiController implements Initializable {
                 }
             }
             algMethodsComboBox.getSelectionModel().select(selectedIndex);
-            
+
             if (!alg.getShowCounters()) {
                 showCountersCheckBox.selectedProperty().set(false);
             } else {                              
                 showCountersCheckBox.selectedProperty().set(true);
-            }
-        }     
+            }  
+        }
     }
 
     private boolean checkMainMethodModificators(MethodDeclaration m) {

@@ -131,7 +131,7 @@ public class CompSys extends Application {
      */
     public static void addAlgorithm(String name, String method, ArrayList<String> codes) {
         project.addAlgorithm(name, method, codes);
-        FXMLguiController.addAlgInList(project.getCountOfAlgorithms() - 1, project.getAlgorithm(project.getCountOfAlgorithms() - 1));
+        FXMLguiController.reloadAlgList();
     }
     
     public static void saveAlgorithm(int index, String name, String method, ArrayList<String> codes) {
