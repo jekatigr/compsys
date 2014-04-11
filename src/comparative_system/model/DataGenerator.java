@@ -6,8 +6,13 @@
 
 package comparative_system.model;
 
+import com.almworks.sqlite4java.SQLiteConnection;
+import com.almworks.sqlite4java.SQLiteException;
+import comparative_system.CompSys;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 
 /**
@@ -83,21 +88,14 @@ public class DataGenerator {
     /**
      * Метод для сравнения параметров методов вызова алгоритмов.
      * @param parameters Список параметров типа {@code SingleVariableDeclaration} для сравнения.
-     * @return {@code true} в случае, когда параметры совпадают по типу и количеству, {@code false} иначе.
+     * @return {@code true} в случае, когда параметры совпадают по расположению, типу и количеству, {@code false} иначе.
      */
     public static boolean compareListOfParams(List parameters) {
         if (DataGenerator.getCountOfMethodsParams() == parameters.size()) {
-            ArrayList<Param> arr = new ArrayList<>(params);
-            for(Object param : parameters) {
-                SingleVariableDeclaration p = (SingleVariableDeclaration)param;
-                //arr.add(new Param(p.getType().toString(), p.getName().toString()));
-                for(int i = params.size() - 1; i >= 0; i--) {
-                    if (arr.get(i).getType().equals(((SingleVariableDeclaration)param).getType().toString())) {
-                        arr.remove(i);
-                        break;
-                    }
+            for(int i = 0; i < parameters.size(); i++) {
+                if (!((SingleVariableDeclaration)parameters.get(i)).getType().toString().equals(params.get(i).getType())) {
+                    return false;
                 }
-                return false;
             }  
             return true;
         }
@@ -114,6 +112,24 @@ public class DataGenerator {
         for(Object param : parameters) {//TODO: сохранить параметры в БД и создать таблицу исх. данных.
             SingleVariableDeclaration p = (SingleVariableDeclaration)param;
             DataGenerator.addMainMethodsParam(p.getType().toString(), p.getName().toString());
+        }
+        saveMethodParamsInDB();
+    }
+    
+    private static void saveMethodParamsInDB() {
+        try {
+            //открываем базу данных проекта
+            SQLiteConnection db = new SQLiteConnection(CompSys.getProject().file);
+            db.open();
+            //--открываем базу данных проекта
+            //сохраняем
+            db.exec("DELETE FROM main_params");
+            for (Param par : params) {
+                db.exec("INSERT INTO main_params (type, name) VALUES ("+ par.getType() +", '"+ par.getName() +"')");
+            }
+            //--сохраняем         
+        } catch (SQLiteException ex) {
+            Logger.getLogger(DataGenerator.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }
