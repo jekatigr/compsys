@@ -70,6 +70,8 @@ public class CompSys extends Application {
         stage.show();
         
         //загружаем файлы библиотек для подсветки кода
+        CodeEditor.loadCodeMirrorLibs();
+        /*
         final Task loadCodeMirrorLibsTask = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
@@ -95,6 +97,7 @@ public class CompSys extends Application {
         });
         
         new Thread(loadCodeMirrorLibsTask).start();
+        */
         //--загружаем файлы библиотек для подсветки кода
     }
 
@@ -166,13 +169,5 @@ public class CompSys extends Application {
      */
     public static Project getProject() {
         return project;
-    }
-    
-    /**
-     * Метод возвращает количество алгоритмов в текущем проекте.
-     * @return Количество алгоритмов.
-     */
-    public static int getCountOfAlgorithms() {
-        return project.getCountOfAlgorithms();
     }
 }
