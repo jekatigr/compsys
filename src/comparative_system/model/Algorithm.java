@@ -6,11 +6,13 @@
 
 package comparative_system.model;
 
+import comparative_system.Proccessor;
 import comparative_system.gui.CodeEditor;
 import java.util.ArrayList;
 import javafx.scene.control.Tab;
 import javafx.scene.layout.AnchorPane;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.Name;
 
 /**
  * Класс, реализующий алгоритм.
@@ -25,11 +27,13 @@ public class Algorithm {
     private String mainMethod;
     /** Исходные и сгенерированные коды алгоритма. */
     private ArrayList<Code> codes;
+    /** Лист полных названий классов. Если в коде не указан пакет, то по умолчанию он будет "algorithm" + (id в БД проекта). */
+    private ArrayList<Name> fullNamesOfClasses;
     /** Флаг для показа счетчиков в коде для GUI. */
     private boolean showCounters = false;
     /** Лист с названиями вкладок для кодов алгоритма. */
     private ArrayList<String> classesTabsNames;
-    
+    /** Лист с определениями методов классов алгоритма. */
     private ArrayList<MethodDeclaration> methods;
     
     /**
@@ -57,6 +61,7 @@ public class Algorithm {
         this.id = id;
         this.name = name;
         this.mainMethod = mainMethod;
+        this.fullNamesOfClasses = Proccessor.getFullNamesOfClasses(id, getSourceCodes(codes));
         this.codes = codes;
         this.classesTabsNames = classesTabsNames;
         this.methods = methods;
@@ -174,9 +179,23 @@ public class Algorithm {
     public ArrayList<MethodDeclaration> getMethodsList() {
         return this.methods;
     }
+
+    void setFullNamesOfClassesList(ArrayList<Name> fullNamesOfClasses) {
+        this.fullNamesOfClasses = fullNamesOfClasses;
+    }
+    
+    ArrayList<Name> getFullNamesOfClassesList() {
+        return this.fullNamesOfClasses;
+    }
+    
+    private static ArrayList<String> getSourceCodes(ArrayList<Code> codes) {
+        ArrayList<String> resCodes = new ArrayList<>();
+        for(Code code : codes) {
+            resCodes.add(code.getSourceCode());
+        }
+        return resCodes;
+    }
 }
-
-
 
 
 

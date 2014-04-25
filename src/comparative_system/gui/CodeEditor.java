@@ -12,8 +12,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.web.WebView;
+import org.w3c.dom.Document;
 
 /**
  *
@@ -35,7 +38,9 @@ public class CodeEditor extends AnchorPane {
     "<!doctype html>" +
     "<html>" +
     "<head>" +
-    " <style type=\"text/css\">${codemirrorcss}</style>" +
+    " <style type=\"text/css\">"
+            + ".readonly{ background-color: #dfdfdf;} "
+            + "${codemirrorcss}</style>" +
     " <script>${codemirrorjs}</script>" +
     " <script>${clikejs}</script>" +
     "</head>" +
@@ -50,6 +55,7 @@ public class CodeEditor extends AnchorPane {
     " mode: \"text/x-java\"" +
     " });" +
     " editor.setSize(\"100%\", \"100%\"); " +
+    " function setReadOnlyLines(begin, end) {(editor.getDoc()).markText({line: begin, ch: 0}, {line: end, ch: 0}, {readOnly: true, className: \"readonly\"});}" +
     "</script>" +
     "</body>" +
     "</html>";
@@ -71,6 +77,23 @@ public class CodeEditor extends AnchorPane {
     public void setCode(String newCode) {
         this.editingCode = newCode;
         webview.getEngine().loadContent(applyEditingTemplate());
+    }
+    
+    /** sets the current code in the editor and creates an editing snapshot of the code which can be reverted to. */
+    public void setCode(String newCode, final int beginFirst, final int endFirst, final int beginSecond, final int endSecond) {
+        this.editingCode = newCode;
+        webview.getEngine().loadContent(applyEditingTemplate());
+       
+        webview.getEngine().documentProperty().addListener(new ChangeListener<Document>() {
+            @Override
+            public void changed(ObservableValue<? extends Document> ov, Document t, Document t1) {
+                if (t1 != null) {
+                    webview.getEngine().documentProperty().removeListener(this);
+                    webview.getEngine().executeScript("setReadOnlyLines(" + beginFirst + "," + endFirst + ");");
+                    webview.getEngine().executeScript("setReadOnlyLines(" + beginSecond + "," + endSecond + ");");
+                }
+            }
+        });
     }
 
     /** returns the current code in the editor and updates an editing snapshot of the code which can be reverted to. */

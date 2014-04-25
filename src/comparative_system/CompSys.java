@@ -54,21 +54,6 @@ public class CompSys extends Application {
                 Platform.exit();
             }
         });
-        //инициализируем интерфейс
-        FXMLguiController.initialize();
-        //--готовим gui
-        //загружаем настройки программы
-        Preferences.loadPreferences();
-        //--загружаем настройки программы
-        //открываем последний открытый проект, если он есть
-        File proj_file = Preferences.getLastOpenedProject();
-        if (proj_file != null) {
-            openProject(proj_file);
-        }
-        //--открываем последний проект, если он есть
-        primaryStage = stage;
-        stage.show();
-        
         //загружаем файлы библиотек для подсветки кода
         CodeEditor.loadCodeMirrorLibs();
         /*
@@ -99,6 +84,21 @@ public class CompSys extends Application {
         new Thread(loadCodeMirrorLibsTask).start();
         */
         //--загружаем файлы библиотек для подсветки кода
+        //инициализируем интерфейс
+        FXMLguiController.initialize();
+        //--готовим gui
+        //загружаем настройки программы
+        Preferences.loadPreferences();
+        //--загружаем настройки программы
+        //открываем последний открытый проект, если он есть
+        File proj_file = Preferences.getLastOpenedProject();
+        if (proj_file != null) {
+            openProject(proj_file);
+        }
+        //--открываем последний проект, если он есть
+        primaryStage = stage;
+        stage.show();
+        
     }
 
     /**

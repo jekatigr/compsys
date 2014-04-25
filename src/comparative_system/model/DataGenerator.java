@@ -22,7 +22,7 @@ import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 public class DataGenerator {
     /** Список параметров методов вызова алгоритмов. Для всех генераторов список один и тот же. */
     private static ArrayList<Param> params = new ArrayList<>();
-        
+       
     /** Индекс генератора в БД. */
     private int id;
     /** Имя генератора. */
@@ -31,6 +31,8 @@ public class DataGenerator {
     private String code;
     /** Список сгенерированных исходных данных. */
     private ArrayList<Data> data;
+    /** Флаг для вкладки код/данные для GUI. */
+    private boolean isCodeOpened = true;
 
     /**
      * Конструктор класса.
@@ -53,12 +55,37 @@ public class DataGenerator {
     }
 
     /**
+     * Возвращает имя генератора.
+     * @return Имя генератора.
+     */
+    public String getName() {
+        return this.name;
+    }
+    
+    /**
+     * Метод возвращает исходный код генератора данных.
+     * @return Исходный код.
+     */
+    public String getCode() {
+        return this.code;
+    }
+    
+    /**
      * Добавление одного набора исходных данных к генератору.
      * @param d Набор исходных данных.
      */
     public void addData(Data d) {
         this.data.add(d);
     }
+    
+    /**
+     * Метод возвращает флаг для интерфейса. 
+     * @return {@code true}, если вкладка кода показана, иначе {@code false}.
+     */
+    public boolean getIsCodeOpened() {
+        return this.isCodeOpened;
+    }
+    
     
     /**
      * Метод для очистки списка параметров методов вызова. Параметры также удаляются из БД.
@@ -85,6 +112,19 @@ public class DataGenerator {
         return params.size();
     }
 
+    public static String getMethodsParamsAsString(boolean withTypes) {
+        String res = "";
+        for (Param par : params) {
+            if (!"".equals(res)) {res += ", ";}//перед каждым параметром кроме первого вставляем запятую с пробелом.
+            if (withTypes) {
+                res += par.getType() + " " + par.getName();
+            } else {
+                res += par.getName();
+            }
+        }
+        return res;
+    }
+    
     /**
      * Метод для сравнения параметров методов вызова алгоритмов.
      * @param parameters Список параметров типа {@code SingleVariableDeclaration} для сравнения.
@@ -109,7 +149,7 @@ public class DataGenerator {
      */
     public static void saveNewMainMethodParams(List parameters) {
         clearParamsList();
-        for(Object param : parameters) {//TODO: сохранить параметры в БД и создать таблицу исх. данных.
+        for(Object param : parameters) {//TODO: создать таблицу исх. данных.
             SingleVariableDeclaration p = (SingleVariableDeclaration)param;
             DataGenerator.addMainMethodsParam(p.getType().toString(), p.getName().toString());
         }

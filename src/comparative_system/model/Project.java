@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.Name;
 
 /**
  *
@@ -47,6 +48,8 @@ public class Project {
     //ArrayList<Result> results;
     /** Индекс алгоритма, который в данный момент показывается в GUI. */
     private static int currentGuiAlg = -1;
+    /** Индекс генератора, который в данный момент показывается в GUI. */
+    private static int currentGuiGen = -1;
 
     public Project(File file) {
         this.file = file;
@@ -92,6 +95,7 @@ public class Project {
         algorithms.get(index).setName(name);
         algorithms.get(index).setMainMethod(mainMethod);
         algorithms.get(index).setCodes(Proccessor.putCounters(codes));
+        algorithms.get(index).setFullNamesOfClassesList(Proccessor.getFullNamesOfClasses(algorithms.get(index).getId(), codes));
         algorithms.get(index).setClassNamesListList(Proccessor.getClassNames(codes));
         algorithms.get(index).setMethodsList(Proccessor.getAllMethodsFromCodes(codes));
         this.saveAlgorithmInDB(index);
@@ -109,34 +113,66 @@ public class Project {
      * Возвращает количество генераторов исходных данных в проекте.
      * @return Количество генераторов.
      */
-    private int getCountOfDataGenerators() {
+    public int getCountOfDataGenerators() {
         return this.dg.size();
     }
 
     /**
-     * Возвращает генератор исходных данных с индексом в БД, равным {@code gen_id}.
-     * @param gen_id Индекс геренатора в БД.
-     * @return Генератор исходных данных, {@code null}, если такого генератора не существует.
+     * Возвращает генератор исходных данных с индексом, равным {@code gen_id}.
+     * @param index Индекс геренатора.
+     * @return Генератор исходных данных.
      */
-    private DataGenerator getDataGenerator(int gen_id) {
-        for (int i = 0; i < dg.size(); i++) {
-            if (dg.get(i).getId() == gen_id) {
-                return dg.get(i);
-            }
-        }
-        return null;
+    public DataGenerator getDataGenerator(int index) {
+        return dg.get(index);
     }
 
     /**
-     * Добавление набора исходных данных к одному из генераторов проекта.
+     * Добавление набора исходных данных к соответствующим генераторам.
+     * @param data_items Лист исходных данных.
+     */
+    private void addAllDataItems(ArrayList<Data> data_items) {
+        for(Data d : data_items) {
+            int gen_id = getDataGeneratorIndex(d.getDataGeneratorDBId());
+            if (gen_id != -1 && this.getDataGenerator(gen_id) != null) {
+                this.getDataGenerator(gen_id).addData(d);
+            }
+        }
+    }
+
+    /**
+     * Метод возвращает индекс генератора в списке генераторов по id в БД.
+     * @param dataGeneratorId id генератора в БД.
+     * @return Индекс генератора в списке в проекте, -1, если генератор не найден.
+     */
+    private int getDataGeneratorIndex(int dataGeneratorId) {
+        for (int i = 0; i < dg.size(); i++) {
+            if (dg.get(i).getId() == dataGeneratorId) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public String getAllAlgotithmsAsImports() {
+        String res = "";
+        for (Algorithm alg : algorithms) {
+            for(Name imp : alg.getFullNamesOfClassesList()) {
+                res += "import " + imp.toString() + ";\n";
+            }
+        } 
+        return res + " \n";
+    }
+    
+    /**
+     * Добавление набора исходных данных к одному из генераторов проекта по id из БД.
      * @param gen_id Индекс генератора в БД.
      * @param d Набор исходных ранных.
-     */
-    private void addData(int gen_id, Data d) {
+     *
+    private void a-ddData(int gen_id, Data d) {
         if (this.getDataGenerator(gen_id) != null) {
             this.getDataGenerator(gen_id).addData(d);
         }
-    }
+    }*/
 
     /**
      * Метод возвращает количество алгоритмов в проекте.
@@ -203,14 +239,38 @@ public class Project {
         return this.file.toString();
     }
     
+    
+    /**
+     * Метод возвращает индекс алгоритма, который показывается в GUI в данный момент.
+     * @return Индекс алгоритма в списке проекта.
+     */
     public static int getCurrentGuiAlg() {
         return currentGuiAlg;
     }
     
+    /**
+     * Метод для сохранения индекса алгоритма, который в данный момент показывается в GUI.
+     * @param index Индекс алгоритма.
+     */
     public static void setCurrentGuiAlg(int index) {
         currentGuiAlg = index;
     }
     
+    /**
+     * Метод возвращает индекс генератора данных, который показывается в GUI в данный момент.
+     * @return Индекс генератора в списке проекта.
+     */
+    public static int getCurrentGuiGen() {
+        return currentGuiGen;
+    }
+    
+    /**
+     * Метод для сохранения индекса генератора данных, который в данный момент показывается в GUI.
+     * @param index Индекс генератора данных.
+     */
+    public static void setCurrentGuiGen(int index) {
+        currentGuiGen = index;
+    }
     
     /**
      * Метод загружает проект из файла.
@@ -258,17 +318,17 @@ public class Project {
             //исходные данные
             st = db.prepare("SELECT COUNT(name) FROM sqlite_master WHERE name='source_data'"); //проверяем таблицу на существование
             if (st.hasRow()) {
-                st = db.prepare("IF EXISTS (SELECT * FROM source_data )"); //делаем запрос сразу на все исх данные, ибо тут обряботка будет быстрее, чем если запрашивать отдельно для каждого генератора.
+                st = db.prepare("IF EXISTS (SELECT * FROM source_data )"); //делаем запрос сразу на все исх данные, ибо тут обработка будет быстрее, чем если запрашивать отдельно для каждого генератора.
                 ArrayList data_params = new ArrayList(); //список нетипизированных данных, соответствующих параметрам методов вызова алгоритмов.
-                Data d;
+                ArrayList<Data> data_items = new ArrayList<>();
                 while(st.step()) {
                     data_params.clear();
                     for (int i = 2; i < DataGenerator.getCountOfMethodsParams(); i++) {
                         data_params.add(st.columnValue(i));
                     }
-                    d = new Data(st.columnInt(0), st.columnInt(1), data_params.toArray());
-                    project.addData(d.getDataGeneratorId(), d);
+                    data_items.add(new Data(st.columnInt(0), st.columnInt(1), data_params.toArray()));
                 }
+                project.addAllDataItems(data_items);
             }
             //--исходные данные
             //--делаем запросы и сохраняем данные

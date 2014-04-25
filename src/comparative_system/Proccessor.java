@@ -2,6 +2,10 @@
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
+ *//*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
  */
 
 package comparative_system;
@@ -774,5 +778,41 @@ public class Proccessor {
             Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
         }
         return res;
+    }
+
+    /**
+     * Метод возвращает список имен классов с пакетами.
+     * @param alg_id id алгоритма для имен по умолчанию.
+     * @param codes Список исходных кодов.
+     * @return Список полных имен.
+     */
+    public static ArrayList<Name> getFullNamesOfClasses(long alg_id, ArrayList<String> codes) {
+        ArrayList<Name> fullNames = new ArrayList<>();
+        for (String code : codes) {
+                parser.setSource(code.toCharArray());
+                parser.setKind(ASTParser.K_COMPILATION_UNIT);
+                final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+                Name packageForPath = (cu.getPackage() != null) ? cu.getPackage().getName() : null;
+                
+                String className = "";
+                for (Object e : cu.types()) {
+                    if (e instanceof TypeDeclaration) {//если класс
+                        className = ((TypeDeclaration)e).getName().toString();
+                        break;
+                    }
+                }
+                
+                if (packageForPath != null) {
+                    fullNames.add(cu.getAST().newName(packageForPath.toString() + "." + className));
+                } else {
+                    Name name = cu.getAST().newName("algorithm" + alg_id + "." + className);
+                    fullNames.add(name);
+                }                
+        }
+        return fullNames;
+    }
+
+    public static String checkGeneratorCompilable(String code) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }
