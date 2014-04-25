@@ -786,33 +786,47 @@ public class Proccessor {
      * @param codes Список исходных кодов.
      * @return Список полных имен.
      */
-    public static ArrayList<Name> getFullNamesOfClasses(long alg_id, ArrayList<String> codes) {
+    public static ArrayList<Name> getFullNamesOfClasses(long alg_id, ArrayList<Code> codes) {
         ArrayList<Name> fullNames = new ArrayList<>();
-        for (String code : codes) {
-                parser.setSource(code.toCharArray());
-                parser.setKind(ASTParser.K_COMPILATION_UNIT);
-                final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
-                Name packageForPath = (cu.getPackage() != null) ? cu.getPackage().getName() : null;
-                
-                String className = "";
-                for (Object e : cu.types()) {
-                    if (e instanceof TypeDeclaration) {//если класс
-                        className = ((TypeDeclaration)e).getName().toString();
-                        break;
-                    }
+        for (Code code : codes) {
+            parser.setSource(code.getSourceCode().toCharArray());
+            parser.setKind(ASTParser.K_COMPILATION_UNIT);
+            final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+            Name packageForPath = (cu.getPackage() != null) ? cu.getPackage().getName() : null;
+
+            String className = "";
+            for (Object e : cu.types()) {
+                if (e instanceof TypeDeclaration) {//если класс
+                    className = ((TypeDeclaration)e).getName().toString();
+                    break;
                 }
-                
-                if (packageForPath != null) {
-                    fullNames.add(cu.getAST().newName(packageForPath.toString() + "." + className));
-                } else {
-                    Name name = cu.getAST().newName("algorithm" + alg_id + "." + className);
-                    fullNames.add(name);
-                }                
+            } 
+
+            if (packageForPath != null) {
+                fullNames.add(cu.getAST().newName(packageForPath.toString() + "." + className));
+            }             
         }
         return fullNames;
     }
 
     public static String checkGeneratorCompilable(String code) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public static ArrayList<Code> putPackagesIfNotExist(long alg_id, ArrayList<Code> codes) {
+        for (Code c : codes) {
+            String codeS = c.getSourceCode();
+            String codeG = c.getSourceCode();
+            parser.setSource(codeS.toCharArray());
+            parser.setKind(ASTParser.K_COMPILATION_UNIT);
+            final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+            Name packageForPath = (cu.getPackage() != null) ? cu.getPackage().getName() : null;
+
+            if (packageForPath == null) {
+                c.setSourceCode("package algorithm" + alg_id + ";\n\n" + codeS);
+                c.setGeneratedCode("package algorithm" + alg_id + ";\n\n" + codeG);
+            }                
+        }
+        return codes;
     }
 }

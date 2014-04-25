@@ -61,7 +61,6 @@ public class Algorithm {
         this.id = id;
         this.name = name;
         this.mainMethod = mainMethod;
-        this.fullNamesOfClasses = Proccessor.getFullNamesOfClasses(id, getSourceCodes(codes));
         this.codes = codes;
         this.classesTabsNames = classesTabsNames;
         this.methods = methods;

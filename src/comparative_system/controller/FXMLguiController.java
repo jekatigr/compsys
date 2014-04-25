@@ -211,8 +211,6 @@ public class FXMLguiController implements Initializable {
             codes.add(((CodeEditor)tab.getContent().lookup("#ce")).getCodeAndSnapshot());
         }
 
-        //CompSys.getProject().getAlgorithm(CompSys.getProject().getCurrentGuiAlg()).setMethodsList(Proccessor.getAllMethodsFromCodes(codes));
-        
         if (algNameTextField.getText().length() > 0) {//проверка имени
             String compileRes = Proccessor.checkClassesCompilableInTabs(codes);
             if (compileRes.length() == 0) {//проверка public-классов в вкладках на компилируемость

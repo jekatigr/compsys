@@ -69,6 +69,8 @@ public class Project {
      */
     private void addAlgorithm(int id, String name, String mainMethod, ArrayList<Code> codes, ArrayList<String> classesTabsNames, ArrayList<MethodDeclaration> methods) {
         algorithms.add(new Algorithm(id, name, mainMethod, codes, classesTabsNames, methods));
+        Algorithm alg = this.algorithms.get(this.algorithms.size() - 1);
+        alg.setFullNamesOfClassesList(Proccessor.getFullNamesOfClasses(alg.getId(), alg.getCodes()));
     }
 
     /**
@@ -81,6 +83,11 @@ public class Project {
     public void addAlgorithm(String name, String mainMethod, ArrayList<String> codes) { 
         algorithms.add(new Algorithm(name, mainMethod, Proccessor.putCounters(codes), Proccessor.getClassNames(codes), Proccessor.getAllMethodsFromCodes(codes)));
         this.saveAlgorithmInDB(this.algorithms.size() - 1);
+        Algorithm alg = this.algorithms.get(this.algorithms.size() - 1);
+        long alg_id = alg.getId();
+        Proccessor.putPackagesIfNotExist(alg_id, alg.getCodes());
+        alg.setFullNamesOfClassesList(Proccessor.getFullNamesOfClasses(alg_id, alg.getCodes()));
+        this.saveCodesOfAlgorithmInDB(this.algorithms.size() - 1);
     }
     
     /**
@@ -94,11 +101,14 @@ public class Project {
     public void saveAlgorithm(int index, String name, String mainMethod, ArrayList<String> codes) { 
         algorithms.get(index).setName(name);
         algorithms.get(index).setMainMethod(mainMethod);
-        algorithms.get(index).setCodes(Proccessor.putCounters(codes));
-        algorithms.get(index).setFullNamesOfClassesList(Proccessor.getFullNamesOfClasses(algorithms.get(index).getId(), codes));
+        long alg_id = algorithms.get(index).getId();
+        ArrayList<Code> codesG = Proccessor.putCounters(codes);
+        algorithms.get(index).setCodes(Proccessor.putPackagesIfNotExist(alg_id, codesG));
+        algorithms.get(index).setFullNamesOfClassesList(Proccessor.getFullNamesOfClasses(alg_id, codesG));
         algorithms.get(index).setClassNamesListList(Proccessor.getClassNames(codes));
         algorithms.get(index).setMethodsList(Proccessor.getAllMethodsFromCodes(codes));
         this.saveAlgorithmInDB(index);
+        this.saveCodesOfAlgorithmInDB(index);
     }
     
     /**
@@ -217,7 +227,25 @@ public class Project {
                 db.exec("UPDATE algorithms SET name='" + alg.getName() + "', main='"+ alg.getMainMethod() +"' WHERE id="+ alg_id);
             }
             //--сохраняем данные алгоритма
-            //сохраняем его коды
+        } catch (SQLiteException ex) {
+            Logger.getLogger(Project.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    /**
+     * Метод для сохранения кодов алгоритма в БД. 
+     * @param index Индекс в списке, соответствующий алгоритму, 
+     * исходные коды которого нужно сохранить в БД.  
+     */
+    private void saveCodesOfAlgorithmInDB(int index) {
+        try {
+            //открываем базу данных проекта
+            SQLiteConnection db = new SQLiteConnection(this.file);
+            db.open();
+            //--открываем базу данных проекта
+            Algorithm alg = algorithms.get(index);
+            long alg_id = alg.getId();
+            //сохраняем коды
             db.exec("DELETE FROM codes WHERE alg_id="+ alg_id);
             ArrayList<Code> codes = alg.getCodes();
             for (Code code : codes) {
@@ -225,7 +253,7 @@ public class Project {
                         + "VALUES ("+ alg_id
                         + ", '" + code.getSourceCode() + "', '" + code.getGeneratedCode() + "')");
             }
-            //--сохраняем его коды            
+            //--сохраняем коды 
         } catch (SQLiteException ex) {
             Logger.getLogger(Project.class.getName()).log(Level.SEVERE, null, ex);
         }

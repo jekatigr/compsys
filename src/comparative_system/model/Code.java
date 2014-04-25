@@ -55,6 +55,14 @@ public class Code {
         return generatedCode;
     }
 
+    public void setSourceCode(String code) {
+        this.sourceCode = code;
+    }
+
+    public void setGeneratedCode(String code) {
+        this.generatedCode = code;
+    }
+
     /**
      * Метод возвращает id исходных кодов в БД.
      * @return id исходных кодов.
