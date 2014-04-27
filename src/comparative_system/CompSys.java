@@ -19,7 +19,9 @@ import javafx.stage.Stage;
  * @author Gromov Evg.
  */
 public class CompSys extends Application {
+    /** Текущий проект. */
     private static Project project;
+    /** Форма окна. */
     private static Stage primaryStage;
    
     @Override
