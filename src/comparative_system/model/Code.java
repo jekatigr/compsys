@@ -1,18 +1,10 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package comparative_system.model;
 
 /**
- *
- * @author TireX
+ * Класс, реализующий исходный код алгоритма.
+ * @author Gromov Evg.
  */
 public class Code {
-    /** id кода в БД проекта. */
-    //private long id;
     /** Исходный код. */
     private String sourceCode;
     /** Код со вставленными счетчиками. */
@@ -55,27 +47,19 @@ public class Code {
         return generatedCode;
     }
 
+    /**
+     * Метод задает исходный код без изменений.
+     * @param code Исходный код без изменений.
+     */
     public void setSourceCode(String code) {
         this.sourceCode = code;
     }
 
+    /**
+     * Метод задает исходный код со вставленными счетчиками.
+     * @param code Исходный код со вставленными счетчиками.
+     */
     public void setGeneratedCode(String code) {
         this.generatedCode = code;
     }
-
-    /**
-     * Метод возвращает id исходных кодов в БД.
-     * @return id исходных кодов.
-     */
-//    long getId() {
-//        return this.id;
-//    }
-
-    /**
-     * Метод для задания соответствующего БД id исходных кодов.
-     * @param id Индекс исходных кодов в БД.
-     */
-//    void setId(long id) {
-//        this.id = id;
-//    }
 }

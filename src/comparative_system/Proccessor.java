@@ -84,12 +84,18 @@ import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.TextEdit;
 
 /**
- * 
- * @author TireX
+ * Класс для работы с кодом. Здесь Определены функции для расстановки счетчиков, компиляции и прочего.
+ * @author Gromov Evg.
  */
 public class Proccessor { 
+    /** Парсер для разбора исходного кода. */
     private static final ASTParser parser = ASTParser.newParser(AST.JLS4);
     
+    /**
+     * Метод возвращает лист всех деклараций методов, которые будут найдены в коде {@code codes}.
+     * @param codes Коды для поиска методов.
+     * @return Лист с декларациями методов типа {@code MethodDeclaration}.
+     */
     public static ArrayList<MethodDeclaration> getAllMethodsFromCodes(ArrayList<String> codes) {
         final ArrayList<MethodDeclaration> methods = new ArrayList<>();
         
@@ -112,6 +118,11 @@ public class Proccessor {
         return methods;
     }
     
+    /**
+     * Метод возвращает лист всех деклараций методов, которые будут найдены в коде {@code code}.
+     * @param code Код для поиска методов.
+     * @return Лист с декларациями методов типа {@code MethodDeclaration}.
+     */
     public static ArrayList<MethodDeclaration> getAllMethodsFromCode(String code) {
         final ArrayList<MethodDeclaration> methods = new ArrayList<>();
         
@@ -158,8 +169,15 @@ public class Proccessor {
         return codeDoc.get();
     }
 
+    /** Документ с кодом, в который будут расставляться счетчики операций. */
     private static Document codeDoc = null;
+    /** Rewriter для внесения изменений в ast-дерево исходного кода алгоритмов. */
     private static ASTRewrite rewriter = null;
+    
+    /**
+     * Метод для расстановки счетчиков в пореданный исходный код.
+     * @param code Исходный код.
+     */
     private static void putCountersInCode(String code) {
         try {
             codeDoc = new Document(code);
@@ -232,7 +250,14 @@ public class Proccessor {
         }
     }
     
-    
+    /**
+     * Метод для подсчета количества операций и расстановки счетчиков в переданой структуре типа {@code Statement}. 
+     * Здесь код разбивается на структуры. 
+     * Если в структуре может быть какая-либо операция, структура передается в 
+     * метод {@code countOperationsInExpression}, где подсчитывается количество операций в структуре.
+     * Счетчик с количеством операций вставляется перед структурой.
+     * @param st Структура для подсчета количества операций и расстановки счетчиков.
+     */
     private static void countOperationsInStatement(Statement st) {
         if (st == null ||
                 st instanceof EmptyStatement || 
@@ -378,7 +403,12 @@ public class Proccessor {
         }
     }
 
-    static int countOperationsInExpression(Expression ex) {
+    /**
+     * Метод для подсчета количества операций в выражении. Если в выражении содержатся другие выражения, вызывается рекурсия.
+     * @param ex Выражение для подсчета количества операций.
+     * @return Количество операций в выражении.
+     */
+    private static int countOperationsInExpression(Expression ex) {
         if (ex == null ||
                 ex instanceof BooleanLiteral || 
                 ex instanceof CharacterLiteral || 
@@ -418,6 +448,11 @@ public class Proccessor {
     }
     
     //<editor-fold defaultstate="collapsed" desc="Методы разбора типов-потомков Expression.">
+    /**
+     * Метод для подсчета количества операций в выражении. Если в выражении содержатся другие выражения, вызывается рекурсия.
+     * @param ex Выражение для подсчета количества операций.
+     * @return Количество операций в выражении.
+     */
     private static int proccessAssignmentExpression(Assignment ex) {
         int c = 0;
         int c2 = countOperationsInExpression(((Assignment)ex).getLeftHandSide());
@@ -430,6 +465,12 @@ public class Proccessor {
         c += countOperationsInExpression(((Assignment)ex).getRightHandSide());
         return c;
     }
+    
+    /**
+     * Метод для подсчета количества операций в выражении. Если в выражении содержатся другие выражения, вызывается рекурсия.
+     * @param ex Выражение для подсчета количества операций.
+     * @return Количество операций в выражении.
+     */
     private static int proccessInfixExpression(InfixExpression ex) {
         int c = 1;
         c += countOperationsInExpression(((InfixExpression)ex).getLeftOperand());
@@ -440,11 +481,23 @@ public class Proccessor {
         }
         return c;
     }
+    
+    /**
+     * Метод для подсчета количества операций в выражении. Если в выражении содержатся другие выражения, вызывается рекурсия.
+     * @param ex Выражение для подсчета количества операций.
+     * @return Количество операций в выражении.
+     */
     private static int proccessPostfixExpression(PostfixExpression ex) {
         int c = 2; // постфиксные ++ и --.
         c += 2 * countOperationsInExpression(((PostfixExpression)ex).getOperand());
         return c;
     }
+    
+    /**
+     * Метод для подсчета количества операций в выражении. Если в выражении содержатся другие выражения, вызывается рекурсия.
+     * @param ex Выражение для подсчета количества операций.
+     * @return Количество операций в выражении.
+     */
     private static int proccessPrefixExpression(PrefixExpression ex) {
         int c = 0, c2; // префиксные ++, --, +, -, ~ и !.
         if (ex.getOperator().equals(PrefixExpression.Operator.INCREMENT) || ex.getOperator().equals(PrefixExpression.Operator.DECREMENT)) {
@@ -455,6 +508,12 @@ public class Proccessor {
         c += c2;
         return c;
     } 
+    
+    /**
+     * Метод для подсчета количества операций в выражении. Если в выражении содержатся другие выражения, вызывается рекурсия.
+     * @param ex Выражение для подсчета количества операций.
+     * @return Количество операций в выражении.
+     */
     private static int proccessClassInstanceCreationExpression(ClassInstanceCreation ex) {
         int c = 0;
         
@@ -476,12 +535,24 @@ public class Proccessor {
         
         return c;
     }
+    
+    /**
+     * Метод для подсчета количества операций в выражении. Если в выражении содержатся другие выражения, вызывается рекурсия.
+     * @param ex Выражение для подсчета количества операций.
+     * @return Количество операций в выражении.
+     */
     private static int proccessArrayAccessExpression(ArrayAccess ex) {
         int c = 1; 
         c += countOperationsInExpression(ex.getArray());
         c += countOperationsInExpression(ex.getIndex());
         return c;
     }
+    
+    /**
+     * Метод для подсчета количества операций в выражении. Если в выражении содержатся другие выражения, вызывается рекурсия.
+     * @param ex Выражение для подсчета количества операций.
+     * @return Количество операций в выражении.
+     */
     private static int proccessArrayInitializerExpression(ArrayInitializer ex) {
         int c = 0; 
         for (Object e : ex.expressions()) 
@@ -490,31 +561,67 @@ public class Proccessor {
         }
         return c;
     }
+    
+    /**
+     * Метод для подсчета количества операций в выражении. Если в выражении содержатся другие выражения, вызывается рекурсия.
+     * @param ex Выражение для подсчета количества операций.
+     * @return Количество операций в выражении.
+     */
     private static int proccessArrayCreationExpression(ArrayCreation ex) {
         int c = 0; 
         c += countOperationsInExpression(ex.getInitializer());
         return c;
     } 
+    
+    /**
+     * Метод для подсчета количества операций в выражении. Если в выражении содержатся другие выражения, вызывается рекурсия.
+     * @param ex Выражение для подсчета количества операций.
+     * @return Количество операций в выражении.
+     */
     private static int proccessParenthesizedExpression(ParenthesizedExpression ex) {
         int c = 0; 
         c += countOperationsInExpression(ex.getExpression());
         return c;
-    } 
+    }
+    
+    /**
+     * Метод для подсчета количества операций в выражении. Если в выражении содержатся другие выражения, вызывается рекурсия.
+     * @param ex Выражение для подсчета количества операций.
+     * @return Количество операций в выражении.
+     */
     private static int proccessInstanceofExpression(InstanceofExpression ex) {
         int c = 0; 
         c += countOperationsInExpression(ex.getLeftOperand());
         return c;
     }
+    
+    /**
+     * Метод для подсчета количества операций в выражении. Если в выражении содержатся другие выражения, вызывается рекурсия.
+     * @param ex Выражение для подсчета количества операций.
+     * @return Количество операций в выражении.
+     */
     private static int proccessFieldAccessExpression(FieldAccess ex) {
         int c = 0; 
         c += countOperationsInExpression(ex.getExpression());
         return c;
     } 
+    
+    /**
+     * Метод для подсчета количества операций в выражении. Если в выражении содержатся другие выражения, вызывается рекурсия.
+     * @param ex Выражение для подсчета количества операций.
+     * @return Количество операций в выражении.
+     */
     private static int proccessCastExpression(CastExpression ex) {
         int c = 0; 
         c += countOperationsInExpression(ex.getExpression());
         return c;
     }
+    
+    /**
+     * Метод для подсчета количества операций в выражении. Если в выражении содержатся другие выражения, вызывается рекурсия.
+     * @param ex Выражение для подсчета количества операций.
+     * @return Количество операций в выражении.
+     */
     private static int proccessConditionalExpression(ConditionalExpression ex) {
         int c = 0; 
         c += countOperationsInExpression(ex.getExpression());
@@ -522,6 +629,12 @@ public class Proccessor {
         c += countOperationsInExpression(ex.getElseExpression());
         return c;
     }
+    
+    /**
+     * Метод для подсчета количества операций в выражении. Если в выражении содержатся другие выражения, вызывается рекурсия.
+     * @param ex Выражение для подсчета количества операций.
+     * @return Количество операций в выражении.
+     */
     private static int proccessNormalAnnotationExpression(NormalAnnotation ex) {
         int c = 0; 
         for(Object m : ex.values()) {
@@ -529,11 +642,23 @@ public class Proccessor {
         }
         return c;
     }
+    
+    /**
+     * Метод для подсчета количества операций в выражении. Если в выражении содержатся другие выражения, вызывается рекурсия.
+     * @param ex Выражение для подсчета количества операций.
+     * @return Количество операций в выражении.
+     */
     private static int proccessSingleMemberAnnotationExpression(SingleMemberAnnotation ex) {
         int c = 0; 
         c += countOperationsInExpression(ex.getValue());
         return c;
     }
+    
+    /**
+     * Метод для подсчета количества операций в выражении. Если в выражении содержатся другие выражения, вызывается рекурсия.
+     * @param ex Выражение для подсчета количества операций.
+     * @return Количество операций в выражении.
+     */
     private static int proccessVariableDeclarationExpression(VariableDeclarationExpression ex) {
         int c = 0; 
         for (Object e : ex.fragments()) 
@@ -545,6 +670,12 @@ public class Proccessor {
         }
         return c;
     }
+    
+    /**
+     * Метод для подсчета количества операций в выражении. Если в выражении содержатся другие выражения, вызывается рекурсия.
+     * @param ex Выражение для подсчета количества операций.
+     * @return Количество операций в выражении.
+     */
     private static int proccessSuperMethodInvocationExpression(SuperMethodInvocation ex) {
         int c = 0; 
         for (Object e : ex.arguments()) 
@@ -553,6 +684,12 @@ public class Proccessor {
         }
         return c;
     }
+    
+    /**
+     * Метод для подсчета количества операций в выражении. Если в выражении содержатся другие выражения, вызывается рекурсия.
+     * @param ex Выражение для подсчета количества операций.
+     * @return Количество операций в выражении.
+     */
     private static int proccessMethodInvocationExpression(MethodInvocation ex) {
         int c = 0; 
         for (Object e : ex.arguments()) 
@@ -563,6 +700,11 @@ public class Proccessor {
     }
     //</editor-fold>
 
+    /**
+     * Метод для вставки счеткика операций в исходный код перед переданной структурой. 
+     * @param st Структура, перед которой требуется поставить счетчик.
+     * @param c Количество операций внутри структуры.
+     */
     private static void insertCounter(Statement st, int c) {        
         try {
             AST ast = st.getAST();
@@ -589,6 +731,11 @@ public class Proccessor {
         }
     }
 
+    /**
+     * Метод для вставки счеткика операций в исходный код перед циклами. 
+     * @param st Цикл, перед которым требуется поставить счетчик.
+     * @param c Количество операций внутри цикла.
+     */
     private static void insertIterationsCounterInCycle(Statement st, int c) {
         try {
             AST ast = st.getAST();
@@ -637,6 +784,11 @@ public class Proccessor {
         }
     }
 
+    /**
+     * Метод для получения названия класса из исходного кода.
+     * @param code Исходный код.
+     * @return Имя класса.
+     */
     public static String getClassName(String code) {
         parser.setSource(code.toCharArray());
         parser.setKind(ASTParser.K_COMPILATION_UNIT);
@@ -649,6 +801,11 @@ public class Proccessor {
         return "tab";
     }
 
+    /**
+     * Метод для получения названий всех классов из исходных кодов.
+     * @param codes Исходные коды.
+     * @return Лист с именами классов.
+     */
     public static ArrayList<String> getClassNames(ArrayList<String> codes) {
         ArrayList<String> res = new ArrayList<>();
         for (String code : codes) {
@@ -657,6 +814,12 @@ public class Proccessor {
         return res;
     }
 
+    /**
+     * Метод для проверки компилируемости алгоритма. Здесь исходные коды 
+     * сохраняются в каталогах, соответствующих пакетам и компилируются.
+     * @param codes Лист с исходными кодами алгоритма.
+     * @return Строка, содержащая ошибки компиляции. Если ошибок нет, то вернет пустую строку.
+     */
     public static String checkClassesCompilableInTabs(ArrayList<String> codes) {
         String res = "";
         ArrayList<String> filesForCompile = new ArrayList<>();
@@ -721,6 +884,11 @@ public class Proccessor {
         return res;
     }
     
+    /**
+     * Метод для компиляции кода. Еще нигде не используется.
+     * @param code Код для компиляции.
+     * @return Строка, содержащая ошибки компиляции. Если ошибок нет, то вернет пустую строку.
+     */
     private static String compile(String code) {
         parser.setSource(code.toCharArray());
         parser.setKind(ASTParser.K_COMPILATION_UNIT);
@@ -802,6 +970,10 @@ public class Proccessor {
         return fullNames;
     }
 
+    /**
+     * Метод для удаления директории со всем содержимым.
+     * @param dir 
+     */
     public static void deleteDirectory(File dir) {
         if (dir.isDirectory()) {
             String[] children = dir.list();
@@ -810,9 +982,18 @@ public class Proccessor {
                 deleteDirectory(f);
             }
             dir.delete();
-        } else dir.delete();
+        } else {
+            dir.delete();
+        }
     }
     
+    /**
+     * Метод для проверки компилируемости генератора исходных данных. 
+     * Коды всех алгоритмов также компилируются.
+     * @param dataGenCode Код генератора исходных данных.
+     * @param algs Лист с алгоритмами.
+     * @return Строка, содержащая ошибки компиляции. Если ошибок нет, то вернет пустую строку.
+     */
     public static String checkGeneratorCompilable(String dataGenCode, ArrayList<Algorithm> algs) {
         String res = "";
         ArrayList<String> filesForCompile = new ArrayList<>();
@@ -891,6 +1072,13 @@ public class Proccessor {
         return res;
     }
 
+    /**
+     * Метод для вставки названий пакетов в коды классов алгоритма. Изменяются только те 
+     * классы, в которых не указаны пакеты - в качестве имени пакета указывается "algorithm"+"id алгоритма в БД проекта".
+     * @param alg_id id алгоритма в БД проекта.
+     * @param codes Исходные коды классов алгоритма.
+     * @return Лист с классами, в каждом из которых указан пакет.
+     */
     public static ArrayList<Code> putPackagesIfNotExist(long alg_id, ArrayList<Code> codes) {
         for (Code c : codes) {
             String codeS = c.getSourceCode();
@@ -908,6 +1096,11 @@ public class Proccessor {
         return codes;
     }
 
+    /**
+     * Метод для вставки пакета в класс генератора данных. Если позователь уже указал пакет - он будет перезаписан.
+     * @param code Код генератора данных.
+     * @return Класс генератора с указанных пакетом.
+     */
     public static String setPackageGenerator(String code) {
         Document doc = new Document(code);
         try {
@@ -971,6 +1164,11 @@ public class Proccessor {
         return res;
     }
 
+    /**
+     * Метод для выделения реализации метода {@code generate} из класса генератора.
+     * @param code Класс генератора исходных данных.
+     * @return Код метода {@code generate}.
+     */
     public static String getGenerateImplementation(String code) {
         final StringBuilder res = new StringBuilder("");
         

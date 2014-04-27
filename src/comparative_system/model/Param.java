@@ -1,20 +1,15 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package comparative_system.model;
 
 /**
  * Класс, реализующий параметр метода.
- * @author TireX
+ * @author Gromov Evg.
  */
 public class Param {
     /** Тип параметра. */
     private String type;
     /** Имя параметра. */
     private String name;
+    
     /**
      * Конструктор класса.
      * @param type Тип параметра.

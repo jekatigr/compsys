@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package comparative_system.model;
 
 import java.io.Serializable;
@@ -21,6 +15,12 @@ public class Data<T> implements Serializable {
     /** Исходные данные, соответствующие параметрам методов вызова алгоритмов проекта. */
     private T[] list;
 
+    /**
+     * Конструктор класса.
+     * @param id id в БД проекта.
+     * @param gen_id id генератора в БД проекта.
+     * @param params Значения данных.
+     */
     public Data(int id, int gen_id, T[] params) {
         this.id = id;
         this.gen_id = gen_id;

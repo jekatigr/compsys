@@ -1,13 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- *//*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package comparative_system;
 
 import comparative_system.controller.FXMLguiController;
@@ -17,11 +7,6 @@ import java.io.File;
 import java.util.ArrayList;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.concurrent.Task;
-import javafx.concurrent.Worker;
-import javafx.concurrent.Worker.State;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
@@ -30,8 +15,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Dialogs;
 import javafx.stage.Stage;
 /**
- *
- * @author TireX
+ * Главный класс программы.
+ * @author Gromov Evg.
  */
 public class CompSys extends Application {
     private static Project project;
@@ -141,6 +126,13 @@ public class CompSys extends Application {
         FXMLguiController.reloadAlgList();
     }
     
+    /**
+     * Метод для сохранения измененного алгоритма и отображения его в GUI.
+     * @param index Индекс алгоритма в списке проекта.
+     * @param name Имя алгоритма.
+     * @param codes Исходные коды алгоритма.
+     * @param method Метод вызова алгоритма. 
+     */
     public static void saveAlgorithm(int index, String name, String method, ArrayList<String> codes) {
         project.saveAlgorithm(index, name, method, codes);
         FXMLguiController.reloadAlgList();
@@ -158,6 +150,13 @@ public class CompSys extends Application {
         FXMLguiController.reloadGenList();
     }
     
+    /**
+     * Сохранение измененного генератора исходных данных с отображением в GUI.
+     * @param index Индекс генератора в списке проекта.
+     * @param name Имя генератора.
+     * @param imports Импорты, добваленные пользователем.
+     * @param generateImplementation Код генератора.
+     */
     public static void saveDataGenerator(int index, String name, String imports, String generateImplementation) {
         project.saveDataGenerator(index, name, imports, generateImplementation);
         FXMLguiController.reloadGenList();
@@ -180,7 +179,7 @@ public class CompSys extends Application {
      * @param head Заголовок описания ошибки.
      * @param title Надпись в заголовке всплывающего окна.
      */
-    private void exitWithError(String info, String head, String title) {
+    private static void exitWithError(String info, String head, String title) {
         Dialogs.showErrorDialog(primaryStage, info, head, title);
         Platform.exit();
     }

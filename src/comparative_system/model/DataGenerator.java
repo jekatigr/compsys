@@ -1,13 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- *//*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package comparative_system.model;
 
 import com.almworks.sqlite4java.SQLiteConnection;
@@ -21,7 +11,7 @@ import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 
 /**
  * Класс для представления генераторов исходных данных вместе с самими данными.
- * @author TireX
+ * @author Gromov Evg.
  */
 public class DataGenerator {
     /** Список параметров методов вызова алгоритмов. Для всех генераторов список один и тот же. */
@@ -170,6 +160,11 @@ public class DataGenerator {
         return params.size();
     }
 
+    /**
+     * Метод возващает параметры главных методов алгоритмов в виде строки.
+     * @param withTypes Флаг - {@code true} для получения параметров с указанными типами, {@code false} для получения без типов.
+     * @return Строку с параметрами главных методов алгоритма.
+     */
     public static String getMethodsParamsAsString(boolean withTypes) {
         String res = "";
         for (Param par : params) {
@@ -214,6 +209,9 @@ public class DataGenerator {
         saveMethodParamsInDB();
     }
     
+    /**
+     * Метод для сохранения параметров главных методов алгоритмов в БД проекта.
+     */
     private static void saveMethodParamsInDB() {
         try {
             //открываем базу данных проекта

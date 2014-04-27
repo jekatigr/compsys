@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package comparative_system.gui;
 
 import java.io.BufferedReader;
@@ -19,21 +13,17 @@ import javafx.scene.web.WebView;
 import org.w3c.dom.Document;
 
 /**
- *
- * @author TireX
+ * Класс компонента - редактора кода с подсветкой синтаксиса.
+ * @author Gromov Evg.
  */
 public class CodeEditor extends AnchorPane {
-    /** a webview used to encapsulate the CodeMirror JavaScript. */
+    /** Webview, в который бубут подгружены библиотеки CodeMirror для подсветки синтаксиса.  */
     final WebView webview = new WebView();
 
-    /** a snapshot of the code to be edited kept for easy initilization and reversion of editable code. */
+    /** Код в редакторе. */
     private String editingCode;
 
-    /**
-    * a template for editing code - this can be changed to any template derived from the
-    * supported modes at http://codemirror.net to allow syntax highlighted editing of
-    * a wide variety of languages.
-    */
+    /** Шаблон, в который будет загружаться остальной код и библиотеки. */
     private final String editingTemplate =
     "<!doctype html>" +
     "<html>" +
@@ -52,7 +42,8 @@ public class CodeEditor extends AnchorPane {
     " var editor = CodeMirror.fromTextArea(document.getElementById(\"code\"), {" +
     " lineNumbers: true," +
     " matchBrackets: true," +
-    " mode: \"text/x-java\"" +
+    " mode: \"text/x-java\"," +
+    " tabSize: 4" +
     " });" +
     " editor.setSize(\"100%\", \"100%\"); " +
     " function setReadOnlyLines(begin, end) {(editor.getDoc()).markText({line: begin, ch: 0}, {line: end, ch: 0}, {readOnly: true, className: \"readonly\"});}" +
@@ -60,11 +51,17 @@ public class CodeEditor extends AnchorPane {
     "</body>" +
     "</html>";
     
+    /** Переменная для хранения кода библиотеки CodeMirror. */
     private static String codemirrorjs = "";
+    /** Переменная для хранения кода библиотеки CodeMirror. */
     private static String codemirrorcss = "";
+    /** Переменная для хранения кода библиотеки CodeMirror. */
     private static String clikejs = "";
 
-    /** applies the editing template to the editing code to create the html+javascript source for a code editor. */
+    /**
+     * Метод для вставки библиотек и исходного кода в шаблон.
+     * @return Код, готовый для отображения в {@code WebView}.
+     */
     private String applyEditingTemplate() {
         String res = editingTemplate.replace("${code}", editingCode);
         res = res.replace("${codemirrorjs}", codemirrorjs);
@@ -73,13 +70,23 @@ public class CodeEditor extends AnchorPane {
         return res;
     }
 
-    /** sets the current code in the editor and creates an editing snapshot of the code which can be reverted to. */
+    /**
+     * Метод задает код для отображения в редакторе.
+     * @param newCode Исходный код.
+     */
     public void setCode(String newCode) {
         this.editingCode = newCode;
         webview.getEngine().loadContent(applyEditingTemplate());
     }
     
-    /** sets the current code in the editor and creates an editing snapshot of the code which can be reverted to. */
+    /**
+     * Метод задает код для отображения. В коде подсвечиваются два участка, которые невозможно изменять.
+     * @param newCode Код для отображения.
+     * @param beginFirst Строка начала первого нередактируемого участка кода.
+     * @param endFirst Строка конца первого нередактируемого участка кода.
+     * @param beginSecond Строка начала второго нередактируемого участка кода
+     * @param endSecond  Строка конца второго нередактируемого участка кода
+     */
     public void setCode(String newCode, final int beginFirst, final int endFirst, final int beginSecond, final int endSecond) {
         this.editingCode = newCode;
         webview.getEngine().loadContent(applyEditingTemplate());
@@ -96,20 +103,18 @@ public class CodeEditor extends AnchorPane {
         });
     }
 
-    /** returns the current code in the editor and updates an editing snapshot of the code which can be reverted to. */
-    public String getCodeAndSnapshot() {
+    /**
+     * Метод возвращает код из редактора.
+     * @return 
+     */
+    public String getCode() {
         this.editingCode = (String)webview.getEngine().executeScript("editor.getValue();");
         return editingCode;
     }
 
-    /** revert edits of the code to the last edit snapshot taken. */
-    public void revertEdits() {
-        setCode(editingCode);
-    }
-
     /**
-    * Create a new code editor.
-    * @param editingCode the initial code to be edited in the code editor.
+    * Конструктор компонента.
+    * @param editingCode Код для отображения.
     */
     public CodeEditor(String editingCode) {
         this.editingCode = editingCode;
@@ -121,6 +126,10 @@ public class CodeEditor extends AnchorPane {
         this.getChildren().add(webview);      
     }
     
+    /**
+     * Метод для загрузки библиотек CodeMirror из файлов.
+     * @return {@code true} в случае успешной загрузки библиотек из файлов, {@code false} иначе.
+     */
     public static boolean loadCodeMirrorLibs() {
         try {
             if (clikejs.length() == 0) {

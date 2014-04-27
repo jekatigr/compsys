@@ -1,21 +1,16 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- *//*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package comparative_system.model;
 
 import java.util.ArrayList;
 
 /**
- *
- * @author TireX
+ * Интерфейс для работы с сгенерированными генераторами исходных данных.
+ * @author Gromov Evg.
  */
 public interface IGenerator {
+    /**
+     * Метод для создания списка исходных данных, который генерирует генератор.
+     * @param gen_id id генератора в БД проекта.
+     * @return Список исходных данных.
+     */
     public ArrayList<Data> getData(int gen_id);
 }

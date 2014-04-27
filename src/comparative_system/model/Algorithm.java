@@ -1,22 +1,12 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package comparative_system.model;
 
-import comparative_system.Proccessor;
-import comparative_system.gui.CodeEditor;
 import java.util.ArrayList;
-import javafx.scene.control.Tab;
-import javafx.scene.layout.AnchorPane;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Name;
 
 /**
  * Класс, реализующий алгоритм.
- * @author TireX
+ * @author Gromov Evg.
  */
 public class Algorithm {
     /** Индекс алгоритма в БД. */
@@ -179,20 +169,20 @@ public class Algorithm {
         return this.methods;
     }
 
+    /**
+     * Метод для задания полных названий классов.
+     * @param fullNamesOfClasses Лист названий классов алгоритма.
+     */
     void setFullNamesOfClassesList(ArrayList<Name> fullNamesOfClasses) {
         this.fullNamesOfClasses = fullNamesOfClasses;
     }
     
+    /**
+     * Метод возвращает лист полных названий классов.
+     * @return Лист полных названий классов.
+     */
     ArrayList<Name> getFullNamesOfClassesList() {
         return this.fullNamesOfClasses;
-    }
-    
-    private static ArrayList<String> getSourceCodes(ArrayList<Code> codes) {
-        ArrayList<String> resCodes = new ArrayList<>();
-        for(Code code : codes) {
-            resCodes.add(code.getSourceCode());
-        }
-        return resCodes;
     }
 }
 

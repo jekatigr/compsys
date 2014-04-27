@@ -16,7 +16,7 @@ import org.json.simple.parser.ParseException;
 
 /**
  *  Статический класс данных программы.
- * @author TireX
+ *  @author Gromov Evg.
  */
 public class Preferences {
     /** Путь к файлу данных. */
@@ -27,8 +27,9 @@ public class Preferences {
     private static int threads_count = 4;
     /** Пути к файлам последних открытых проектов (4 максимум). Путь с индексом 0 открывался раньше всего. */
     private static ArrayList<String> projects_files = new ArrayList<>();
+    /** Путь, который был открыт последним в диалоговом окне выбора файлов.  */
     private static String last_path_for_filechooser = "";
-
+    
 
     /**
      * Загрузка данных программы из файла preferences.dat, который является json-файлом.
@@ -151,10 +152,18 @@ public class Preferences {
         }
     }
 
+    /**
+     * Метод для обновления последнего пути для окна выбора файлов.
+     * @param path Путь к каталогу.
+     */
     public static void updateLastPathForFileChooser(String path) {
         last_path_for_filechooser = path;
     }
 
+    /**
+     * Метод возвращает путь к каталогу JDK.
+     * @return Путь к ваталогу JDK.
+     */
     public static String getJdkPath() {
         return jdk_path;
     }

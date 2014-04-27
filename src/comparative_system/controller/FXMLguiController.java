@@ -1,55 +1,34 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package comparative_system.controller;
+
 import comparative_system.CompSys;
 import comparative_system.Preferences;
 import comparative_system.Proccessor;
 import comparative_system.gui.CodeEditor;
 import comparative_system.model.Algorithm;
 import comparative_system.model.Code;
-import comparative_system.model.Data;
 import comparative_system.model.DataGenerator;
-import comparative_system.model.IGenerator;
 import comparative_system.model.Project;
 import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.concurrent.Task;
-import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialogs;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
@@ -63,45 +42,66 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Modifier;
 
 /**
- *
- * @author TireX
+ * Класс, отвечающий за поведение GUI.
+ * @author Gromov Evg.
  */
 public class FXMLguiController implements Initializable {
+    /** Форма главного окна. */
     private static Stage primaryStage;
     
+    /** Панель алгоритмов. */
     public static Parent algPanel;
+    /** Панель генераторов исходных данных. */
     public static Parent dataPanel;
+    /** Панель результатов тестов. */
     public static Parent testsPanel;
     
-    @FXML private static ToggleGroup toggles;
+    /** Кнопка для показа панели алгоритов. */
     @FXML private static ToggleButton algButton;
+    /** Кнопка для показа панели генераторов. */
     @FXML private static ToggleButton dataButton;
+    /** Кнопка для показа панели результатов. */
     @FXML private static ToggleButton testsButton;
+    /** Панель, накоторой будет располагаться одна из панелей: алгоритмы, генераторы или результаты. */
     @FXML private static AnchorPane mainPanel;
+    /** Элемент список с именами алгоритов. */
     @FXML private static ListView algList;
+    /** Слушатель события изменения выбранного алгоритма в списке. */
     private static ChangeListener selectAlgInListListener;
+    /** Текстовое поле для имени алгоритма. */
     @FXML private static TextField algNameTextField;
     
+    /** Панель вкладок с кодами классов алгоритма. */
     @FXML private static TabPane codesOfAlgorithmsTabPane;
-    //private static int currentAlgCodeTab;
+    /** Выпадающий список с методами классов алгоритма. */
     @FXML private static ComboBox algMethodsComboBox;
+    /** Чек-бокс для выбора режима показа счетчиков. */
     @FXML private static CheckBox showCountersCheckBox;
+    /** Кнопка обновления списка методов в выпадающем списке. */
     @FXML private static Button reloadMethodsListButton;
+    /** Флаг для режима добавления нового алгоритма. */
     private static boolean addingNewAlg = false;
-    private static boolean hasChanges = false;
+    //private static boolean hasChanges = false;
     
+    /** Панель для кода и значений генератора исходных данных. */
     @FXML private static AnchorPane dataValuesPanel;
+    /** Элемент список с именами генераторов. */
     @FXML private static ListView genList;
+    /** Слушатель события изменения выбранного генератора в списке. */
     private static ChangeListener selectGenInListListener;
+    /** Текстовое поле для имени генератора. */
     @FXML private static TextField genNameTextField;
+    /** Флаг для режима добавления нового генератора. */
     private static boolean addingNewGen = false;
+    /** Контейнер для кнопок выбора режима промотра генератора: код-сгенерированные данные. */
     @FXML private static HBox dataGeneratorToggleGroupHBox;
+    /** Надпись с инструкцией к генератору. */
     @FXML private static Label apiInstructionLabel;
    
+    /** Обработка нажания кнопки "Сохранить проект". */
     @FXML private void handleSaveNewProject(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Сохранение нового проекта...");
@@ -122,6 +122,7 @@ public class FXMLguiController implements Initializable {
         }
     }
 
+    /** Обработка нажания кнопки "Открыть проект". */
     @FXML private void handleOpenProject(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Открыть проект...");
@@ -139,26 +140,29 @@ public class FXMLguiController implements Initializable {
         }
     }
 
+    /** Обработка нажания кнопки "Выход". */
     @FXML private void handleExit(ActionEvent event) {
         //CompSys.saveAllBeforeClose();
         Platform.exit();
     }
 
+    /** Обработка нажания кнопки "Алгоритмы" для выбора панели. */
     @FXML private void handleAlgClicked() {
         switchShowMode(0);
     }
 
+    /** Обработка нажания кнопки "Исходные данные" для выбора панели. */
     @FXML private void handleDataClicked() {
         switchShowMode(1);
     }
 
+    /** Обработка нажания кнопки "Результаты" для выбора панели. */
     @FXML private void handleTestsClicked() {
         switchShowMode(2);
     }
     
+    /** Обработка нажания кнопки "Добавить класс" при редактировании алгоритма. */
     @FXML private void handleAddTabButtonClicked() {
-        hasChanges = true;
-        
         Tab tab = new Tab();
             tab.setText("Класс (" + (codesOfAlgorithmsTabPane.getTabs().size() + 1) + ")");
                 CodeEditor ce = new CodeEditor("/*\n   Вставьте сюда код класса\n   или перетащите файл java\n   в окно программы и нажмите\n   кнопку \"Сохранить\"...     */\n\n\n\n");
@@ -173,6 +177,7 @@ public class FXMLguiController implements Initializable {
         codesOfAlgorithmsTabPane.getSelectionModel().select(tab);
     }
     
+    /** Обработка нажания чек-бокса "показать счетчики". */
     @FXML private void handleShowCountersCheckBoxClicked() {
         if (showCountersCheckBox.selectedProperty().get()) {
             CompSys.getProject().getAlgorithm(Project.getCurrentGuiAlg()).setShowCounters(true);
@@ -182,10 +187,11 @@ public class FXMLguiController implements Initializable {
         FXMLguiController.loadAlgorithmView(Project.getCurrentGuiAlg());
     }
     
+    /** Обработка нажания кнопки "Обновить методы в выпадающем списке". */
     @FXML private void handleReloadMethodsListButtonClicked() {
         ArrayList<String> codes = new ArrayList<>();
         for(Tab tab : codesOfAlgorithmsTabPane.getTabs()) {
-            codes.add(((CodeEditor)tab.getContent().lookup("#ce")).getCodeAndSnapshot());
+            codes.add(((CodeEditor)tab.getContent().lookup("#ce")).getCode());
         }
         
         algMethodsComboBox.getItems().clear();
@@ -207,10 +213,11 @@ public class FXMLguiController implements Initializable {
         }
     }
     
+    /** Обработка нажания кнопки "Сохранить" при редактировании алгоритма. */
     @FXML private void handleSaveAlgButtonClicked() {
         ArrayList<String> codes = new ArrayList<>();
         for(Tab tab : codesOfAlgorithmsTabPane.getTabs()) {
-            codes.add(((CodeEditor)tab.getContent().lookup("#ce")).getCodeAndSnapshot());
+            codes.add(((CodeEditor)tab.getContent().lookup("#ce")).getCode());
         }
 
         if (algNameTextField.getText().length() > 0) {//проверка имени
@@ -270,6 +277,7 @@ public class FXMLguiController implements Initializable {
         
     }
     
+    /** Обработка нажания кнопки "Сохранить" при редактировании генератора. */
     @FXML private void handleSaveGenButtonClicked() {
         
             /*URL url = new File("C://").toURI().toURL();
@@ -282,7 +290,7 @@ public class FXMLguiController implements Initializable {
             Data d = list.get(0);*/
             
             /* проверить API(наличие и правильность),  */
-        String code = ((CodeEditor) dataValuesPanel.lookup("#ceDataGen")).getCodeAndSnapshot();
+        String code = ((CodeEditor) dataValuesPanel.lookup("#ceDataGen")).getCode();
         code = Proccessor.setPackageGenerator(code);
         String name = genNameTextField.getText().trim();
         if (name.length() > 0) {//проверка имени
@@ -304,7 +312,9 @@ public class FXMLguiController implements Initializable {
         }
     }
     
-    
+    /**
+     * Метод для инициализации.
+     */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         selectAlgInListListener = new ChangeListener<Number>() {
@@ -348,6 +358,10 @@ public class FXMLguiController implements Initializable {
         apiInstructionLabel.setText("Реализуйте функцию generate(). Для сохранения набора данных воспользуйтесь функцией addData("+ DataGenerator.getMethodsParamsAsString(true) +");");
     }
 
+    /**
+     * Метод для активации интерфейса.
+     * @param enabled Флаг активации, {@code true} для включения, {@code false} для отключения.
+     */
     public static void setAllEnabled(boolean enabled) {
         mainPanel.setDisable(!enabled);
         algButton.setDisable(!enabled);
@@ -355,6 +369,10 @@ public class FXMLguiController implements Initializable {
         testsButton.setDisable(!enabled);
     }
 
+    /**
+     * Метод для переключения панелей.
+     * @param mode Режим: 0 для панели алгоритмов, 1 для генераторов и 2 для результатов.
+     */
     public static void switchShowMode(int mode) {
         switch(mode) {
             case 0: {
@@ -387,6 +405,10 @@ public class FXMLguiController implements Initializable {
         }
     }
 
+    /**
+     * Метод для отображения проекта в GUI.
+     * @param project Проект для отображения.
+     */
     public static void openProject(Project project) {
         reloadAlgList();
         reloadGenList();
@@ -396,10 +418,10 @@ public class FXMLguiController implements Initializable {
         setAllEnabled(true);
     }
     
-    private static void showInfoMessage(String title, String header, String info) {
-        Dialogs.showInformationDialog(primaryStage, info, header, title);
-    }
-    
+    /**
+     * Метод задает форму главного окна. Необходимо для показа модальных предупреждений.
+     * @param stage Форма окна.
+     */
     public static void setStage(Stage stage) {
         primaryStage = stage;
     }
@@ -492,6 +514,25 @@ public class FXMLguiController implements Initializable {
             showCountersCheckBox.visibleProperty().set(true);
         }
     }
+    
+    /**
+     * Метод для обновления списка генераторов в ListView.
+     */
+    public static void reloadGenList() {
+        genList.getSelectionModel().selectedIndexProperty().removeListener(selectGenInListListener);
+        
+        genList.getItems().clear();
+        int genCount = CompSys.getProject().getCountOfDataGenerators();
+        for (int i = 0; i < genCount; i++) {
+            genList.getItems().add(CompSys.getProject().getDataGenerator(i).getName());                
+        }
+        Label l = new Label("Добавить..."); 
+        l.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, Font.getDefault().getSize() + 2));
+        genList.getItems().add(l);
+        
+        genList.getSelectionModel().selectedIndexProperty().addListener(selectGenInListListener);
+    }
+    
     /**
      * Метод для отображения генератора исходных данных в главном окне.
      * @param index Индекс генератора в списке проекта, либо -1 для добавления нового генератора.
@@ -532,26 +573,21 @@ public class FXMLguiController implements Initializable {
             }
         }
     }
-
-    public static void reloadGenList() {
-        genList.getSelectionModel().selectedIndexProperty().removeListener(selectGenInListListener);
-        
-        genList.getItems().clear();
-        int genCount = CompSys.getProject().getCountOfDataGenerators();
-        for (int i = 0; i < genCount; i++) {
-            genList.getItems().add(CompSys.getProject().getDataGenerator(i).getName());                
-        }
-        Label l = new Label("Добавить..."); 
-        l.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, Font.getDefault().getSize() + 2));
-        genList.getItems().add(l);
-        
-        genList.getSelectionModel().selectedIndexProperty().addListener(selectGenInListListener);
-    }
     
+    /**
+     * Метод для проверки модификаторов метода.
+     * @param m Метод для проверки.
+     * @return {@code true}, если есть модификаторы {@code public} и {@code static}, {@code false} иначе.
+     */
     private static boolean checkMainMethodModificators(MethodDeclaration m) {
         return (Modifier.isPublic(m.getModifiers()) && Modifier.isStatic(m.getModifiers()));
     }
     
+    /**
+     * Метод составления кода импортов из списка пакетов алгоритма.
+     * @param importsMap Список пакетов алгоритма.
+     * @return Фрагмент кода импортов.
+     */
     private static String composeImportsString(HashMap importsMap) {
         HashMap map = new HashMap();
         String res = "";
@@ -561,6 +597,10 @@ public class FXMLguiController implements Initializable {
         return res;
     }
     
+    /**
+     * Метод возвращает часть кода генератора исходных данных.
+     * @return Фрагмент кода генератора.
+     */
     private static String getHeaderInDataGeneratorCode() {
         return composeImportsString(CompSys.getProject().getAllAlgotithmsAsImportsMap())
                         + " \nimport comparative_system.model.Data;\n" +
@@ -571,6 +611,10 @@ public class FXMLguiController implements Initializable {
                         "	private static void generate() {";
     }
     
+    /**
+     * Метод возвращает часть кода генератора исходных данных.
+     * @return Фрагмент кода генератора.
+     */
     private static String getFooterInDataGeneratorCode() {
         return  "    }\n \n    private static ArrayList<Data> list = new ArrayList<Data>();\n" +
                 "	static int generator_id;\n" +
