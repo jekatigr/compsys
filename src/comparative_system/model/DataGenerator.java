@@ -2,6 +2,10 @@
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
+ *//*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
  */
 
 package comparative_system.model;
@@ -24,11 +28,13 @@ public class DataGenerator {
     private static ArrayList<Param> params = new ArrayList<>();
        
     /** Индекс генератора в БД. */
-    private int id;
+    private long id;
     /** Имя генератора. */
     private String name;
     /** Код генератора. */
-    private String code;
+    private String imports;
+    /** Код генератора. */
+    private String generateImplementation;
     /** Список сгенерированных исходных данных. */
     private ArrayList<Data> data;
     /** Флаг для вкладки код/данные для GUI. */
@@ -38,20 +44,40 @@ public class DataGenerator {
      * Конструктор класса.
      * @param id Индекс генератора в БД.
      * @param name Имя генератора.
-     * @param code Код генератора.
+     * @param imports Импорты, добваленные пользователем.
+     * @param generateImplementation Код генератора.
      */
-    DataGenerator(int id, String name, String code) {
+    DataGenerator(long id, String name, String imports, String generateImplementation) {
         this.id = id;
         this.name = name;
-        this.code = code;
+        this.imports = imports;
+        this.generateImplementation = generateImplementation;
+    }
+    
+    /**
+     * Конструктор класса.
+     * @param name Имя генератора.
+     * @param imports Импорты, добваленные пользователем.
+     * @param generateImplementation Код генератора.
+     */
+    public DataGenerator(String name, String imports, String generateImplementation) {
+        this(-1, name, imports, generateImplementation);
     }
 
     /**
      * Возвращает индекс генератора в БД проекта.
      * @return Индекс генератора.
      */
-    public int getId() {
+    public long getId() {
         return this.id;
+    }
+    
+    /**
+     * Задает индекс генератора в БД проекта.
+     * @param id Индекс генератора.
+     */
+    public void setId(long id) {
+        this.id = id;
     }
 
     /**
@@ -63,11 +89,43 @@ public class DataGenerator {
     }
     
     /**
-     * Метод возвращает исходный код генератора данных.
-     * @return Исходный код.
+     * Задает имя генератора.
+     * @param name Новое имя.
      */
-    public String getCode() {
-        return this.code;
+    void setName(String name) {
+        this.name = name;
+    }
+    
+    /**
+     * Метод возвращает пользовательские импорты из кода генератора данных.
+     * @return Пользовательские импорты.
+     */
+    public String getImports() {
+        return this.imports;
+    }
+    
+    /**
+     * Метод задает пользовательские импорты из кода генератора данных.
+     * @param imports Новые позовательские импорты.
+     */
+    void setImports(String imports) {
+        this.imports = imports;
+    }
+    
+    /**
+     * Метод возвращает исходный код генератора данных.
+     * @return Исходный код метода генерации данных.
+     */
+    public String getGenerateImplementation() {
+        return this.generateImplementation;
+    }
+    
+    /**
+     * Метод задает исходный код генератора данных.
+     * @param generateImplementation Исходный код метода генерации данных.
+     */
+    public void setGenerateImplementation(String generateImplementation) {
+        this.generateImplementation = generateImplementation;
     }
     
     /**
@@ -165,7 +223,7 @@ public class DataGenerator {
             //сохраняем
             db.exec("DELETE FROM main_params");
             for (Param par : params) {
-                db.exec("INSERT INTO main_params (type, name) VALUES ("+ par.getType() +", '"+ par.getName() +"')");
+                db.exec("INSERT INTO main_params (type, name) VALUES ('"+ par.getType() +"', '"+ par.getName() +"')");
             }
             //--сохраняем         
         } catch (SQLiteException ex) {

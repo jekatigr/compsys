@@ -2,6 +2,10 @@
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
+ *//*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
  */
 
 package comparative_system;
@@ -133,13 +137,31 @@ public class CompSys extends Application {
      * @param method Метод вызова алгоритма. 
      */
     public static void addAlgorithm(String name, String method, ArrayList<String> codes) {
-        project.addAlgorithm(name, method, codes);
+        project.addNewAlgorithm(name, method, codes);
         FXMLguiController.reloadAlgList();
     }
     
     public static void saveAlgorithm(int index, String name, String method, ArrayList<String> codes) {
         project.saveAlgorithm(index, name, method, codes);
+        FXMLguiController.reloadAlgList();
         FXMLguiController.loadAlgorithmView(Project.getCurrentGuiAlg());
+    }
+    
+    /**
+     * Добавление нового генератора исходных данных к проекту с отображением в окне и сохранением в БД.
+     * @param name Имя генератора.
+     * @param imports Импорты, добваленные пользователем.
+     * @param generateImplementation Код генератора.
+     */
+    public static void addNewDataGenerator(String name, String imports, String generateImplementation) {
+        project.addNewDataGenerator(name, imports, generateImplementation);
+        FXMLguiController.reloadGenList();
+    }
+    
+    public static void saveDataGenerator(int index, String name, String imports, String generateImplementation) {
+        project.saveDataGenerator(index, name, imports, generateImplementation);
+        FXMLguiController.reloadGenList();
+        FXMLguiController.loadDataGeneratorView(Project.getCurrentGuiGen());
     }
     
     /**

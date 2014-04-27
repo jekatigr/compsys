@@ -1,15 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- *//*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package comparative_system;
 
+import comparative_system.model.Algorithm;
 import comparative_system.model.Code;
 import java.io.BufferedReader;
 import java.io.File;
@@ -18,10 +9,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
@@ -49,6 +40,7 @@ import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.ForStatement;
 import org.eclipse.jdt.core.dom.IfStatement;
+import org.eclipse.jdt.core.dom.ImportDeclaration;
 import org.eclipse.jdt.core.dom.InfixExpression;
 import org.eclipse.jdt.core.dom.InstanceofExpression;
 import org.eclipse.jdt.core.dom.LabeledStatement;
@@ -59,6 +51,7 @@ import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.NormalAnnotation;
 import org.eclipse.jdt.core.dom.NullLiteral;
 import org.eclipse.jdt.core.dom.NumberLiteral;
+import org.eclipse.jdt.core.dom.PackageDeclaration;
 import org.eclipse.jdt.core.dom.ParenthesizedExpression;
 import org.eclipse.jdt.core.dom.PostfixExpression;
 import org.eclipse.jdt.core.dom.PrefixExpression;
@@ -715,7 +708,7 @@ public class Proccessor {
                 
                 String line = "";
                 while((line = brStdout.readLine()) != null) {
-                    res += line;
+                    res += line + "\n";
                 }
                 
                 int exitVal = process.waitFor();
@@ -809,8 +802,93 @@ public class Proccessor {
         return fullNames;
     }
 
-    public static String checkGeneratorCompilable(String code) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public static void deleteDirectory(File dir) {
+        if (dir.isDirectory()) {
+            String[] children = dir.list();
+            for (String children1 : children) {
+                File f = new File(dir, children1);
+                deleteDirectory(f);
+            }
+            dir.delete();
+        } else dir.delete();
+    }
+    
+    public static String checkGeneratorCompilable(String dataGenCode, ArrayList<Algorithm> algs) {
+        String res = "";
+        ArrayList<String> filesForCompile = new ArrayList<>();
+        
+        //чистим папку для сохранения
+        deleteDirectory(new File("javatempfiles/"));
+        new File("javatempfiles/").mkdir();
+        //--чистим папку для сохранения
+        //сохраняем исходники в каталогах согласно пакетам
+        FileWriter fileW = null;
+        try {
+            for (Algorithm alg : algs) {
+                for (Code code : alg.getCodes()) {
+                    parser.setSource(code.getSourceCode().toCharArray());
+                    parser.setKind(ASTParser.K_COMPILATION_UNIT);
+                    final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+                    Name packageForPath = (cu.getPackage() != null) ? cu.getPackage().getName() : null;
+
+                    //создаем необходимые каталоги для пакета
+                    String dirsString = "";
+                    if (packageForPath != null) {
+                        while (packageForPath.isQualifiedName()) {
+                            dirsString = ((QualifiedName)packageForPath).getName().toString() + "/" + dirsString;
+                            packageForPath = ((QualifiedName)packageForPath).getQualifier();
+                        }
+                        dirsString = ((SimpleName)packageForPath).toString() + "/" + dirsString;
+                    }
+                    dirsString = "javatempfiles/" + dirsString;
+                    File dirs = new File(dirsString);
+                    dirs.mkdirs();
+
+                    String fileFullName = dirsString + Proccessor.getClassName(code.getSourceCode()) + ".java";
+                    filesForCompile.add(fileFullName);
+                    File file = new File(fileFullName);
+                    fileW = new FileWriter(file);
+                    fileW.write(code.getSourceCode());
+                    fileW.close();
+                }
+            }
+        
+            new File("javatempfiles/generator/").mkdir();
+
+            String fileFullName = "javatempfiles/generator/Generator.java";
+            filesForCompile.add(fileFullName);
+            File file = new File(fileFullName);
+            fileW = new FileWriter(file);
+            fileW.write(dataGenCode);
+            fileW.close();
+        } catch (IOException ex) {
+            Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        //компилим
+        for (String file : filesForCompile) {
+            try {
+                ProcessBuilder procBuilder = new ProcessBuilder(Preferences.getJdkPath() + "\\javac", "-sourcepath", "javatempfiles/", "-classpath", "dist/CompSys.jar", file);//TODO: в "поле" этот класспаф не сработает
+                procBuilder.redirectErrorStream(true);
+                
+                Process process = procBuilder.start();
+                
+                InputStream stdout = process.getInputStream();
+                InputStreamReader isrStdout = new InputStreamReader(stdout);
+                BufferedReader brStdout = new BufferedReader(isrStdout);
+                
+                String line = "";
+                while((line = brStdout.readLine()) != null) {
+                    res += line + "\n";
+                }
+                
+                int exitVal = process.waitFor();
+            } catch (IOException ex) {
+                Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return res;
     }
 
     public static ArrayList<Code> putPackagesIfNotExist(long alg_id, ArrayList<Code> codes) {
@@ -828,5 +906,89 @@ public class Proccessor {
             }                
         }
         return codes;
+    }
+
+    public static String setPackageGenerator(String code) {
+        Document doc = new Document(code);
+        try {
+            parser.setSource(doc.get().toCharArray());
+            parser.setKind(ASTParser.K_COMPILATION_UNIT);
+            final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+            AST ast = cu.getAST();
+            ASTRewrite rewriterPackage = ASTRewrite.create(ast);
+                        
+            PackageDeclaration newPackage = ast.newPackageDeclaration();
+            newPackage.setName(ast.newName("generator"));
+            
+            if (cu.getPackage() != null) {
+                rewriterPackage.replace(cu.getPackage(), newPackage, null);
+            } else {
+                return "package generator;\n\n" + code;
+            }
+            TextEdit edits = rewriterPackage.rewriteAST(doc, null);
+            edits.apply(doc);
+        } catch (MalformedTreeException ex) {
+            Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (BadLocationException ex) {
+            Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return doc.get();
+    }
+
+    /**
+     * Метод для отделения пользовательских импортов от автоматически генерируемых импортов. 
+     * @param code Весь код генератора данных.
+     * @param defaultImportsMap Автоматически генерируемые импорты.
+     * @return Строка с пользовательскими импортами.
+     */
+    public static String getUserDefinedImports(String code, HashMap defaultImportsMap) {
+        String res = "";
+        
+        //Добавляем в список импорты по умолчанию из генератора.
+        defaultImportsMap.put("Data", "comparative_system.model");
+        defaultImportsMap.put("comparative_system.model.IGenerator", "comparative_system.model");
+        defaultImportsMap.put("java.util.ArrayList", "java.util");
+
+        parser.setSource(code.toCharArray());
+        parser.setKind(ASTParser.K_COMPILATION_UNIT);
+        final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+        
+        List imports = cu.imports();
+        for (Object imp : imports) {
+            Name name = ((ImportDeclaration)imp).getName();
+            String tempValue = name.getFullyQualifiedName();
+            if (((ImportDeclaration)imp).isOnDemand()) {//все автоматически генерированные импотры алгоритмов идут в эту ветку
+                if (!defaultImportsMap.containsValue(tempValue)) {
+                    res += "import " + tempValue + ".*;\n";
+                }
+            } else {
+                if (!tempValue.equals("comparative_system.model.Data") && !tempValue.equals("comparative_system.model.IGenerator") && !tempValue.equals("java.util.ArrayList")) {
+                    res += "import " + tempValue + ";\n";
+                }
+            }
+        }  
+        
+        return res;
+    }
+
+    public static String getGenerateImplementation(String code) {
+        final StringBuilder res = new StringBuilder("");
+        
+        parser.setSource(code.toCharArray());
+        parser.setKind(ASTParser.K_COMPILATION_UNIT);
+
+        final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+
+        cu.accept(new ASTVisitor() {
+            @Override
+            public boolean visit(MethodDeclaration node) {
+                if (node.getName().toString().equals("generate")) {
+                    res.append(node.getBody());                    
+                }
+                return false;
+            }
+        });
+       
+        return res.toString().substring(1, res.length() - 2).trim();
     }
 }

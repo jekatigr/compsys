@@ -83,6 +83,7 @@ public class FXMLguiController implements Initializable {
     @FXML private static ToggleButton testsButton;
     @FXML private static AnchorPane mainPanel;
     @FXML private static ListView algList;
+    private static ChangeListener selectAlgInListListener;
     @FXML private static TextField algNameTextField;
     
     @FXML private static TabPane codesOfAlgorithmsTabPane;
@@ -95,11 +96,12 @@ public class FXMLguiController implements Initializable {
     
     @FXML private static AnchorPane dataValuesPanel;
     @FXML private static ListView genList;
+    private static ChangeListener selectGenInListListener;
     @FXML private static TextField genNameTextField;
     private static boolean addingNewGen = false;
     @FXML private static HBox dataGeneratorToggleGroupHBox;
     @FXML private static Label apiInstructionLabel;
-    
+   
     @FXML private void handleSaveNewProject(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Сохранение нового проекта...");
@@ -280,51 +282,52 @@ public class FXMLguiController implements Initializable {
             Data d = list.get(0);*/
             
             /* проверить API(наличие и правильность),  */
-            String code = ((CodeEditor)dataValuesPanel.lookup("#ceDataGen")).getCodeAndSnapshot();
-            if (genNameTextField.getText().length() > 0) {//проверка имени
-            String compileRes = Proccessor.checkGeneratorCompilable(code);
+        String code = ((CodeEditor) dataValuesPanel.lookup("#ceDataGen")).getCodeAndSnapshot();
+        code = Proccessor.setPackageGenerator(code);
+        String name = genNameTextField.getText().trim();
+        if (name.length() > 0) {//проверка имени
+            String compileRes = Proccessor.checkGeneratorCompilable(code, CompSys.getProject().getAlgorithms());
             if (compileRes.length() == 0) {//проверка на компилируемость
-                
+                //отделяем импорты и код generate
+                String imports = Proccessor.getUserDefinedImports(code, CompSys.getProject().getAllAlgotithmsAsImportsMap());
+                String generateImplementation = Proccessor.getGenerateImplementation(code);
+                if (addingNewGen) {
+                    CompSys.addNewDataGenerator(name, imports, generateImplementation);
+                } else {
+                    CompSys.saveDataGenerator(Project.getCurrentGuiGen(), name, imports, generateImplementation);
+                }
             } else {
-                Dialogs.showWarningDialog(primaryStage, "Ошибка компиляции исходного кода.\nСообщение компилятора:\n\n" + compileRes, "Ошибка при компиляции алгоритма.", "Классы алгоритма...");
+                Dialogs.showWarningDialog(primaryStage, "Ошибка компиляции исходного кода.\nСообщение компилятора:\n\n" + compileRes, "Ошибка при компиляции исходного кода генератора.", "Исходные коды генератора...");
             }
         } else {
-            Dialogs.showWarningDialog(primaryStage, "Вы не ввели название алгоритма.", "Ошибка при сохранении алгоритма.", "Название алгоритма...");
+            Dialogs.showWarningDialog(primaryStage, "Вы не ввели название генератора.", "Ошибка при сохранении генератора.", "Название генератора...");
         }
     }
     
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        selectAlgInListListener = new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                FXMLguiController.loadAlgorithmView(algList.getSelectionModel().getSelectedIndex());
+            }
+        };
         
+        selectGenInListListener = new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                FXMLguiController.loadDataGeneratorView(genList.getSelectionModel().getSelectedIndex());
+            }
+        };
     }
     
     /**
      * Метод для инициализации интерфейса при запуске программы.
      */
     public static void initialize() {
-        algList.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                FXMLguiController.loadAlgorithmView(algList.getSelectionModel().getSelectedIndex());
-            }
-        });
-        
-        genList.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                FXMLguiController.loadDataGeneratorView(genList.getSelectionModel().getSelectedIndex());
-            }
-        });
-        
-        /*codesOfAlgorithmsTabPane.getSelectionModel().selectedIndexProperty().addListener(
-            new ChangeListener<Number>() {
-                @Override
-                public void changed(ObservableValue<? extends Number> ov, Number t, Number t1) {
-                    currentAlgCodeTab = t1.intValue();
-                }
-            }
-        );*/
+        algList.getSelectionModel().selectedIndexProperty().addListener(selectAlgInListListener);
+        genList.getSelectionModel().selectedIndexProperty().addListener(selectGenInListListener);
         
         reloadMethodsListButton.setGraphic(new ImageView(new Image(CompSys.class.getResourceAsStream("reload.png"))));
         reloadMethodsListButton.setMinSize(30, 25);
@@ -405,6 +408,8 @@ public class FXMLguiController implements Initializable {
      * Метод для обновления списка алгоритмов в ListView.
      */
     public static void reloadAlgList() {
+        algList.getSelectionModel().selectedIndexProperty().removeListener(selectAlgInListListener);
+        
         algList.getItems().clear();
         int algCount = CompSys.getProject().getCountOfAlgorithms();
         for (int i = 0; i < algCount; i++) {
@@ -413,6 +418,8 @@ public class FXMLguiController implements Initializable {
         Label l = new Label("Добавить...");
         l.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, Font.getDefault().getSize() + 2));
         algList.getItems().add(l);
+        
+        algList.getSelectionModel().selectedIndexProperty().addListener(selectAlgInListListener);
     }
     
     /**
@@ -494,28 +501,13 @@ public class FXMLguiController implements Initializable {
             addingNewGen = true;
             Project.setCurrentGuiGen(-1);
             genNameTextField.setText("Генератор данных ("+ (CompSys.getProject().getCountOfDataGenerators() + 1) +")");
-            String header = CompSys.getProject().getAllAlgotithmsAsImports() 
-                    + " \nimport comparative_system.model.Data;\n" +
-"import comparative_system.model.IGenerator;\n" +
-"import java.util.ArrayList;\n" +
-" \n \n" +
-"public class Generator implements IGenerator {\n" +
-"	private static void generate() {";//если алгоритмов нет, то не даем добавить генератор.
+            String header = getHeaderInDataGeneratorCode();
+            String footer = getFooterInDataGeneratorCode();
+                        //если алгоритмов нет, то не даем добавить генератор.
             
-            String footer = "    }\n \n    private static ArrayList<Data> list = new ArrayList<Data>();\n" +
-"	static int generator_id;\n" +
-"	\n" +
-"	private static void addData("+ DataGenerator.getMethodsParamsAsString(true) +") {\n" +
-"		list.add(new Data(-1, generator_id, new Object[]{"+ DataGenerator.getMethodsParamsAsString(false) +"}));\n" +
-"	}\n" +
-"	\n" +
-"	public ArrayList<Data> getData(int gen_id) {\n" +
-"		generator_id = gen_id;\n" +
-"		generate();\n" +
-"		return list;\n" +
-"	}\n" +
-"}";
-            ((CodeEditor)dataValuesPanel.lookup("#ceDataGen")).setCode("//Добавьте необходимые классы здесь...\n\n\n"+ header + "\n        \n        \n        \n"+footer, 3, header.split("\n").length + 3, header.split("\n").length + 6, header.split("\n").length + footer.split("\n").length + 6);
+            int fb = 3, fe = header.split("\n").length + fb, sb = fe + 3, se = sb + footer.split("\n").length;
+            
+            ((CodeEditor)dataValuesPanel.lookup("#ceDataGen")).setCode("//Добавьте необходимые классы здесь...\n\n\n"+ header + "\n        \n        \n        \n"+footer, fb, fe, sb, se);
             dataGeneratorToggleGroupHBox.visibleProperty().setValue(false);
         } else {//отображение сохраненного
             addingNewGen = false;
@@ -525,7 +517,15 @@ public class FXMLguiController implements Initializable {
             genNameTextField.setText(gen.getName());
 
             if(gen.getIsCodeOpened()) {//отображаем исходный код
-                ((CodeEditor)dataValuesPanel.lookup("#ceDataGen")).setCode(gen.getCode());
+                String header = getHeaderInDataGeneratorCode();
+                String footer = getFooterInDataGeneratorCode();
+
+                String imports = gen.getImports() + " \n";
+                String genImp = gen.getGenerateImplementation();
+                
+                int fb = 3 + imports.split("\n").length, fe = fb + header.split("\n").length, sb = fe + genImp.split("\n").length, se = sb + footer.split("\n").length;
+                
+                ((CodeEditor)dataValuesPanel.lookup("#ceDataGen")).setCode("//Добавьте необходимые классы здесь...\n\n\n"+ imports + header + "\n"+ genImp + "\n" + footer, fb, fe, sb, se);
                 dataGeneratorToggleGroupHBox.visibleProperty().setValue(true);
             } else {//отображаем сгенерированные данные
                 //TODO: отображаем сгенерированные данные
@@ -533,7 +533,9 @@ public class FXMLguiController implements Initializable {
         }
     }
 
-    private static void reloadGenList() {
+    public static void reloadGenList() {
+        genList.getSelectionModel().selectedIndexProperty().removeListener(selectGenInListListener);
+        
         genList.getItems().clear();
         int genCount = CompSys.getProject().getCountOfDataGenerators();
         for (int i = 0; i < genCount; i++) {
@@ -542,10 +544,49 @@ public class FXMLguiController implements Initializable {
         Label l = new Label("Добавить..."); 
         l.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, Font.getDefault().getSize() + 2));
         genList.getItems().add(l);
+        
+        genList.getSelectionModel().selectedIndexProperty().addListener(selectGenInListListener);
     }
     
-    private boolean checkMainMethodModificators(MethodDeclaration m) {
+    private static boolean checkMainMethodModificators(MethodDeclaration m) {
         return (Modifier.isPublic(m.getModifiers()) && Modifier.isStatic(m.getModifiers()));
+    }
+    
+    private static String composeImportsString(HashMap importsMap) {
+        HashMap map = new HashMap();
+        String res = "";
+        for (Object value : importsMap.values()) {
+            res += "import " + value + ".*;\n";
+        } 
+        return res;
+    }
+    
+    private static String getHeaderInDataGeneratorCode() {
+        return composeImportsString(CompSys.getProject().getAllAlgotithmsAsImportsMap())
+                        + " \nimport comparative_system.model.Data;\n" +
+                        "import comparative_system.model.IGenerator;\n" +
+                        "import java.util.ArrayList;\n" +
+                        " \n" +
+                        "public class Generator implements IGenerator {\n" +
+                        "	private static void generate() {";
+    }
+    
+    private static String getFooterInDataGeneratorCode() {
+        return  "    }\n \n    private static ArrayList<Data> list = new ArrayList<Data>();\n" +
+                "	static int generator_id;\n" +
+                "	\n" +
+                "	private static void addData("+ DataGenerator.getMethodsParamsAsString(true) +") {\n" +
+                "        @SuppressWarnings(\"unchecked\")\n" + 
+                "        Data d = new Data(-1, generator_id, new Object[]{"+ DataGenerator.getMethodsParamsAsString(false) +"});\n"
+                                    + "        list.add(d);\n" +
+                "	}\n" +
+                "	\n" +
+                "	public ArrayList<Data> getData(int gen_id) {\n" +
+                "		generator_id = gen_id;\n" +
+                "		generate();\n" +
+                "		return list;\n" +
+                "	}\n" +
+                "}";
     }
 }
 

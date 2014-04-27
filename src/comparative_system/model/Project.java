@@ -6,6 +6,14 @@
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
+ *//*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ *//*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
  */
 
 package comparative_system.model;
@@ -20,11 +28,13 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Name;
+import org.eclipse.jdt.core.dom.QualifiedName;
 
 /**
  *
@@ -60,14 +70,14 @@ public class Project {
     }
 
     /**
-     * Метод для добавления алгоритма к проекту из БД. 
+     * Метод для добавления к проекту алгоритма, загруженного из БД. 
      * @param id Индекс алгоритма в БД проекта.
      * @param name Имя алгоритма.
      * @param mainMethod Метод вызова алгоритма.
      * @param counterName Имя счетчика операций.
      * @param codes Исходные и сгенерированные коды алгоритма.
      */
-    private void addAlgorithm(int id, String name, String mainMethod, ArrayList<Code> codes, ArrayList<String> classesTabsNames, ArrayList<MethodDeclaration> methods) {
+    private void addAlgorithm(long id, String name, String mainMethod, ArrayList<Code> codes, ArrayList<String> classesTabsNames, ArrayList<MethodDeclaration> methods) {
         algorithms.add(new Algorithm(id, name, mainMethod, codes, classesTabsNames, methods));
         Algorithm alg = this.algorithms.get(this.algorithms.size() - 1);
         alg.setFullNamesOfClassesList(Proccessor.getFullNamesOfClasses(alg.getId(), alg.getCodes()));
@@ -80,7 +90,7 @@ public class Project {
      * @param codes Исходные коды алгоритма.
      * @param mainMethod Метод вызова алгоритма.
      */
-    public void addAlgorithm(String name, String mainMethod, ArrayList<String> codes) { 
+    public void addNewAlgorithm(String name, String mainMethod, ArrayList<String> codes) { 
         algorithms.add(new Algorithm(name, mainMethod, Proccessor.putCounters(codes), Proccessor.getClassNames(codes), Proccessor.getAllMethodsFromCodes(codes)));
         this.saveAlgorithmInDB(this.algorithms.size() - 1);
         Algorithm alg = this.algorithms.get(this.algorithms.size() - 1);
@@ -112,13 +122,43 @@ public class Project {
     }
     
     /**
-     * Добавление нового генератора исходных данных к проекту.
-     * @param dg Генератор исходных данных.
+     * Добавление к проекту генератора исходных данных, загруженного из БД.
+     * @param id Индекс генератора в БД.
+     * @param name Имя генератора.
+     * @param imports Импорты, добваленные пользователем.
+     * @param generateImplementation Код генератора.
      */
-    public void addDataGenerator(DataGenerator dg) {//TODO: 
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void addDataGenerator(long id, String name, String imports, String generateImplementation) {
+        dg.add(new DataGenerator(id, name, imports, generateImplementation));
+    }
+    
+    /**
+     * Добавление нового генератора исходных данных к проекту. Здесь же генератор
+     * сохраняется в БД и ему сопостовляется id.
+     * @param id Индекс генератора в БД.
+     * @param name Имя генератора.
+     * @param imports Импорты, добваленные пользователем.
+     * @param generateImplementation Код генератора.
+     */
+    public void addNewDataGenerator(String name, String imports, String generateImplementation) {
+        dg.add(new DataGenerator(name, imports, generateImplementation));
+        this.saveDataGeneratorInDB(this.dg.size() - 1);
     }
 
+    /**
+     * Метод для сохранения генератора. Генератор сохраняется в БД по прежнему id.
+     * @param index Индекс генератора в списке проекта.
+     * @param name Имя генератора.
+     * @param imports Импорты, добваленные пользователем.
+     * @param generateImplementation Код генератора.
+     */
+    public void saveDataGenerator(int index, String name, String imports, String generateImplementation) { 
+        dg.get(index).setName(name);
+        dg.get(index).setImports(imports);
+        dg.get(index).setGenerateImplementation(generateImplementation);
+        this.saveDataGeneratorInDB(index);
+    }
+    
     /**
      * Возвращает количество генераторов исходных данных в проекте.
      * @return Количество генераторов.
@@ -162,15 +202,24 @@ public class Project {
         }
         return -1;
     }
+    
+    public ArrayList<Algorithm> getAlgorithms() {
+        return this.algorithms;
+    }
 
-    public String getAllAlgotithmsAsImports() {
+    public HashMap getAllAlgotithmsAsImportsMap() {
+        HashMap map = new HashMap();
         String res = "";
         for (Algorithm alg : algorithms) {
             for(Name imp : alg.getFullNamesOfClassesList()) {
-                res += "import " + imp.toString() + ";\n";
+                String key = ((QualifiedName)imp).getName().getIdentifier();
+                String value = ((QualifiedName)imp).getQualifier().getFullyQualifiedName();
+                if (!map.containsValue(value)) {
+                    map.put(key, value);
+                }
             }
         } 
-        return res + " \n";
+        return map;
     }
     
     /**
@@ -316,14 +365,14 @@ public class Project {
             //алгоритмы
             SQLiteStatement st = db.prepare("SELECT * FROM algorithms");
             while(st.step()) {
-                int alg_id = st.columnInt(0);
+                long alg_id = st.columnLong(0);
                 //коды алгоритмов
                 ArrayList<Code> codes = new ArrayList<>();
                 ArrayList<String> classesTabNames = new ArrayList<>();
                 ArrayList<MethodDeclaration> methods = new ArrayList<>();
                 SQLiteStatement st2 = db.prepare("SELECT * FROM codes WHERE alg_id="+ alg_id +"");
                 while(st2.step()) {
-                    codes.add(new Code(st2.columnInt(0), st2.columnString(2), st2.columnString(3)));
+                    codes.add(new Code(st2.columnLong(0), st2.columnString(2), st2.columnString(3)));
                     classesTabNames.add(Proccessor.getClassName(st2.columnString(2)));
                     methods.addAll(Proccessor.getAllMethodsFromCode(st2.columnString(2)));
                 }
@@ -338,9 +387,9 @@ public class Project {
             }
             //--параметры методов вызова
             //генераторы исходных данных
-            st = db.prepare("SELECT * FROM source_gen");
+            st = db.prepare("SELECT * FROM data_generators");
             while(st.step()) {
-                project.addDataGenerator(new DataGenerator(st.columnInt(0), st.columnString(1), st.columnString(2)));
+                project.addDataGenerator(st.columnLong(0), st.columnString(1), st.columnString(2), st.columnString(3));
             }
             //--генераторы исходных данных
             //исходные данные
@@ -392,7 +441,7 @@ public class Project {
             //создаем структуру БД
             db.exec("CREATE TABLE algorithms(id INTEGER PRIMARY KEY, name, main)");
             db.exec("CREATE TABLE codes(id INTEGER PRIMARY KEY, alg_id, sourse_code, generated_code)");
-            db.exec("CREATE TABLE source_gen(id INTEGER PRIMARY KEY, name, code)");
+            db.exec("CREATE TABLE data_generators(id INTEGER PRIMARY KEY, name, imports, generate_implementation)");
             db.exec("CREATE TABLE results(id INTEGER PRIMARY KEY, alg_id, data_id, operations)");
             db.exec("CREATE TABLE exceptions(id INTEGER PRIMARY KEY, exceptions)");
             db.exec("CREATE TABLE main_params(id INTEGER PRIMARY KEY, type, name)");
@@ -426,6 +475,36 @@ public class Project {
             return true;
         } else {//сравниваем параметры метода по типу с уже сохраненными
             return DataGenerator.compareListOfParams(parameters);
+        }
+    }
+
+    /**
+     * Метод для сохранения генератора данных в БД. 
+     * Здесь же ему сопоставляется id, если он еще не сохранялся в БД.
+     * @param index Индекс в списке, соответствующий генератору данных, 
+     * который нужно сохранить в БД.  
+     */
+    private void saveDataGeneratorInDB(int index) {
+        try {
+            //открываем базу данных проекта
+            SQLiteConnection db = new SQLiteConnection(this.file);
+            db.open();
+            //--открываем базу данных проекта
+            //сохраняем данные алгоритма
+            DataGenerator gen = dg.get(index);
+            long gen_id = gen.getId();
+            if (gen_id == -1) { //сохраняем, как новый
+                db.exec("INSERT INTO data_generators (name, imports, generate_implementation) "
+                        + "VALUES ('"+ gen.getName() 
+                        + "', '"+ gen.getImports() 
+                        + "', '"+ gen.getGenerateImplementation() +"')");
+                dg.get(index).setId(db.getLastInsertId());
+            } else {//обновляем существующий
+                db.exec("UPDATE data_generators SET name='" + gen.getName() + "', imports='"+ gen.getImports() +"', generate_implementation='"+ gen.getGenerateImplementation() +"' WHERE id="+ gen_id);
+            }
+            //--сохраняем данные алгоритма
+        } catch (SQLiteException ex) {
+            Logger.getLogger(Project.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }
