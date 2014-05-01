@@ -4,7 +4,12 @@ import comparative_system.controller.FXMLguiController;
 import comparative_system.gui.CodeEditor;
 import comparative_system.model.*;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.Event;
@@ -23,7 +28,7 @@ public class CompSys extends Application {
     private static Project project;
     /** Форма окна. */
     private static Stage primaryStage;
-   
+
     @Override
     public void start(Stage stage) throws Exception {
         FXMLguiController.setStage(stage);        
@@ -192,5 +197,36 @@ public class CompSys extends Application {
      */
     public static Project getProject() {
         return project;
+    }
+    
+    /**
+     * 
+     * @param index Индекс генератора в списке проекта. 
+     */
+    public static void generateData(int index) {
+        try {
+            DataGenerator gen = project.getDataGenerator(index);
+            String code = gen.getImports() + DataGenerator.getHeaderInDataGeneratorCode() + gen.getGenerateImplementation() + DataGenerator.getFooterInDataGeneratorCode();
+            code = Proccessor.setPackageGenerator(code);
+            Proccessor.checkGeneratorCompilable(code, project.getAlgorithms());//компилим
+
+            URL url = new File("javatempfiles/").toURI().toURL();
+            URLClassLoader classLoader = new URLClassLoader(new URL[]{url}, IGenerator.class.getClassLoader());
+            Class generator = classLoader.loadClass("generator.Generator");      
+                  
+            Class c = IGenerator.class.getClassLoader().getParent().loadClass("algorithm1.Max");
+            
+            IGenerator igen = (IGenerator)generator.newInstance();
+            ArrayList<Data> list = igen.getData(gen.getId());
+            gen.setData(list); 
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }

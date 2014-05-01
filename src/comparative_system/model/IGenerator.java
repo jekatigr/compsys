@@ -12,5 +12,5 @@ public interface IGenerator {
      * @param gen_id id генератора в БД проекта.
      * @return Список исходных данных.
      */
-    public ArrayList<Data> getData(int gen_id);
+    public ArrayList<Data> getData(long gen_id);
 }

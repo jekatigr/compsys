@@ -178,7 +178,7 @@ public class Project {
      * @param dataGeneratorId id генератора в БД.
      * @return Индекс генератора в списке в проекте, -1, если генератор не найден.
      */
-    private int getDataGeneratorIndex(int dataGeneratorId) {
+    private int getDataGeneratorIndex(long dataGeneratorId) {
         for (int i = 0; i < dg.size(); i++) {
             if (dg.get(i).getId() == dataGeneratorId) {
                 return i;
@@ -414,7 +414,7 @@ public class Project {
                     for (int i = 2; i < DataGenerator.getCountOfMethodsParams(); i++) {
                         data_params.add(st.columnValue(i));
                     }
-                    data_items.add(new Data(st.columnInt(0), st.columnInt(1), data_params.toArray()));
+                    data_items.add(new Data(st.columnInt(1), data_params.toArray()));
                 }
                 project.addAllDataItems(data_items);
             }

@@ -6,6 +6,7 @@ import comparative_system.Proccessor;
 import comparative_system.gui.CodeEditor;
 import comparative_system.model.Algorithm;
 import comparative_system.model.Code;
+import comparative_system.model.Data;
 import comparative_system.model.DataGenerator;
 import comparative_system.model.Project;
 import java.io.File;
@@ -13,10 +14,13 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -29,10 +33,13 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -87,7 +94,7 @@ public class FXMLguiController implements Initializable {
     //private static boolean hasChanges = false;
     
     /** Панель для кода и значений генератора исходных данных. */
-    @FXML private static AnchorPane dataValuesPanel;
+    @FXML private static AnchorPane dataGeneratorCodePanel;
     /** Элемент список с именами генераторов. */
     @FXML private static ListView genList;
     /** Слушатель события изменения выбранного генератора в списке. */
@@ -100,6 +107,23 @@ public class FXMLguiController implements Initializable {
     @FXML private static HBox dataGeneratorToggleGroupHBox;
     /** Надпись с инструкцией к генератору. */
     @FXML private static Label apiInstructionLabel;
+    /** Панель с сгенерированными данными генератора. */
+    @FXML private static AnchorPane dataGeneratorValuesPanel;
+//    /** Таблица с сгенерированными данными генератора. */
+//    @FXML private static TableView tableForDateGeneratorValues;
+//
+//    public static void reloadTableValuesForCurrentDataGenerator() {
+//        DataGenerator gen = CompSys.getProject().getDataGenerator(Project.getCurrentGuiGen());
+//        
+//        ObservableList<Data> data = FXCollections.observableArrayList(gen.getValues());
+//        for(int i = 0; i < DataGenerator.getCountOfMethodsParams(); i++) {
+//            TableColumn tc = new TableColumn(""+DataGenerator.getParam(i).getName());
+//            tc.setCellValueFactory(new PropertyValueFactory<Data, Object>("list["+i+"]"));
+//            tableForDateGeneratorValues.getColumns().add(tc);
+//        }
+//        tableForDateGeneratorValues.setItems(data);
+//        
+//    }
    
     /** Обработка нажания кнопки "Сохранить проект". */
     @FXML private void handleSaveNewProject(ActionEvent event) {
@@ -270,27 +294,18 @@ public class FXMLguiController implements Initializable {
     }
     
     @FXML private void handleDataCodeButtonClicked() {
-        
+        dataGeneratorValuesPanel.visibleProperty().setValue(false);        
+        dataGeneratorCodePanel.visibleProperty().setValue(true);        
     }
     
     @FXML private void handleDataValuesButtonClicked() {
-        
+        dataGeneratorCodePanel.visibleProperty().setValue(false);        
+        dataGeneratorValuesPanel.visibleProperty().setValue(true);
     }
     
     /** Обработка нажания кнопки "Сохранить" при редактировании генератора. */
     @FXML private void handleSaveGenButtonClicked() {
-        
-            /*URL url = new File("C://").toURI().toURL();
-            URLClassLoader classLoader = new URLClassLoader(new URL[]{url}, IGenerator.class.getClassLoader());
-            Class counter = classLoader.loadClass("javatempfiles.Generator");      
-            IGenerator gen = (IGenerator) counter.newInstance();
-            ArrayList<Data> list = gen.getData(47);
-            
-            
-            Data d = list.get(0);*/
-            
-            /* проверить API(наличие и правильность),  */
-        String code = ((CodeEditor) dataValuesPanel.lookup("#ceDataGen")).getCode();
+        String code = ((CodeEditor) dataGeneratorCodePanel.lookup("#ceDataGen")).getCode();
         code = Proccessor.setPackageGenerator(code);
         String name = genNameTextField.getText().trim();
         if (name.length() > 0) {//проверка имени
@@ -301,8 +316,36 @@ public class FXMLguiController implements Initializable {
                 String generateImplementation = Proccessor.getGenerateImplementation(code);
                 if (addingNewGen) {
                     CompSys.addNewDataGenerator(name, imports, generateImplementation);
+                    CompSys.generateData(CompSys.getProject().getCountOfDataGenerators() - 1);
                 } else {
                     CompSys.saveDataGenerator(Project.getCurrentGuiGen(), name, imports, generateImplementation);
+                    CompSys.generateData(Project.getCurrentGuiGen());
+                }
+            } else {
+                Dialogs.showWarningDialog(primaryStage, "Ошибка компиляции исходного кода.\nСообщение компилятора:\n\n" + compileRes, "Ошибка при компиляции исходного кода генератора.", "Исходные коды генератора...");
+            }
+        } else {
+            Dialogs.showWarningDialog(primaryStage, "Вы не ввели название генератора.", "Ошибка при сохранении генератора.", "Название генератора...");
+        }
+    }
+    
+    /** Обработка нажания кнопки "Сохранить и сгенерировать данные" при редактировании генератора. */
+    @FXML private void handleSaveGenAndLoadDataButtonClicked() {
+        String code = ((CodeEditor) dataGeneratorCodePanel.lookup("#ceDataGen")).getCode();
+        code = Proccessor.setPackageGenerator(code);
+        String name = genNameTextField.getText().trim();
+        if (name.length() > 0) {//проверка имени
+            String compileRes = Proccessor.checkGeneratorCompilable(code, CompSys.getProject().getAlgorithms());
+            if (compileRes.length() == 0) {//проверка на компилируемость
+                //отделяем импорты и код generate
+                String imports = Proccessor.getUserDefinedImports(code, CompSys.getProject().getAllAlgotithmsAsImportsMap());
+                String generateImplementation = Proccessor.getGenerateImplementation(code);
+                if (addingNewGen) {
+                    CompSys.addNewDataGenerator(name, imports, generateImplementation);
+                    CompSys.generateData(CompSys.getProject().getCountOfDataGenerators() - 1);
+                } else {
+                    CompSys.saveDataGenerator(Project.getCurrentGuiGen(), name, imports, generateImplementation);
+                    CompSys.generateData(Project.getCurrentGuiGen());
                 }
             } else {
                 Dialogs.showWarningDialog(primaryStage, "Ошибка компиляции исходного кода.\nСообщение компилятора:\n\n" + compileRes, "Ошибка при компиляции исходного кода генератора.", "Исходные коды генератора...");
@@ -335,7 +378,7 @@ public class FXMLguiController implements Initializable {
     /**
      * Метод для инициализации интерфейса при запуске программы.
      */
-    public static void initialize() {
+    public static void initialize() {//TODO: при созании нового проекта при первом сохранении алгоритма не показываются счетчики.
         algList.getSelectionModel().selectedIndexProperty().addListener(selectAlgInListListener);
         genList.getSelectionModel().selectedIndexProperty().addListener(selectGenInListListener);
         
@@ -345,7 +388,7 @@ public class FXMLguiController implements Initializable {
         
         //при первом открытии отключаем все элементы и ставим вкладку алгоритмов.
         FXMLguiController.setAllEnabled(false);
-        FXMLguiController.switchShowMode(1);
+        FXMLguiController.switchShowMode(0);
         
         CodeEditor ce = new CodeEditor("");
             ce.setId("ceDataGen");
@@ -353,9 +396,11 @@ public class FXMLguiController implements Initializable {
             AnchorPane.setRightAnchor(ce, 240.0);
             AnchorPane.setBottomAnchor(ce, 0.0);
             AnchorPane.setLeftAnchor(ce, -5.0);
-        dataValuesPanel.getChildren().add(ce);
+        dataGeneratorCodePanel.getChildren().add(ce);
         
         apiInstructionLabel.setText("Реализуйте функцию generate(). Для сохранения набора данных воспользуйтесь функцией addData("+ DataGenerator.getMethodsParamsAsString(true) +");");
+        dataGeneratorCodePanel.visibleProperty().setValue(true);
+        dataGeneratorValuesPanel.visibleProperty().setValue(false);
     }
 
     /**
@@ -542,13 +587,13 @@ public class FXMLguiController implements Initializable {
             addingNewGen = true;
             Project.setCurrentGuiGen(-1);
             genNameTextField.setText("Генератор данных ("+ (CompSys.getProject().getCountOfDataGenerators() + 1) +")");
-            String header = getHeaderInDataGeneratorCode();
-            String footer = getFooterInDataGeneratorCode();
+            String header = DataGenerator.getHeaderInDataGeneratorCode();
+            String footer = DataGenerator.getFooterInDataGeneratorCode();
                         //если алгоритмов нет, то не даем добавить генератор.
             
             int fb = 3, fe = header.split("\n").length + fb, sb = fe + 3, se = sb + footer.split("\n").length;
             
-            ((CodeEditor)dataValuesPanel.lookup("#ceDataGen")).setCode("//Добавьте необходимые классы здесь...\n\n\n"+ header + "\n        \n        \n        \n"+footer, fb, fe, sb, se);
+            ((CodeEditor)dataGeneratorCodePanel.lookup("#ceDataGen")).setCode("//Добавьте необходимые классы здесь...\n\n\n"+ header + "\n        \n        \n        \n"+footer, fb, fe, sb, se);
             dataGeneratorToggleGroupHBox.visibleProperty().setValue(false);
         } else {//отображение сохраненного
             addingNewGen = false;
@@ -558,15 +603,15 @@ public class FXMLguiController implements Initializable {
             genNameTextField.setText(gen.getName());
 
             if(gen.getIsCodeOpened()) {//отображаем исходный код
-                String header = getHeaderInDataGeneratorCode();
-                String footer = getFooterInDataGeneratorCode();
+                String header = DataGenerator.getHeaderInDataGeneratorCode();
+                String footer = DataGenerator.getFooterInDataGeneratorCode();
 
                 String imports = gen.getImports() + " \n";
                 String genImp = gen.getGenerateImplementation();
                 
                 int fb = 3 + imports.split("\n").length, fe = fb + header.split("\n").length, sb = fe + genImp.split("\n").length, se = sb + footer.split("\n").length;
                 
-                ((CodeEditor)dataValuesPanel.lookup("#ceDataGen")).setCode("//Добавьте необходимые классы здесь...\n\n\n"+ imports + header + "\n"+ genImp + "\n" + footer, fb, fe, sb, se);
+                ((CodeEditor)dataGeneratorCodePanel.lookup("#ceDataGen")).setCode("//Добавьте необходимые классы здесь...\n\n\n"+ imports + header + genImp + footer, fb, fe, sb, se);
                 dataGeneratorToggleGroupHBox.visibleProperty().setValue(true);
             } else {//отображаем сгенерированные данные
                 //TODO: отображаем сгенерированные данные
@@ -583,55 +628,7 @@ public class FXMLguiController implements Initializable {
         return (Modifier.isPublic(m.getModifiers()) && Modifier.isStatic(m.getModifiers()));
     }
     
-    /**
-     * Метод составления кода импортов из списка пакетов алгоритма.
-     * @param importsMap Список пакетов алгоритма.
-     * @return Фрагмент кода импортов.
-     */
-    private static String composeImportsString(HashMap importsMap) {
-        HashMap map = new HashMap();
-        String res = "";
-        for (Object value : importsMap.values()) {
-            res += "import " + value + ".*;\n";
-        } 
-        return res;
-    }
     
-    /**
-     * Метод возвращает часть кода генератора исходных данных.
-     * @return Фрагмент кода генератора.
-     */
-    private static String getHeaderInDataGeneratorCode() {
-        return composeImportsString(CompSys.getProject().getAllAlgotithmsAsImportsMap())
-                        + " \nimport comparative_system.model.Data;\n" +
-                        "import comparative_system.model.IGenerator;\n" +
-                        "import java.util.ArrayList;\n" +
-                        " \n" +
-                        "public class Generator implements IGenerator {\n" +
-                        "	private static void generate() {";
-    }
-    
-    /**
-     * Метод возвращает часть кода генератора исходных данных.
-     * @return Фрагмент кода генератора.
-     */
-    private static String getFooterInDataGeneratorCode() {
-        return  "    }\n \n    private static ArrayList<Data> list = new ArrayList<Data>();\n" +
-                "	static int generator_id;\n" +
-                "	\n" +
-                "	private static void addData("+ DataGenerator.getMethodsParamsAsString(true) +") {\n" +
-                "        @SuppressWarnings(\"unchecked\")\n" + 
-                "        Data d = new Data(-1, generator_id, new Object[]{"+ DataGenerator.getMethodsParamsAsString(false) +"});\n"
-                                    + "        list.add(d);\n" +
-                "	}\n" +
-                "	\n" +
-                "	public ArrayList<Data> getData(int gen_id) {\n" +
-                "		generator_id = gen_id;\n" +
-                "		generate();\n" +
-                "		return list;\n" +
-                "	}\n" +
-                "}";
-    }
 }
 
 

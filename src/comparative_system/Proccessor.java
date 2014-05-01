@@ -1187,6 +1187,6 @@ public class Proccessor {
             }
         });
        
-        return res.toString().substring(1, res.length() - 2).trim();
+        return res.toString().substring(1, res.length() - 2);
     }
 }
