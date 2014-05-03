@@ -70,7 +70,8 @@ public class Project {
 
     /**
      * Метод для добавления нового алгоритма к проекту. Здесь же расставляются 
-     * счетчики операций. После этого алгоритм сохраняется в БД и ему сопостовляется id.
+     * счетчики операций. Алгоритм сохраняется в БД и ему сопостовляется id. После этого 
+     * классы алгоритма с вставленными счетчиками компилируются и подгружаются в основную программу.
      * @param name Имя алгоритма.
      * @param codes Исходные коды алгоритма.
      * @param mainMethod Метод вызова алгоритма.
@@ -87,7 +88,8 @@ public class Project {
     
     /**
      * Метод для сохранения алгоритма. Здесь снова расставляются 
-     * счетчики операций. После этого алгоритм сохраняется в БД по прежнему id.
+     * счетчики операций. Алгоритм сохраняется в БД по прежнему id. После этого 
+     * классы алгоритма с вставленными счетчиками заново компилируются и подгружаются в основную программу.
      * @param index Индекс алгоритма в списке проекта.
      * @param name Имя алгоритма.
      * @param codes Исходные коды алгоритма.
@@ -151,6 +153,14 @@ public class Project {
         return this.dg.size();
     }
 
+    /**
+     * Метод возвращает лист генераторов данных проекта.
+     * @return Лист генераторов данных.
+     */
+    public ArrayList<DataGenerator> getDataGenerators() {
+        return this.dg;
+    }
+    
     /**
      * Возвращает генератор исходных данных с индексом, равным {@code gen_id}.
      * @param index Индекс геренатора.
@@ -326,7 +336,7 @@ public class Project {
     public String getProjectFilePath() {
         return this.file.toString();
     }
-    
+        
     
     /**
      * Метод возвращает индекс алгоритма, который показывается в GUI в данный момент.
@@ -414,7 +424,7 @@ public class Project {
                     for (int i = 2; i < DataGenerator.getCountOfMethodsParams(); i++) {
                         data_params.add(st.columnValue(i));
                     }
-                    data_items.add(new Data(st.columnInt(1), data_params.toArray()));
+                    data_items.add(new Data(st.columnLong(0), st.columnLong(1), data_params.toArray()));
                 }
                 project.addAllDataItems(data_items);
             }

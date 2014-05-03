@@ -8,7 +8,7 @@ import java.io.Serializable;
  */
 public class Data implements Serializable {
     /* Индекс набора данных в БД проекта. */
-    //private int id;
+    private long id;
     /** Индекс генератора данного набора исходных данных в БД. */
     private long gen_id;
     /** Исходные данные, соответствующие параметрам методов вызова алгоритмов проекта. */
@@ -16,12 +16,12 @@ public class Data implements Serializable {
 
     /**
      * Конструктор класса.
-     * param id id в БД проекта.
+     * @param id id в БД проекта.
      * @param gen_id id генератора в БД проекта.
      * @param params Значения данных.
      */
-    public Data(long gen_id, Object[] params) {
-        //this.id = id;
+    public Data(long id, long gen_id, Object[] params) {
+        this.id = id;
         this.gen_id = gen_id;
         list = params;
     }

@@ -3,6 +3,11 @@ package comparative_system.model;
 import com.almworks.sqlite4java.SQLiteConnection;
 import com.almworks.sqlite4java.SQLiteException;
 import comparative_system.CompSys;
+import comparative_system.Proccessor;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +34,7 @@ public class DataGenerator {
     /** Список сгенерированных исходных данных. */
     private ArrayList<Data> data;
     /** Флаг для вкладки код/данные для GUI. */
-    private boolean isCodeOpened = true;
+    private boolean isCodeOpened;
 
     /**
      * Конструктор класса.
@@ -39,6 +44,8 @@ public class DataGenerator {
      * @param generateImplementation Код генератора.
      */
     DataGenerator(long id, String name, String imports, String generateImplementation) {
+        this.isCodeOpened = true;
+        this.data = new ArrayList<>();
         this.id = id;
         this.name = name;
         this.imports = imports;
@@ -53,6 +60,7 @@ public class DataGenerator {
      */
     public DataGenerator(String name, String imports, String generateImplementation) {
         this(-1, name, imports, generateImplementation);
+        this.isCodeOpened = true;
     }
 
     /**
@@ -120,10 +128,10 @@ public class DataGenerator {
     }
 
     /**
-     * Добавление списка наборов исходных данных к генератору. Здесь же набор сохраняется в БД.
+     * Добавление списка наборов исходных данных к генератору. Здесь же наборы сохраняются в БД и им сопоставляется id.
      * @param list Список наборов исходных данных.
      */
-    public void setData(ArrayList<Data> list) {
+    private void setData(ArrayList<Data> list) {
         this.data = list;//TODO: для сериализации пользовательских классов нужны те самые классы, загруженные в CompSys.
     }
 
@@ -143,6 +151,32 @@ public class DataGenerator {
         return this.isCodeOpened;
     }
 
+    /**
+     * Метод для генерации данных в генераторе.
+     */
+    public void generateData() {
+        try {
+            String code = this.getImports() + getHeaderInDataGeneratorCode() + this.getGenerateImplementation() + getFooterInDataGeneratorCode();
+            code = Proccessor.setPackageGenerator(code);
+            Proccessor.checkGeneratorCompilable(code, CompSys.getProject().getAlgorithms());//компилим
+
+            URL url = new File("javatempfiles/").toURI().toURL();
+            URLClassLoader classLoader = new URLClassLoader(new URL[]{url}, IGenerator.class.getClassLoader());
+            Class generator = classLoader.loadClass("generator.Generator");      
+            
+            IGenerator igen = (IGenerator)generator.newInstance();
+            ArrayList<Data> list = igen.getData(this.getId());
+            this.data = list; 
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 
     /**
      * Метод для очистки списка параметров методов вызова. Параметры также удаляются из БД.
@@ -271,7 +305,7 @@ public class DataGenerator {
                 "	\n" +
                 "	private static void addData("+ getMethodsParamsAsString(true) +") {\n" +
                 "        \n" +
-                "        Data d = new Data(generator_id, new Object[]{"+ getMethodsParamsAsString(false) +"});\n"
+                "        Data d = new Data(-1, generator_id, new Object[]{"+ getMethodsParamsAsString(false) +"});\n"
                                     + "        list.add(d);\n" +
                 "	}\n" +
                 "	\n" +

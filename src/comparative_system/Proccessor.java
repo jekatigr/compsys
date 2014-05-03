@@ -2,12 +2,16 @@ package comparative_system;
 
 import comparative_system.model.Algorithm;
 import comparative_system.model.Code;
+import comparative_system.model.IGenerator;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -184,6 +188,17 @@ public class Proccessor {
             parser.setSource(code.toCharArray());
             parser.setKind(ASTParser.K_COMPILATION_UNIT);
             CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+
+            cu.recordModifications();
+            ImportDeclaration counter_import = cu.getAST().newImportDeclaration();
+            counter_import.setName(cu.getAST().newName("comparative_system.Counter"));
+            cu.imports().add(counter_import);
+            TextEdit edits = cu.rewrite(codeDoc, null);
+            edits.apply(codeDoc);
+            
+            parser.setSource(codeDoc.get().toCharArray());
+            parser.setKind(ASTParser.K_COMPILATION_UNIT);
+            cu = (CompilationUnit) parser.createAST(null);
             AST ast = cu.getAST();
             rewriter = ASTRewrite.create(ast);
             
@@ -197,7 +212,7 @@ public class Proccessor {
                 }
             }
             
-            TextEdit edits = rewriter.rewriteAST(codeDoc, null);
+            edits = rewriter.rewriteAST(codeDoc, null);
             edits.apply(codeDoc);
             
             parser.setSource(codeDoc.get().toCharArray());
@@ -1136,11 +1151,6 @@ public class Proccessor {
      */
     public static String getUserDefinedImports(String code, HashMap defaultImportsMap) {
         String res = "";
-        
-        //Добавляем в список импорты по умолчанию из генератора.
-        defaultImportsMap.put("Data", "comparative_system.model");
-        defaultImportsMap.put("comparative_system.model.IGenerator", "comparative_system.model");
-        defaultImportsMap.put("java.util.ArrayList", "java.util");
 
         parser.setSource(code.toCharArray());
         parser.setKind(ASTParser.K_COMPILATION_UNIT);
@@ -1188,5 +1198,95 @@ public class Proccessor {
         });
        
         return res.toString().substring(1, res.length() - 2);
+    }
+
+    
+    public static String compileAndLoadAlgorithm(Algorithm alg) {
+        String res = "";
+        ArrayList<Code> codes = alg.getCodes();
+
+        ArrayList<String> filesForCompile = new ArrayList<>();
+        ArrayList<String> fullNamesOfClasses = new ArrayList<>();
+        //сохраняем исходники в каталогах согласно пакетам
+        for (Code code : codes) {
+            try {
+                parser.setSource(code.getGeneratedCode().toCharArray());
+                parser.setKind(ASTParser.K_COMPILATION_UNIT);
+                final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+                Name packageForPath = (cu.getPackage() != null) ? cu.getPackage().getName() : null;
+
+                FileWriter fileW = null;
+
+                //создаем необходимые каталоги для пакета
+                String dirsString = "";
+                String className = Proccessor.getClassName(code.getGeneratedCode());
+                if (packageForPath != null) {
+                    fullNamesOfClasses.add(packageForPath.getFullyQualifiedName() + "." + className);
+                    while (packageForPath.isQualifiedName()) {
+                        dirsString = ((QualifiedName)packageForPath).getName().toString() + "/" + dirsString;
+                        packageForPath = ((QualifiedName)packageForPath).getQualifier();
+                    }
+                    dirsString = ((SimpleName)packageForPath).toString() + "/" + dirsString;
+                }
+                dirsString = "algorithms_classes/" + dirsString;
+                File dirs = new File(dirsString);
+                dirs.mkdirs();
+
+                String fileFullName = dirsString + className + ".java";
+                filesForCompile.add(fileFullName);
+                File file = new File(fileFullName);
+                fileW = new FileWriter(file);
+                fileW.write(code.getGeneratedCode());
+                fileW.close();
+            } catch (IOException ex) {
+                Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+        //компилим
+        for (String file : filesForCompile) {
+            String errors = "";
+            try {
+                ProcessBuilder procBuilder = new ProcessBuilder(Preferences.getJdkPath() + "\\javac", "-sourcepath", "algorithms_classes/", file);
+                procBuilder.redirectErrorStream(true);
+
+                Process process = procBuilder.start();
+
+                InputStream stdout = process.getInputStream();
+                InputStreamReader isrStdout = new InputStreamReader(stdout);
+                BufferedReader brStdout = new BufferedReader(isrStdout);
+
+                String line = "";
+                while((line = brStdout.readLine()) != null) {
+                    errors += line + "\n";
+                }
+
+                int exitVal = process.waitFor();
+                
+                if (errors.equals("")) {
+                    
+                } else {
+                    res += errors + "\n";
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        try {
+            URL url = new File("algorithms_classes/").toURI().toURL();
+            URLClassLoader classLoader = new URLClassLoader(new URL[]{url}, CompSys.class.getClassLoader());
+            for (String c : fullNamesOfClasses) {
+                classLoader.loadClass(c);
+            }   
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return res;
     }
 }

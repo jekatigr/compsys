@@ -1,6 +1,7 @@
 package comparative_system.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Name;
 
@@ -17,6 +18,10 @@ public class Algorithm {
     private String mainMethod;
     /** Исходные и сгенерированные коды алгоритма. */
     private ArrayList<Code> codes;
+    /** Классы алгоритма с вставленными счетчиками. */
+    private ArrayList<Class> classes;
+    /** Список пар результатов: "id генератора данных" => "лист результатов" */
+    private HashMap<Long, ArrayList<Result>> results = new HashMap();
     /** Лист полных названий классов. Если в коде не указан пакет, то по умолчанию он будет "algorithm" + (id в БД проекта). */
     private ArrayList<Name> fullNamesOfClasses;
     /** Флаг для показа счетчиков в коде для GUI. */
@@ -183,6 +188,10 @@ public class Algorithm {
      */
     ArrayList<Name> getFullNamesOfClassesList() {
         return this.fullNamesOfClasses;
+    }
+
+    public void addClass(Class c) {
+        this.classes.add(c);
     }
 }
 

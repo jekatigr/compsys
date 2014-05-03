@@ -116,6 +116,7 @@ public class CompSys extends Application {
         project = Project.openProject(file);
         if (project != null) { //все ок, готовим gui
             Preferences.addLastOpenedProject(file);
+            checkAndPrepareResources();
             FXMLguiController.openProject(project);
         } else {
             //все плохо
@@ -131,6 +132,7 @@ public class CompSys extends Application {
     public static void addAlgorithm(String name, String method, ArrayList<String> codes) {
         project.addNewAlgorithm(name, method, codes);
         FXMLguiController.reloadAlgList();
+        FXMLguiController.reloadGenAndAlgListsForTests();
     }
     
     /**
@@ -143,6 +145,7 @@ public class CompSys extends Application {
     public static void saveAlgorithm(int index, String name, String method, ArrayList<String> codes) {
         project.saveAlgorithm(index, name, method, codes);
         FXMLguiController.reloadAlgList();
+        FXMLguiController.reloadGenAndAlgListsForTests();
         FXMLguiController.loadAlgorithmView(Project.getCurrentGuiAlg());
     }
     
@@ -155,6 +158,7 @@ public class CompSys extends Application {
     public static void addNewDataGenerator(String name, String imports, String generateImplementation) {
         project.addNewDataGenerator(name, imports, generateImplementation);
         FXMLguiController.reloadGenList();
+        FXMLguiController.reloadGenAndAlgListsForTests();
     }
     
     /**
@@ -167,6 +171,7 @@ public class CompSys extends Application {
     public static void saveDataGenerator(int index, String name, String imports, String generateImplementation) {
         project.saveDataGenerator(index, name, imports, generateImplementation);
         FXMLguiController.reloadGenList();
+        FXMLguiController.reloadGenAndAlgListsForTests();
         FXMLguiController.loadDataGeneratorView(Project.getCurrentGuiGen());
     }
     
@@ -200,33 +205,16 @@ public class CompSys extends Application {
     }
     
     /**
-     * 
-     * @param index Индекс генератора в списке проекта. 
+     * Метод для подготовки проекта к работе. Проект должен быть 
+     * уже открыт. Здесь уже сохраненные классы компилируются и подгружаются в программу.
      */
-    public static void generateData(int index) {
-        try {
-            DataGenerator gen = project.getDataGenerator(index);
-            String code = gen.getImports() + DataGenerator.getHeaderInDataGeneratorCode() + gen.getGenerateImplementation() + DataGenerator.getFooterInDataGeneratorCode();
-            code = Proccessor.setPackageGenerator(code);
-            Proccessor.checkGeneratorCompilable(code, project.getAlgorithms());//компилим
-
-            URL url = new File("javatempfiles/").toURI().toURL();
-            URLClassLoader classLoader = new URLClassLoader(new URL[]{url}, IGenerator.class.getClassLoader());
-            Class generator = classLoader.loadClass("generator.Generator");      
-                  
-            Class c = IGenerator.class.getClassLoader().getParent().loadClass("algorithm1.Max");
-            
-            IGenerator igen = (IGenerator)generator.newInstance();
-            ArrayList<Data> list = igen.getData(gen.getId());
-            gen.setData(list); 
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
+    public static void checkAndPrepareResources() {
+        boolean withErrors = false;
+        for(Algorithm alg : project.getAlgorithms()) {
+            String res = Proccessor.compileAndLoadAlgorithm(alg);
+            if (!res.equals("")) {
+                withErrors = true;
+            }
         }
     }
 }
