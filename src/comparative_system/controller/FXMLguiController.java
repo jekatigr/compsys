@@ -24,6 +24,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -44,6 +45,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
@@ -501,9 +504,7 @@ public class FXMLguiController implements Initializable {
         for (int i = 0; i < algCount; i++) {
             algList.getItems().add(getAlgViewInList(i));//CompSys.getProject().getAlgorithm(i).getName());                
         }
-        Label l = new Label("Добавить...");
-        l.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, Font.getDefault().getSize() + 2));
-        algList.getItems().add(l);
+        algList.getItems().add(getAlgViewInList(-1));
         
         algList.getSelectionModel().selectedIndexProperty().addListener(selectAlgInListListener);
     }
@@ -591,11 +592,9 @@ public class FXMLguiController implements Initializable {
         genList.getItems().clear();
         int genCount = CompSys.getProject().getCountOfDataGenerators();
         for (int i = 0; i < genCount; i++) {
-            genList.getItems().add(CompSys.getProject().getDataGenerator(i).getName());                
+            genList.getItems().add(getGenViewInList(i));                
         }
-        Label l = new Label("Добавить..."); 
-        l.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, Font.getDefault().getSize() + 2));
-        genList.getItems().add(l);
+        genList.getItems().add(getGenViewInList(-1));
         
         genList.getSelectionModel().selectedIndexProperty().addListener(selectGenInListListener);
     }
@@ -682,37 +681,82 @@ public class FXMLguiController implements Initializable {
         startTestsButton.setDisable(false);
     }
     
-    private static AnchorPane getAlgViewInList(int index) {
-        Algorithm alg = CompSys.getProject().getAlgorithm(index);
-        AnchorPane p = new AnchorPane();
-        p.setPrefSize(100, 50);
-        if (alg.hasErrors()) {
-            ImageView iw = new ImageView();
-            iw.setImage(new Image(CompSys.class.getResourceAsStream("warn.png")));
-            iw.setFitHeight(35);
-            iw.setFitWidth(35);
-            Tooltip t = new Tooltip("В алгоритме возникли ошибки компиляции.");
-            Tooltip.install(iw, t);
-            AnchorPane.setRightAnchor(iw, 0.0);
-            p.getChildren().add(iw);
-        }
-        Label l = new Label("\"" + alg.getName() + "\"");
-        l.setFont(Font.font("Colibri", 16.0));
-        Label l2 = new Label("Классов: " + alg.getCodes().size());
-        l2.setFont(Font.font("Colibri", 12.0));
-        l2.setUnderline(true);
-        AnchorPane.setLeftAnchor(l, 10.0);
-        if (alg.hasErrors()) {
-            AnchorPane.setRightAnchor(l, 37.0);
+    private static Pane getAlgViewInList(int index) {
+        if (index != -1) {
+            AnchorPane p = new AnchorPane();
+            p.setPrefSize(100, 50);
+            Algorithm alg = CompSys.getProject().getAlgorithm(index);
+            if (alg.hasErrors()) {
+                ImageView iw = new ImageView();
+                iw.setImage(new Image(CompSys.class.getResourceAsStream("warn.png")));
+                iw.setFitHeight(35);
+                iw.setFitWidth(35);
+                Tooltip t = new Tooltip("В алгоритме возникли ошибки компиляции.");
+                Tooltip.install(iw, t);
+                AnchorPane.setRightAnchor(iw, 0.0);
+                AnchorPane.setTopAnchor(iw, 7.0);
+                AnchorPane.setBottomAnchor(iw, 7.0);
+                p.getChildren().add(iw);
+            }
+            Label l = new Label("\"" + alg.getName() + "\"");
+            l.setFont(Font.font("Colibri", 16.0));
+            Label l2 = new Label("Классов: " + alg.getCodes().size());
+            l2.setFont(Font.font("Colibri", 12.0));
+            l2.setUnderline(true);
+            AnchorPane.setLeftAnchor(l, 10.0);
+            if (alg.hasErrors()) {
+                AnchorPane.setRightAnchor(l, 37.0);
+            } else {
+                AnchorPane.setRightAnchor(l, 2.0);
+            }
+            AnchorPane.setLeftAnchor(l2, 20.0);
+            AnchorPane.setRightAnchor(l2, 37.0);
+            AnchorPane.setBottomAnchor(l2, 5.0);
+            p.getChildren().add(l);
+            p.getChildren().add(l2);
+            return p;
         } else {
-            AnchorPane.setRightAnchor(l, 2.0);
+            VBox v = new VBox();
+            Label l = new Label("Добавить");
+            l.setFont(Font.font("Colibri", FontWeight.EXTRA_BOLD, 16.0));
+            Label l2 = new Label("новый алгоритм...");
+            v.setPrefSize(100, 50);
+            v.setAlignment(Pos.CENTER);
+            v.getChildren().add(l);
+            v.getChildren().add(l2);
+            return v;
         }
-        AnchorPane.setLeftAnchor(l2, 20.0);
-        AnchorPane.setRightAnchor(l2, 37.0);
-        AnchorPane.setBottomAnchor(l2, 5.0);
-        p.getChildren().add(l);
-        p.getChildren().add(l2);
-        return p;
+    }
+    
+    private static Pane getGenViewInList(int index) {
+        if (index != -1) {
+            AnchorPane p = new AnchorPane();
+            p.setPrefSize(100, 50);
+            DataGenerator gen = CompSys.getProject().getDataGenerator(index);
+            Label l = new Label("\"" + gen.getName() + "\"");
+            l.setFont(Font.font("Colibri", 16.0));
+            Label l2 = new Label("Наборов данных: " + gen.getValues().size());
+            l2.setFont(Font.font("Colibri", 12.0));
+            l2.setUnderline(true);
+            AnchorPane.setLeftAnchor(l, 10.0);
+            AnchorPane.setRightAnchor(l, 2.0);
+            AnchorPane.setLeftAnchor(l2, 20.0);
+            AnchorPane.setRightAnchor(l2, 37.0);
+            AnchorPane.setBottomAnchor(l2, 5.0);
+            p.getChildren().add(l);
+            p.getChildren().add(l2);
+            return p;
+        } else {
+            VBox v = new VBox();
+            Label l = new Label("Добавить");
+            l.setFont(Font.font("Colibri", FontWeight.EXTRA_BOLD, 16.0));
+            Label l2 = new Label("генератор данных...");
+            v.setPrefSize(100, 50);
+            v.setAlignment(Pos.CENTER);
+            v.getChildren().add(l);
+            v.getChildren().add(l2);
+            return v;
+        }
     }
 }
 
