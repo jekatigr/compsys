@@ -499,7 +499,7 @@ public class FXMLguiController implements Initializable {
         algList.getItems().clear();
         int algCount = CompSys.getProject().getCountOfAlgorithms();
         for (int i = 0; i < algCount; i++) {
-            algList.getItems().add(CompSys.getProject().getAlgorithm(i).getName());                
+            algList.getItems().add(getAlgViewInList(i));//CompSys.getProject().getAlgorithm(i).getName());                
         }
         Label l = new Label("Добавить...");
         l.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, Font.getDefault().getSize() + 2));
@@ -680,6 +680,39 @@ public class FXMLguiController implements Initializable {
 
     private static void selectAlgInListForTests(int index) {
         startTestsButton.setDisable(false);
+    }
+    
+    private static AnchorPane getAlgViewInList(int index) {
+        Algorithm alg = CompSys.getProject().getAlgorithm(index);
+        AnchorPane p = new AnchorPane();
+        p.setPrefSize(100, 50);
+        if (alg.hasErrors()) {
+            ImageView iw = new ImageView();
+            iw.setImage(new Image(CompSys.class.getResourceAsStream("warn.png")));
+            iw.setFitHeight(35);
+            iw.setFitWidth(35);
+            Tooltip t = new Tooltip("В алгоритме возникли ошибки компиляции.");
+            Tooltip.install(iw, t);
+            AnchorPane.setRightAnchor(iw, 0.0);
+            p.getChildren().add(iw);
+        }
+        Label l = new Label("\"" + alg.getName() + "\"");
+        l.setFont(Font.font("Colibri", 16.0));
+        Label l2 = new Label("Классов: " + alg.getCodes().size());
+        l2.setFont(Font.font("Colibri", 12.0));
+        l2.setUnderline(true);
+        AnchorPane.setLeftAnchor(l, 10.0);
+        if (alg.hasErrors()) {
+            AnchorPane.setRightAnchor(l, 37.0);
+        } else {
+            AnchorPane.setRightAnchor(l, 2.0);
+        }
+        AnchorPane.setLeftAnchor(l2, 20.0);
+        AnchorPane.setRightAnchor(l2, 37.0);
+        AnchorPane.setBottomAnchor(l2, 5.0);
+        p.getChildren().add(l);
+        p.getChildren().add(l2);
+        return p;
     }
 }
 

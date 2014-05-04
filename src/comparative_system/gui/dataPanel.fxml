@@ -9,7 +9,7 @@
 <children><SplitPane dividerPositions="0.2054" focusTraversable="true" layoutX="31.0" layoutY="26.0" prefHeight="320.0" prefWidth="516.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="-1.0">
   <items>
     <AnchorPane maxWidth="200.0" minHeight="0.0" minWidth="100.0" prefHeight="160.0" prefWidth="100.0">
-<children><ListView fx:id="genList" editable="true" layoutX="14.0" layoutY="14.0" prefHeight="307.0" prefWidth="144.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="-1.0" />
+<children><ListView fx:id="genList" editable="true" focusTraversable="false" layoutX="14.0" layoutY="14.0" prefHeight="307.0" prefWidth="144.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="-1.0" />
 </children></AnchorPane>
     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
 <children><BorderPane layoutX="14.0" layoutY="14.0" minWidth="100.0" prefHeight="25.0" prefWidth="651.0" AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="11.0" AnchorPane.topAnchor="14.0">

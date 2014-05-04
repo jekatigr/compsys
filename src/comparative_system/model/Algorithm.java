@@ -144,6 +144,10 @@ public class Algorithm {
     void setHasErrors(boolean err) {
         this.hasErrors = err;
     }
+
+    public boolean hasErrors() {
+        return this.hasErrors;
+    }
 }
 
 
