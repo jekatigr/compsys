@@ -119,6 +119,10 @@ public class Code {
     public void setHasMainMethod(boolean hasMainMethod) {
         this.hasMainMethod = hasMainMethod;
     }
+
+    boolean getHasMainMethod() {
+        return this.hasMainMethod;
+    }
 }
 
 

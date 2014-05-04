@@ -112,7 +112,6 @@ public class FXMLguiController implements Initializable {
     
     @FXML private static ListView genListForTests;
     @FXML private static ListView algListForTests;
-    @FXML private static HBox dataGenHasNoDataHBox;
     @FXML private static Button startTestsButton;
     
 //    /** Таблица с сгенерированными данными генератора. */
@@ -341,13 +340,20 @@ public class FXMLguiController implements Initializable {
             Dialogs.showWarningDialog(primaryStage, "Вы не ввели название генератора.", "Ошибка при сохранении генератора.", "Название генератора...");
         }
     }
-    
+        
     @FXML private void handleStartTestsButtonClicked() {
-        Dialogs.showErrorDialog(primaryStage, "dsdsd");
-    }
-    
-    @FXML private void handleGenerateDataForTestsButtonClicked() {
-        CompSys.getProject().getDataGenerator(genListForTests.getSelectionModel().getSelectedIndex()).generateData();
+        int gen = genListForTests.getSelectionModel().getSelectedIndex();
+        int alg = algListForTests.getSelectionModel().getSelectedIndex();
+        
+        if (CompSys.getProject().getDataGenerator(gen).getValues().isEmpty()) {
+            Dialogs.showErrorDialog(primaryStage, "Для выбранного генератора данных не "
+                    + "было создано наборов для тестов.\nПопробуйте исправить реализацию генератора для добавления наборов данных.", "Генератор данных реализован не верно!", "Нет данных для тестов...");
+        }
+        
+        Class c = CompSys.getProject().getAlgorithm(alg).getClassWithMainMethod();
+        if (c != null) {
+            Dialogs.showErrorDialog(primaryStage, "hihihihihih");
+        }
     }
     
     
@@ -413,7 +419,6 @@ public class FXMLguiController implements Initializable {
         
         startTestsButton.setDisable(true);
         algListForTests.setDisable(true);
-        dataGenHasNoDataHBox.visibleProperty().setValue(false);
     }
 
     /**
@@ -661,18 +666,11 @@ public class FXMLguiController implements Initializable {
     
     private static void selectGenInListForTests(int index) {
         if (index != -1 && CompSys.getProject().getDataGenerator(index) != null) {
-            if (CompSys.getProject().getDataGenerator(index).getValues().isEmpty()) {
-                dataGenHasNoDataHBox.visibleProperty().setValue(true);
-                algListForTests.setDisable(true);
+            algListForTests.setDisable(false);
+            if (algListForTests.getSelectionModel().getSelectedIndex() != -1) {
+                startTestsButton.setDisable(false);
+            } else {
                 startTestsButton.setDisable(true);
-            } else {//все ок
-                dataGenHasNoDataHBox.visibleProperty().setValue(false);
-                algListForTests.setDisable(false);
-                if (algListForTests.getSelectionModel().getSelectedIndex() != -1) {
-                    startTestsButton.setDisable(false);
-                } else {
-                    startTestsButton.setDisable(true);
-                }
             }
         } else {
             startTestsButton.setDisable(true);

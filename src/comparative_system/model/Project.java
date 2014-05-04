@@ -57,15 +57,10 @@ public class Project {
 
     /**
      * Метод для добавления к проекту алгоритма, загруженного из БД. 
-     * @param id Индекс алгоритма в БД проекта.
-     * @param name Имя алгоритма.
-     * @param mainMethod Метод вызова алгоритма.
-     * @param counterName Имя счетчика операций.
-     * @param codes Исходные и сгенерированные коды алгоритма.
+     * @param alg Объект алгоритма.
      */
-    private void addAlgorithm(long id, String name, String mainMethod, ArrayList<Code> codes) {
-        algorithms.add(new Algorithm(id, name, mainMethod, codes));
-        Algorithm alg = this.algorithms.get(this.algorithms.size() - 1);
+    private void addAlgorithm(Algorithm alg) {
+        algorithms.add(alg);
     }
 
     /**
@@ -109,7 +104,7 @@ public class Project {
     }
     
     /**
-     * Добавление к проекту генератора исходных данных, загруженного из БД.
+     * Добавление к проекту генератора исходных данных, загруженного из БД. 
      * @param id Индекс генератора в БД.
      * @param name Имя генератора.
      * @param imports Импорты, добваленные пользователем.
@@ -401,7 +396,15 @@ public class Project {
                 }
                 codes = Proccessor.resolveCodes(codes, st.columnString(2));
                 //--коды алгоритмов        
-                project.addAlgorithm(alg_id, st.columnString(1), st.columnString(2), codes);
+                Algorithm alg = new Algorithm(alg_id, st.columnString(1), st.columnString(2), codes);
+                boolean err = false;
+                for(Code c : codes) {
+                    if (!c.getSourceCodeErrors().isEmpty() || !c.getGeneratedCodeErrors().isEmpty()) {
+                        err = true;
+                    }
+                }
+                alg.setHasErrors(err);
+                project.addAlgorithm(alg);
             }
             //--алгоритмы
             //параметры методов вызова

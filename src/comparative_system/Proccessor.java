@@ -1323,6 +1323,7 @@ public class Proccessor {
      * после чего классы без ошибок компиляции подгружаются в программу. 
      * Здесь также определяется класс с главным методом.
      * @param codes Лист кодов.
+     * @param mainMethod Имя метода вызова алгоритма.
      * @return Обновленный лист кодов.
      */
     public static ArrayList<Code> resolveCodes(ArrayList<Code> codes, String mainMethod) {
@@ -1377,7 +1378,7 @@ public class Proccessor {
                 if (!errors.equals("")) { continue; } else { errors = ""; } //если исходные коды с ошибками, то сгенерированные по определению тоже.
                 //коды со счетчиками
                 file = "generated_codes/" + code.getPathOfFileForCompile() + code.getClassName() + ".java";
-                procBuilder = new ProcessBuilder(Preferences.getJdkPath() + "\\javac", "-sourcepath", "generated_codes", file);
+                procBuilder = new ProcessBuilder(Preferences.getJdkPath() + "\\javac", "-sourcepath", "generated_codes", "-classpath", "dist/CompSys.jar", file);
                 procBuilder.redirectErrorStream(true);
                 process = procBuilder.start();
                 stdout = process.getInputStream();

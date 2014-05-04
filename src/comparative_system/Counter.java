@@ -14,7 +14,7 @@ public class Counter {
      * Метод для добавления количества подсчитанных операций в список к соответствующему потоку.
      * @param count 
      */
-    private static synchronized void add(int count) {
+    public static synchronized void add(int count) {
         String th = Thread.currentThread().getName();
         if (count_of_operations.containsKey(th)) {
             count_of_operations.put(th, count_of_operations.get(th) + count);

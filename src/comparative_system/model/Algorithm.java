@@ -18,9 +18,9 @@ public class Algorithm {
     private String mainMethod;
     /** Исходные и сгенерированные коды алгоритма. */
     private ArrayList<Code> codes;
-    
+    boolean hasErrors;
     /** Список пар результатов: "id генератора данных" => "лист результатов". */
-    private HashMap<Long, ArrayList<Result>> results = new HashMap();
+    private HashMap<Long, ArrayList<Result>> results;
    
     /** Флаг для показа счетчиков в коде для GUI. */
     private boolean showCounters = false;
@@ -31,8 +31,6 @@ public class Algorithm {
      * @param name Имя алгоритма.
      * @param mainMethod Метод вызова алгоритма.
      * @param codes Исходные и сгенерированные коды алгоритма.
-     * @param classesTabsNames Имена вкладок классов алгоритма для GUI.
-     * @param methods Список деклараций методов в исходных кодах алгоритма.
      */
     public Algorithm(String name, String mainMethod, ArrayList<Code> codes) {
         this(-1, name, mainMethod, codes);
@@ -44,14 +42,14 @@ public class Algorithm {
      * @param name Имя алгоритма.
      * @param mainMethod Метод вызова алгоритма.
      * @param codes Исходные и сгенерированные коды алгоритма.
-     * @param classesTabsNames Имена вкладок классов алгоритма для GUI.
-     * @param methods Список деклараций методов в исходных кодах алгоритма.
      */
     public Algorithm(long id, String name, String mainMethod, ArrayList<Code> codes) {
         this.id = id;
         this.name = name;
         this.mainMethod = mainMethod;
         this.codes = codes;
+        this.hasErrors = false;
+        this.results = new HashMap();
     }
 
     /**
@@ -132,6 +130,19 @@ public class Algorithm {
      */
     public void setShowCounters(boolean show) {
         this.showCounters = show;
+    }
+
+    public Class getClassWithMainMethod() {
+        for (Code c : codes) {
+            if (c.getHasMainMethod()) {
+                return c.getGeneratedClass();
+            }
+        }
+        return null;
+    }
+
+    void setHasErrors(boolean err) {
+        this.hasErrors = err;
     }
 }
 
