@@ -18,18 +18,13 @@ public class Algorithm {
     private String mainMethod;
     /** Исходные и сгенерированные коды алгоритма. */
     private ArrayList<Code> codes;
-    /** Классы алгоритма с вставленными счетчиками. */
-    private ArrayList<Class> classes;
-    /** Список пар результатов: "id генератора данных" => "лист результатов" */
+    
+    /** Список пар результатов: "id генератора данных" => "лист результатов". */
     private HashMap<Long, ArrayList<Result>> results = new HashMap();
-    /** Лист полных названий классов. Если в коде не указан пакет, то по умолчанию он будет "algorithm" + (id в БД проекта). */
-    private ArrayList<Name> fullNamesOfClasses;
+   
     /** Флаг для показа счетчиков в коде для GUI. */
     private boolean showCounters = false;
-    /** Лист с названиями вкладок для кодов алгоритма. */
-    private ArrayList<String> classesTabsNames;
-    /** Лист с определениями методов классов алгоритма. */
-    private ArrayList<MethodDeclaration> methods;
+    
     
     /**
      * Конструктор класса.
@@ -39,8 +34,8 @@ public class Algorithm {
      * @param classesTabsNames Имена вкладок классов алгоритма для GUI.
      * @param methods Список деклараций методов в исходных кодах алгоритма.
      */
-    public Algorithm(String name, String mainMethod, ArrayList<Code> codes, ArrayList<String> classesTabsNames, ArrayList<MethodDeclaration> methods) {
-        this(-1, name, mainMethod, codes, classesTabsNames, methods);
+    public Algorithm(String name, String mainMethod, ArrayList<Code> codes) {
+        this(-1, name, mainMethod, codes);
     }
     
     /**
@@ -52,13 +47,11 @@ public class Algorithm {
      * @param classesTabsNames Имена вкладок классов алгоритма для GUI.
      * @param methods Список деклараций методов в исходных кодах алгоритма.
      */
-    public Algorithm(long id, String name, String mainMethod, ArrayList<Code> codes, ArrayList<String> classesTabsNames, ArrayList<MethodDeclaration> methods) {
+    public Algorithm(long id, String name, String mainMethod, ArrayList<Code> codes) {
         this.id = id;
         this.name = name;
         this.mainMethod = mainMethod;
         this.codes = codes;
-        this.classesTabsNames = classesTabsNames;
-        this.methods = methods;
     }
 
     /**
@@ -139,59 +132,6 @@ public class Algorithm {
      */
     public void setShowCounters(boolean show) {
         this.showCounters = show;
-    }
-
-    /**
-     * Метод возвращает имя класса-вкладки для кодов алгоритма.
-     * @param index Индекс кода в списке.
-     * @return Имя класса.
-     */
-    public String getClassTabName(int index) {
-        return classesTabsNames.get(index);
-    }
-    
-    /**
-     * Метод задает список имен вкладок для исходных кодов алгоритмов.
-     * @param classNames Список имен.
-     */
-    public void setClassNamesListList(ArrayList<String> classNames) {
-        this.classesTabsNames = classNames;
-    }
-    
-    /**
-     * Метод задает список деклараций всех методов в исходных кодах алгоритма.
-     * @param methods Список методов.
-     */
-    public void setMethodsList(ArrayList<MethodDeclaration> methods) {
-        this.methods = methods;
-    }
-
-    /**
-     * Метод возвращает список деклараций методов из исходных кодов алгоритма.
-     * @return Список деклараций методов.
-     */
-    public ArrayList<MethodDeclaration> getMethodsList() {
-        return this.methods;
-    }
-
-    /**
-     * Метод для задания полных названий классов.
-     * @param fullNamesOfClasses Лист названий классов алгоритма.
-     */
-    void setFullNamesOfClassesList(ArrayList<Name> fullNamesOfClasses) {
-        this.fullNamesOfClasses = fullNamesOfClasses;
-    }
-    
-    /**
-     * Метод возвращает лист полных названий классов.
-     * @return Лист полных названий классов.
-     */
-    ArrayList<Name> getFullNamesOfClassesList() {
-        return this.fullNamesOfClasses;
-    }
-
-    public void addClass(Class c) {
-        this.classes.add(c);
     }
 }
 

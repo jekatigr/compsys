@@ -116,7 +116,6 @@ public class CompSys extends Application {
         project = Project.openProject(file);
         if (project != null) { //все ок, готовим gui
             Preferences.addLastOpenedProject(file);
-            checkAndPrepareResources();
             FXMLguiController.openProject(project);
         } else {
             //все плохо
@@ -129,7 +128,7 @@ public class CompSys extends Application {
      * @param codes Исходные коды алгоритма.
      * @param method Метод вызова алгоритма. 
      */
-    public static void addAlgorithm(String name, String method, ArrayList<String> codes) {
+    public static void addNewAlgorithm(String name, String method, ArrayList<String> codes) {
         project.addNewAlgorithm(name, method, codes);
         FXMLguiController.reloadAlgList();
         FXMLguiController.reloadGenAndAlgListsForTests();
@@ -208,13 +207,13 @@ public class CompSys extends Application {
      * Метод для подготовки проекта к работе. Проект должен быть 
      * уже открыт. Здесь уже сохраненные классы компилируются и подгружаются в программу.
      */
-    public static void checkAndPrepareResources() {
-        boolean withErrors = false;
-        for(Algorithm alg : project.getAlgorithms()) {
-            String res = Proccessor.compileAndLoadAlgorithm(alg);
-            if (!res.equals("")) {
-                withErrors = true;
-            }
-        }
-    }
+//    public static void checkAndPrepareResources() {
+//        boolean withErrors = false;
+//        for(Algorithm alg : project.getAlgorithms()) {
+//            String res = Proccessor.compileAndLoadAlgorithm(alg);
+//            if (!res.equals("")) {
+//                withErrors = true;
+//            }
+//        }
+//    }
 }

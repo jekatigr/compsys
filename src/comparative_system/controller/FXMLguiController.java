@@ -225,21 +225,9 @@ public class FXMLguiController implements Initializable {
         }
         
         algMethodsComboBox.getItems().clear();
-        if (addingNewAlg == false) {
-            ArrayList<MethodDeclaration> methods = Proccessor.getAllMethodsFromCodes(codes);
-            CompSys.getProject().getAlgorithm(Project.getCurrentGuiAlg()).setMethodsList(methods);
-            if (methods.size() > 0) {
-                for(MethodDeclaration method : methods) {
-                    algMethodsComboBox.getItems().add(method.getName());
-                }
-            }
-        } else {
-            ArrayList<MethodDeclaration> methods = Proccessor.getAllMethodsFromCodes(codes);
-            if (methods.size() > 0) {
-                for(MethodDeclaration method : methods) {
-                    algMethodsComboBox.getItems().add(method.getName());
-                }
-            }
+        ArrayList<MethodDeclaration> methods = Proccessor.getAllMethodsFromCodes(codes);
+        for(MethodDeclaration method : methods) {
+            algMethodsComboBox.getItems().add(method.getName());
         }
     }
     
@@ -255,19 +243,14 @@ public class FXMLguiController implements Initializable {
             if (compileRes.length() == 0) {//проверка public-классов в вкладках на компилируемость
                 int methodIndex = algMethodsComboBox.getSelectionModel().selectedIndexProperty().getValue();
                 if (methodIndex >= 0) {
-                    ArrayList<MethodDeclaration> methods;
-                    if (!addingNewAlg) {
-                        methods = CompSys.getProject().getAlgorithm(Project.getCurrentGuiAlg()).getMethodsList();
-                    } else {
-                        methods = Proccessor.getAllMethodsFromCodes(codes);
-                    }
+                    ArrayList<MethodDeclaration> methods = Proccessor.getAllMethodsFromCodes(codes);
                     MethodDeclaration method = methods.get(methodIndex);
                     if (checkMainMethodModificators(method)) {//проверка метода на модификаторы public & static
                         List parameters = method.parameters();
                         if (parameters.size() > 0) {//количество параметров должно быть > 0 
                             if (Project.methodParamsAreCompatible(parameters)) {//проверка на совместимость параметров методов.
                                 if (addingNewAlg == true) {
-                                    CompSys.addAlgorithm(algNameTextField.getText(), method.getName().getFullyQualifiedName(), codes);
+                                    CompSys.addNewAlgorithm(algNameTextField.getText(), method.getName().getFullyQualifiedName(), codes);
                                 } else {
                                     CompSys.saveAlgorithm(Project.getCurrentGuiAlg(), algNameTextField.getText(), method.getName().getFullyQualifiedName(), codes);
                                 }
@@ -276,7 +259,7 @@ public class FXMLguiController implements Initializable {
                                     //перезапись
                                     DataGenerator.saveNewMainMethodParams(parameters);
                                     if (addingNewAlg == true) {
-                                        CompSys.addAlgorithm(algNameTextField.getText(), method.getName().getFullyQualifiedName(), codes);
+                                        CompSys.addNewAlgorithm(algNameTextField.getText(), method.getName().getFullyQualifiedName(), codes);
                                     } else {
                                         CompSys.saveAlgorithm(Project.getCurrentGuiAlg(), algNameTextField.getText(), method.getName().getFullyQualifiedName(), codes);
                                     }
@@ -555,7 +538,7 @@ public class FXMLguiController implements Initializable {
             for (int i = 0; i < alg.getCodes().size(); i++) {
                  Tab tab = new Tab();
                  Code c = alg.getCodes().get(i);
-                 tab.setText(alg.getClassTabName(i));
+                 tab.setText(c.getClassName());
                      CodeEditor ce = null;
                      if (!alg.getShowCounters()) {
                          ce = new CodeEditor(c.getSourceCode());
@@ -573,7 +556,10 @@ public class FXMLguiController implements Initializable {
 
             algMethodsComboBox.getItems().clear();
             int selectedIndex = 0;
-            ArrayList<MethodDeclaration> methods = alg.getMethodsList();
+            ArrayList<MethodDeclaration> methods = new ArrayList<>();
+            for (Code c : alg.getCodes()) {
+                methods.addAll(Proccessor.getAllMethodsFromCode(c.getSourceCode()));
+            }
             for (int i = 0; i < methods.size(); i++) {
                 algMethodsComboBox.getItems().add(methods.get(i).getName());
                 if (methods.get(i).getName().toString().equals(alg.getMainMethod())) {

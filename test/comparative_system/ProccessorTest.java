@@ -51,7 +51,7 @@ public class ProccessorTest {
 "		String i = 10 + 5 / 2;\n" +
 "	}\n" +
 "}";
-        String exp = "public class A{\n" +
+        String exp = "importcomparative_system.Counter;public class A{\n" +
 "    public static int[] res(int k) { Counter.add(3);\n" +
 "		String i = 10 + 5 / 2;\n" +
 "	}\n" +
@@ -72,7 +72,7 @@ public class ProccessorTest {
 "		Data.getSomething(k * 2 + 1)[k + 1]++;\n" +
 "	}\n" +
 "}";
-        String exp = "public class A{\n" +
+        String exp = "importcomparative_system.Counter;public class A{\n" +
 "    public static int[] res(int k) { Counter.add(10);\n" +
 "		Data.getSomething(k * 2 + 1)[k + 1]++;\n" +
 "	}\n" +
@@ -93,7 +93,7 @@ public class ProccessorTest {
 "		String i = md(\"re\"+\"43\")[10*11]++ + 10*(21+12-4/3);\n" +
 "	}\n" +
 "}";
-        String exp = "public class A{\n" +
+        String exp = "importcomparative_system.Counter;public class A{\n" +
 "    public static int[] res(int k) {Counter.add(14);\n" +
 "		String i = md(\"re\"+\"43\")[10*11]++ + 10*(21+12-4/3);\n" +
 "	}\n" +
@@ -116,7 +116,7 @@ public class ProccessorTest {
 "                int k3 = k2 + 13 + i++ + k2--;\n" +
 "	}\n" +
 "}";
-        String exp = "public class A{\n" +
+        String exp = "importcomparative_system.Counter;public class A{\n" +
 "    public static void res(int k) {Counter.add(1);\n" +
 "                int i = 0;\n" +
 "				Counter.add(1);\n" +
@@ -143,7 +143,7 @@ public class ProccessorTest {
 "		}\n" +
 "	}\n" +
 "}";
-        String exp = "public class A{\n" +
+        String exp = "importcomparative_system.Counter;public class A{\n" +
 "    public static void res(int k) {\n" +
 "	Counter.add(9);\n" +
 "        for (int i = 12+5, k = 12 + 12 + 120; i + 15 < (i * i) / 2; i++) {\n" +
@@ -172,7 +172,7 @@ public class ProccessorTest {
 "		}\n" +
 "	}\n" +
 "}";
-        String exp = "public class A{\n" +
+        String exp = "importcomparative_system.Counter;public class A{\n" +
 "    public static void res(int k) {\n" +
 "        for (;;) {\n" +
 "			\n" +
@@ -199,7 +199,7 @@ public class ProccessorTest {
 "		}\n" +
 "	}\n" +
 "}";
-        String exp = "public class A{\n" +
+        String exp = "importcomparative_system.Counter;public class A{\n" +
 "    public static void res(int k) {\n" +
 "        for (;;i++) {\n" +
 "			Counter.add(2);{}\n" +

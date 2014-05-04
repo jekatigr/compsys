@@ -157,7 +157,7 @@ public class Proccessor {
     public static ArrayList<Code> putCounters(ArrayList<String> codes) {
         ArrayList<Code> gen_codes = new ArrayList<>();
         for (String code : codes) {
-            gen_codes.add(new Code(code, getGeneratedCode(code)));
+            gen_codes.add(new Code(code, getGeneratedCode(code), Proccessor.getPackage(code), Proccessor.getClassName(code)));
         }        
         return gen_codes;
     }   
@@ -1288,5 +1288,131 @@ public class Proccessor {
         }
         
         return res;
+    }
+
+    /** Метод возвращает имя пакета из исходного кода.
+     * @param code Исходный код.
+     * @return Имя пакета. 
+     */
+    public static String getPackage(String code) {
+        parser.setSource(code.toCharArray());
+        parser.setKind(ASTParser.K_COMPILATION_UNIT);
+        final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+        return (cu.getPackage() != null) ? cu.getPackage().getName().getFullyQualifiedName() : "";
+    }
+    
+    /**
+     * Метод возвращает декларацию метода из кода.
+     * @param code Исходный код.
+     * @param methodName Имя метода.
+     * @return Декларация метода.
+     */
+    public static MethodDeclaration getMethodDeclarationFromCode(String code, String methodName) {
+        ArrayList<MethodDeclaration> methods = getAllMethodsFromCode(code);
+        for(MethodDeclaration m : methods) {
+            if (m.getName().toString().equals(methodName)) {
+                return m;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Метод для подготовки кодов алгоритма к работе в программе. 
+     * Здесь все коды компилируются, в том числе и сгенерированные, 
+     * после чего классы без ошибок компиляции подгружаются в программу. 
+     * Здесь также определяется класс с главным методом.
+     * @param codes Лист кодов.
+     * @return Обновленный лист кодов.
+     */
+    public static ArrayList<Code> resolveCodes(ArrayList<Code> codes, String mainMethod) {
+        //сохраняем исходники в каталогах согласно пакетам
+        FileWriter fileW;
+        for (Code code : codes) {
+            try {
+                String packagePath = code.getPathOfFileForCompile();
+                //создаем необходимые каталоги для пакета              
+                (new File("source_codes/" + packagePath)).mkdirs();
+                (new File("generated_codes/" + packagePath)).mkdirs();
+                //--создаем необходимые каталоги для пакета               
+
+                String fileFullName = packagePath + code.getClassName() + ".java";
+                
+                //сохраняем коды
+                File file = new File("source_codes/" + fileFullName);
+                fileW = new FileWriter(file);
+                fileW.write(code.getSourceCode());
+                fileW.close();
+                
+                file = new File("generated_codes/" + fileFullName);
+                fileW = new FileWriter(file);
+                fileW.write(code.getGeneratedCode());
+                fileW.close();
+                //--сохраняем коды
+                
+            } catch (IOException ex) {
+                Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+        //компилим
+        for (Code code : codes) {
+            String errors = "";
+            try {
+                //исходные коды
+                String file = "source_codes/" + code.getPathOfFileForCompile() + code.getClassName() + ".java";
+                ProcessBuilder procBuilder = new ProcessBuilder(Preferences.getJdkPath() + "\\javac", "-sourcepath", "source_codes", file);
+                procBuilder.redirectErrorStream(true);
+                Process process = procBuilder.start();
+                InputStream stdout = process.getInputStream();
+                InputStreamReader isrStdout = new InputStreamReader(stdout);
+                BufferedReader brStdout = new BufferedReader(isrStdout);
+                String line;
+                while((line = brStdout.readLine()) != null) {
+                    errors += line + "\n";
+                }
+                process.waitFor();
+                code.setSourceCodeErrors(errors.trim());
+                
+                if (!errors.equals("")) { continue; } else { errors = ""; } //если исходные коды с ошибками, то сгенерированные по определению тоже.
+                //коды со счетчиками
+                file = "generated_codes/" + code.getPathOfFileForCompile() + code.getClassName() + ".java";
+                procBuilder = new ProcessBuilder(Preferences.getJdkPath() + "\\javac", "-sourcepath", "generated_codes", file);
+                procBuilder.redirectErrorStream(true);
+                process = procBuilder.start();
+                stdout = process.getInputStream();
+                isrStdout = new InputStreamReader(stdout);
+                brStdout = new BufferedReader(isrStdout);
+                while((line = brStdout.readLine()) != null) {
+                    errors += line + "\n";
+                }
+                process.waitFor();
+                code.setGeneratedCodeErrors(errors.trim());
+            } catch (IOException ex) {
+                Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        // подгружаем коды со счетчиками без ошибок в программу и находим главный метод
+        try {
+            URL url = new File("generated_codes/").toURI().toURL();
+            URLClassLoader classLoader = new URLClassLoader(new URL[]{url}, CompSys.class.getClassLoader());
+            for (Code c : codes) {
+                if (c.getGeneratedCodeErrors().equals("") && c.getSourceCodeErrors().equals("")) {
+                    c.setGeneratedClass(classLoader.loadClass(c.getPackageName() + "." + c.getClassName()));
+                }
+                if (Proccessor.getMethodDeclarationFromCode(c.getSourceCode(), mainMethod) != null) {
+                    c.setHasMainMethod(true);
+                }
+            }   
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return codes;
     }
 }

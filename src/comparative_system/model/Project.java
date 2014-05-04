@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
@@ -62,10 +63,9 @@ public class Project {
      * @param counterName Имя счетчика операций.
      * @param codes Исходные и сгенерированные коды алгоритма.
      */
-    private void addAlgorithm(long id, String name, String mainMethod, ArrayList<Code> codes, ArrayList<String> classesTabsNames, ArrayList<MethodDeclaration> methods) {
-        algorithms.add(new Algorithm(id, name, mainMethod, codes, classesTabsNames, methods));
+    private void addAlgorithm(long id, String name, String mainMethod, ArrayList<Code> codes) {
+        algorithms.add(new Algorithm(id, name, mainMethod, codes));
         Algorithm alg = this.algorithms.get(this.algorithms.size() - 1);
-        alg.setFullNamesOfClassesList(Proccessor.getFullNamesOfClasses(alg.getId(), alg.getCodes()));
     }
 
     /**
@@ -77,12 +77,12 @@ public class Project {
      * @param mainMethod Метод вызова алгоритма.
      */
     public void addNewAlgorithm(String name, String mainMethod, ArrayList<String> codes) { 
-        algorithms.add(new Algorithm(name, mainMethod, Proccessor.putCounters(codes), Proccessor.getClassNames(codes), Proccessor.getAllMethodsFromCodes(codes)));
+        algorithms.add(new Algorithm(name, mainMethod, Proccessor.putCounters(codes)));
         this.saveAlgorithmInDB(this.algorithms.size() - 1);
         Algorithm alg = this.algorithms.get(this.algorithms.size() - 1);
         long alg_id = alg.getId();
         Proccessor.putPackagesIfNotExist(alg_id, alg.getCodes());
-        alg.setFullNamesOfClassesList(Proccessor.getFullNamesOfClasses(alg_id, alg.getCodes()));
+        //alg.setFullNamesOfClassesList(Proccessor.getFullNamesOfClasses(alg_id, alg.getCodes()));
         this.saveCodesOfAlgorithmInDB(this.algorithms.size() - 1);
     }
     
@@ -101,9 +101,9 @@ public class Project {
         long alg_id = algorithms.get(index).getId();
         ArrayList<Code> codesG = Proccessor.putCounters(codes);
         algorithms.get(index).setCodes(Proccessor.putPackagesIfNotExist(alg_id, codesG));
-        algorithms.get(index).setFullNamesOfClassesList(Proccessor.getFullNamesOfClasses(alg_id, codesG));
-        algorithms.get(index).setClassNamesListList(Proccessor.getClassNames(codes));
-        algorithms.get(index).setMethodsList(Proccessor.getAllMethodsFromCodes(codes));
+//        algorithms.get(index).setFullNamesOfClassesList(Proccessor.getFullNamesOfClasses(alg_id, codesG));
+//        algorithms.get(index).setClassNamesListList(Proccessor.getClassNames(codes));
+//        algorithms.get(index).setMethodsList(Proccessor.getAllMethodsFromCodes(codes));
         this.saveAlgorithmInDB(index);
         this.saveCodesOfAlgorithmInDB(index);
     }
@@ -232,9 +232,9 @@ public class Project {
         HashMap map = new HashMap();
         String res = "";
         for (Algorithm alg : algorithms) {
-            for(Name imp : alg.getFullNamesOfClassesList()) {
-                String key = ((QualifiedName)imp).getName().getIdentifier();
-                String value = ((QualifiedName)imp).getQualifier().getFullyQualifiedName();
+            for(Code c : alg.getCodes()) {
+                String key = c.getClassName();
+                String value = c.getPackageName();
                 if (!map.containsValue(value)) {
                     map.put(key, value);
                 }
@@ -389,16 +389,19 @@ public class Project {
                 long alg_id = st.columnLong(0);
                 //коды алгоритмов
                 ArrayList<Code> codes = new ArrayList<>();
-                ArrayList<String> classesTabNames = new ArrayList<>();
-                ArrayList<MethodDeclaration> methods = new ArrayList<>();
+                
+                //ArrayList<MethodDeclaration> methods = new ArrayList<>();
+                
                 SQLiteStatement st2 = db.prepare("SELECT * FROM codes WHERE alg_id="+ alg_id +"");
                 while(st2.step()) {
-                    codes.add(new Code(st2.columnLong(0), st2.columnString(2), st2.columnString(3)));
-                    classesTabNames.add(Proccessor.getClassName(st2.columnString(2)));
-                    methods.addAll(Proccessor.getAllMethodsFromCode(st2.columnString(2)));
+                    String sc = st2.columnString(2);
+                    codes.add(new Code(sc, st2.columnString(3), Proccessor.getPackage(sc), Proccessor.getClassName(sc)));
+                    
+                    //methods.addAll(Proccessor.getAllMethodsFromCode(st2.columnString(2)));
                 }
+                codes = Proccessor.resolveCodes(codes, st.columnString(2));
                 //--коды алгоритмов        
-                project.addAlgorithm(alg_id, st.columnString(1), st.columnString(2), codes, classesTabNames, methods);
+                project.addAlgorithm(alg_id, st.columnString(1), st.columnString(2), codes);
             }
             //--алгоритмы
             //параметры методов вызова
