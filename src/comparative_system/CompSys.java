@@ -8,10 +8,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
@@ -112,14 +114,63 @@ public class CompSys extends Application {
      * Открытие проекта из файла и загрузка в пользовательский интерфейс.
      * @param file Файл проекта.
      */
-    public static void openProject(File file) {
-        project = Project.openProject(file);
-        if (project != null) { //все ок, готовим gui
-            Preferences.addLastOpenedProject(file);
-            FXMLguiController.openProject(project);
-        } else {
-            //все плохо
-        }
+    public static void openProject(final File file) {        
+        FXMLguiController.startPerformTask();
+        
+        final Task t = Project.openProject(file);
+        final Thread th = new Thread(t);
+        th.start();
+        
+        Task<Void> daemon = new Task<Void>() {
+            @Override
+            protected Void call() {
+                try {
+                    while(th.isAlive()) {
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                FXMLguiController.refreshPerformTaskPanel(t.getTitle(), t.getMessage(), t.getProgress());
+                            }
+                        });
+                        th.join(100);
+                    }
+                    project = (Project) t.get();
+                    if (project != null) { //все ок, готовим gui
+                        Preferences.addLastOpenedProject(file);
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                FXMLguiController.openProject(project);
+                                FXMLguiController.stopPerformTask();
+                            }
+                        });
+                    } else {
+                        //все плохо
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                FXMLguiController.stopPerformTask();
+                            }
+                        });
+                    }             
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (ExecutionException ex) {
+                    Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                return null;
+            }
+        };
+        Thread upd = new Thread(daemon);
+        upd.start();
+        
+//        project = Project.openProject(file);
+//        if (project != null) { //все ок, готовим gui
+//            Preferences.addLastOpenedProject(file);
+//            FXMLguiController.openProject(project);
+//        } else {
+//            //все плохо
+//        }
     }
 
     /**
@@ -203,17 +254,27 @@ public class CompSys extends Application {
         return project;
     }
     
-    /**
-     * Метод для подготовки проекта к работе. Проект должен быть 
-     * уже открыт. Здесь уже сохраненные классы компилируются и подгружаются в программу.
-     */
-//    public static void checkAndPrepareResources() {
-//        boolean withErrors = false;
-//        for(Algorithm alg : project.getAlgorithms()) {
-//            String res = Proccessor.compileAndLoadAlgorithm(alg);
-//            if (!res.equals("")) {
-//                withErrors = true;
-//            }
-//        }
-//    }
+    public static synchronized Task performTask(final Task t) {
+        FXMLguiController.startPerformTask();
+        
+        final Thread th = new Thread(t);
+        th.start();
+        
+        Task<Void> updater = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                while(th.isAlive()) {
+                    //FXMLguiController.refreshPerformTaskPanel(t.getMessage());
+                    th.join(100);
+                }
+                return null;
+            }
+        };
+        Thread upd = new Thread(updater);
+        upd.start();
+        
+        FXMLguiController.stopPerformTask();
+        
+        return t;
+    }
 }

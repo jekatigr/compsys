@@ -32,6 +32,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialogs;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
@@ -44,6 +45,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -116,6 +118,11 @@ public class FXMLguiController implements Initializable {
     @FXML private static ListView genListForTests;
     @FXML private static ListView algListForTests;
     @FXML private static Button startTestsButton;
+    
+    @FXML private static FlowPane taskPerformingPanel;
+    @FXML private static Label currentTaskTitle;
+    @FXML private static Label currentTaskDescription;
+    @FXML private static ProgressBar taskProgressBar;
     
 //    /** Таблица с сгенерированными данными генератора. */
 //    @FXML private static TableView tableForDateGeneratorValues;
@@ -706,11 +713,12 @@ public class FXMLguiController implements Initializable {
             AnchorPane.setLeftAnchor(l, 10.0);
             if (alg.hasErrors()) {
                 AnchorPane.setRightAnchor(l, 37.0);
+                AnchorPane.setRightAnchor(l2, 37.0);
             } else {
                 AnchorPane.setRightAnchor(l, 2.0);
+                AnchorPane.setRightAnchor(l2, 2.0);
             }
             AnchorPane.setLeftAnchor(l2, 20.0);
-            AnchorPane.setRightAnchor(l2, 37.0);
             AnchorPane.setBottomAnchor(l2, 5.0);
             p.getChildren().add(l);
             p.getChildren().add(l2);
@@ -741,7 +749,7 @@ public class FXMLguiController implements Initializable {
             AnchorPane.setLeftAnchor(l, 10.0);
             AnchorPane.setRightAnchor(l, 2.0);
             AnchorPane.setLeftAnchor(l2, 20.0);
-            AnchorPane.setRightAnchor(l2, 37.0);
+            AnchorPane.setRightAnchor(l2, 2.0);
             AnchorPane.setBottomAnchor(l2, 5.0);
             p.getChildren().add(l);
             p.getChildren().add(l2);
@@ -757,6 +765,20 @@ public class FXMLguiController implements Initializable {
             v.getChildren().add(l2);
             return v;
         }
+    }
+
+    public static void startPerformTask(){
+        taskPerformingPanel.visibleProperty().setValue(true);
+    }
+    
+    public static void refreshPerformTaskPanel(String title, String message, double progress){
+        currentTaskTitle.setText(title);
+        currentTaskDescription.setText(message);
+        taskProgressBar.setProgress(progress);
+    }
+    
+    public static void stopPerformTask(){
+        taskPerformingPanel.visibleProperty().setValue(false);
     }
 }
 

@@ -2,6 +2,7 @@
 
 <?import java.lang.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.input.*?>
 <?import javafx.scene.layout.*?>
 
@@ -43,5 +44,19 @@
     <ToggleButton id="tests" fx:id="testsButton" contentDisplay="RIGHT" focusTraversable="false" graphicTextGap="4.0" layoutX="65.0" layoutY="1.0" mnemonicParsing="false" onAction="#handleTestsClicked" prefHeight="20.0" prefWidth="69.0" selected="false" text="Расчеты" toggleGroup="$toggles" />
 </children>
 </HBox>
+<FlowPane fx:id="taskPerformingPanel" alignment="CENTER" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: rgba(255,255,255,0.67);" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="-1.0">
+<children>
+        <AnchorPane layoutX="573.5" layoutY="-30.0" prefHeight="135.0" prefWidth="409.0" style="-fx-background-color: #fff; -fx-border-color: #aaa;">
+            <children>
+                <Label fx:id="currentTaskTitle" layoutX="57.0" layoutY="15.0" prefHeight="17.0" prefWidth="338.0" text="Текущая задача" AnchorPane.leftAnchor="60.0" AnchorPane.rightAnchor="12.0" />
+                <ProgressBar fx:id="taskProgressBar" layoutX="11.0" layoutY="86.0" prefWidth="200.0" progress="0.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" />
+                <ProgressIndicator layoutX="13.5" layoutY="45.0" prefHeight="20.0" prefWidth="20.0" progress="0.15" AnchorPane.leftAnchor="10.0" />
+                <ImageView fitHeight="30.0" fitWidth="30.0" layoutX="21.0" layoutY="23.0" pickOnBounds="true" preserveRatio="true" AnchorPane.leftAnchor="10.0">
+            <image>
+                <Image url="@../proccess.gif" />
+            </image></ImageView><Label fx:id="currentTaskDescription" layoutX="59.0" layoutY="47.0" prefHeight="17.0" prefWidth="106.0" text="Её описание" AnchorPane.leftAnchor="70.0" AnchorPane.rightAnchor="13.0" />
+            </children>
+        </AnchorPane>
+</children></FlowPane>
   </children>
 </AnchorPane>

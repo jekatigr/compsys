@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.concurrent.Task;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.QualifiedName;
@@ -370,77 +371,95 @@ public class Project {
      * @param file Файл проекта.
      * @return Проект, как объект типа {@link comparative_system.model.Project Project.}
      */
-    public static Project openProject(File file) {
-        try {
-            Project project = new Project(file);
-            //открываем базу данных проекта
-            SQLiteConnection db = new SQLiteConnection(file);
-            db.open();
-            //--открываем базу данных проекта
-            //делаем запросы и сохраняем данные
-            //алгоритмы
-            SQLiteStatement st = db.prepare("SELECT * FROM algorithms");
-            while(st.step()) {
-                long alg_id = st.columnLong(0);
-                //коды алгоритмов
-                ArrayList<Code> codes = new ArrayList<>();
-                
-                //ArrayList<MethodDeclaration> methods = new ArrayList<>();
-                
-                SQLiteStatement st2 = db.prepare("SELECT * FROM codes WHERE alg_id="+ alg_id +"");
-                while(st2.step()) {
-                    String sc = st2.columnString(2);
-                    codes.add(new Code(sc, st2.columnString(3), Proccessor.getPackage(sc), Proccessor.getClassName(sc)));
-                    
-                    //methods.addAll(Proccessor.getAllMethodsFromCode(st2.columnString(2)));
-                }
-                codes = Proccessor.resolveCodes(codes, st.columnString(2));
-                //--коды алгоритмов        
-                Algorithm alg = new Algorithm(alg_id, st.columnString(1), st.columnString(2), codes);
-                boolean err = false;
-                for(Code c : codes) {
-                    if (!c.getSourceCodeErrors().isEmpty() || !c.getGeneratedCodeErrors().isEmpty()) {
-                        err = true;
+    public static Task<Project> openProject(final File file) {
+        Task<Project> t = new Task<Project>() {
+            @Override
+            protected Project call() throws Exception {
+                try {
+                    Project project = new Project(file);
+                    //открываем базу данных проекта
+                    this.updateTitle("Открытие базы данных проекта " + file.getName() + "...");
+                    this.updateMessage("");
+                    SQLiteConnection db = new SQLiteConnection(file);
+                    db.open();
+                    this.updateProgress(1, 4);
+                    //--открываем базу данных проекта
+                    //делаем запросы и сохраняем данные
+                    //алгоритмы
+                    this.updateTitle("Загрузка алгоритмов:");
+                    SQLiteStatement st = db.prepare("SELECT * FROM algorithms");
+                    while(st.step()) {
+                        String alg_name = st.columnString(1);
+                        this.updateMessage("Компиляция кодов \"" + alg_name + "\"");
+                        long alg_id = st.columnLong(0);
+                        //коды алгоритмов
+                        ArrayList<Code> codes = new ArrayList<>();
+
+                        //ArrayList<MethodDeclaration> methods = new ArrayList<>();
+
+                        SQLiteStatement st2 = db.prepare("SELECT * FROM codes WHERE alg_id="+ alg_id +"");
+                        while(st2.step()) {
+                            String sc = st2.columnString(2);
+                            codes.add(new Code(sc, st2.columnString(3), Proccessor.getPackage(sc), Proccessor.getClassName(sc)));
+
+                            //methods.addAll(Proccessor.getAllMethodsFromCode(st2.columnString(2)));
+                        }
+                        codes = Proccessor.resolveCodes(codes, st.columnString(2));
+                        //--коды алгоритмов        
+                        Algorithm alg = new Algorithm(alg_id, alg_name, st.columnString(2), codes);
+                        boolean err = false;
+                        for(Code c : codes) {
+                            if (!c.getSourceCodeErrors().isEmpty() || !c.getGeneratedCodeErrors().isEmpty()) {
+                                err = true;
+                            }
+                        }
+                        alg.setHasErrors(err);
+                        project.addAlgorithm(alg);
                     }
-                }
-                alg.setHasErrors(err);
-                project.addAlgorithm(alg);
-            }
-            //--алгоритмы
-            //параметры методов вызова
-            st = db.prepare("SELECT * FROM main_params");
-            while(st.step()) {
-                addMainMethodsParam(st.columnString(1), st.columnString(2));
-            }
-            //--параметры методов вызова
-            //генераторы исходных данных
-            st = db.prepare("SELECT * FROM data_generators");
-            while(st.step()) {
-                project.addDataGenerator(st.columnLong(0), st.columnString(1), st.columnString(2), st.columnString(3));
-            }
-            //--генераторы исходных данных
-            //исходные данные
-            st = db.prepare("SELECT COUNT(name) FROM sqlite_master WHERE name='source_data'"); //проверяем таблицу на существование
-            if (st.hasRow()) {
-                st = db.prepare("IF EXISTS (SELECT * FROM source_data )"); //делаем запрос сразу на все исх данные, ибо тут обработка будет быстрее, чем если запрашивать отдельно для каждого генератора.
-                ArrayList data_params = new ArrayList(); //список нетипизированных данных, соответствующих параметрам методов вызова алгоритмов.
-                ArrayList<Data> data_items = new ArrayList<>();
-                while(st.step()) {
-                    data_params.clear();
-                    for (int i = 2; i < DataGenerator.getCountOfMethodsParams(); i++) {
-                        data_params.add(st.columnValue(i));
+                    this.updateProgress(2, 4);
+                    //--алгоритмы
+                    //параметры методов вызова
+                    this.updateTitle("Загрузка генераторов данных...");
+                    this.updateMessage("");
+                    st = db.prepare("SELECT * FROM main_params");
+                    while(st.step()) {
+                        addMainMethodsParam(st.columnString(1), st.columnString(2));
                     }
-                    data_items.add(new Data(st.columnLong(0), st.columnLong(1), data_params.toArray()));
+                    //--параметры методов вызова
+                    //генераторы исходных данных
+                    st = db.prepare("SELECT * FROM data_generators");
+                    while(st.step()) {
+                        project.addDataGenerator(st.columnLong(0), st.columnString(1), st.columnString(2), st.columnString(3));
+                    }
+                    this.updateProgress(3, 4);
+                    //--генераторы исходных данных
+                    //исходные данные
+                    this.updateTitle("Загрузка исходных данных...");
+                    st = db.prepare("SELECT COUNT(name) FROM sqlite_master WHERE name='source_data'"); //проверяем таблицу на существование
+                    if (st.hasRow()) {
+                        st = db.prepare("IF EXISTS (SELECT * FROM source_data )"); //делаем запрос сразу на все исх данные, ибо тут обработка будет быстрее, чем если запрашивать отдельно для каждого генератора.
+                        ArrayList data_params = new ArrayList(); //список нетипизированных данных, соответствующих параметрам методов вызова алгоритмов.
+                        ArrayList<Data> data_items = new ArrayList<>();
+                        while(st.step()) {
+                            data_params.clear();
+                            for (int i = 2; i < DataGenerator.getCountOfMethodsParams(); i++) {
+                                data_params.add(st.columnValue(i));
+                            }
+                            data_items.add(new Data(st.columnLong(0), st.columnLong(1), data_params.toArray()));
+                        }
+                        project.addAllDataItems(data_items);
+                    }
+                    this.updateProgress(4, 4);
+                    //--исходные данные
+                    //--делаем запросы и сохраняем данные
+                    return project;
+                } catch (SQLiteException ex) {
+                    Logger.getLogger(Project.class.getName()).log(Level.SEVERE, null, ex);//возможно, повреждена БД
                 }
-                project.addAllDataItems(data_items);
+                return null;
             }
-            //--исходные данные
-            //--делаем запросы и сохраняем данные
-            return project;
-        } catch (SQLiteException ex) {
-            Logger.getLogger(Project.class.getName()).log(Level.SEVERE, null, ex);//возможно, повреждена БД
-        }
-        return null;
+        };
+        return t;
     }
 
     /**
