@@ -111,12 +111,12 @@ public class CompSys extends Application {
     }
 
     /**
-     * Открытие проекта из файла и загрузка в пользовательский интерфейс.
+     * Открытие проекта из файла и загрузка в пользовательский интерфейс во втором потоке.
      * @param file Файл проекта.
      */
     public static void openProject(final File file) {        
-        FXMLguiController.startPerformTask();
-        
+        FXMLguiController.startPerformingTask();
+               
         final Task t = Project.openProject(file);
         final Thread th = new Thread(t);
         th.start();
@@ -129,10 +129,10 @@ public class CompSys extends Application {
                         Platform.runLater(new Runnable() {
                             @Override
                             public void run() {
-                                FXMLguiController.refreshPerformTaskPanel(t.getTitle(), t.getMessage(), t.getProgress());
+                                FXMLguiController.refreshPerformingTaskPanel(t.getTitle(), t.getMessage(), t.getProgress());
                             }
                         });
-                        th.join(100);
+                        th.join(250);
                     }
                     project = (Project) t.get();
                     if (project != null) { //все ок, готовим gui
@@ -141,15 +141,15 @@ public class CompSys extends Application {
                             @Override
                             public void run() {
                                 FXMLguiController.openProject(project);
-                                FXMLguiController.stopPerformTask();
+                                FXMLguiController.stopPerformingTask();
                             }
                         });
                     } else {
-                        //все плохо
                         Platform.runLater(new Runnable() {
                             @Override
                             public void run() {
-                                FXMLguiController.stopPerformTask();
+                                Dialogs.showErrorDialog(primaryStage, "Ошибка при открытии последнего проекта.", "Попробуйте открыть файл еще раз.", "Ошибка при открытии проекта...");
+                                FXMLguiController.stopPerformingTask();
                             }
                         });
                     }             
@@ -163,24 +163,14 @@ public class CompSys extends Application {
         };
         Thread upd = new Thread(daemon);
         upd.start();
-        
-//        project = Project.openProject(file);
-//        if (project != null) { //все ок, готовим gui
-//            Preferences.addLastOpenedProject(file);
-//            FXMLguiController.openProject(project);
-//        } else {
-//            //все плохо
-//        }
     }
 
     /**
      * Добавление нового алгоритма к проекту с отображением в окне и сохранением в БД.
-     * @param name Имя алгоритма.
-     * @param codes Исходные коды алгоритма.
-     * @param method Метод вызова алгоритма. 
+     * @param alg Алгоритм.
      */
-    public static void addNewAlgorithm(String name, String method, ArrayList<String> codes) {
-        project.addNewAlgorithm(name, method, codes);
+    public static void addNewAlgorithm(Algorithm alg) {
+        project.addNewAlgorithm(alg);
         FXMLguiController.reloadAlgList();
         FXMLguiController.reloadGenAndAlgListsForTests();
     }
@@ -192,7 +182,7 @@ public class CompSys extends Application {
      * @param codes Исходные коды алгоритма.
      * @param method Метод вызова алгоритма. 
      */
-    public static void saveAlgorithm(int index, String name, String method, ArrayList<String> codes) {
+    public static void saveAlgorithm(int index, String name, String method, ArrayList<Code> codes) {
         project.saveAlgorithm(index, name, method, codes);
         FXMLguiController.reloadAlgList();
         FXMLguiController.reloadGenAndAlgListsForTests();
@@ -207,8 +197,6 @@ public class CompSys extends Application {
      */
     public static void addNewDataGenerator(String name, String imports, String generateImplementation) {
         project.addNewDataGenerator(name, imports, generateImplementation);
-        FXMLguiController.reloadGenList();
-        FXMLguiController.reloadGenAndAlgListsForTests();
     }
     
     /**
@@ -220,9 +208,6 @@ public class CompSys extends Application {
      */
     public static void saveDataGenerator(int index, String name, String imports, String generateImplementation) {
         project.saveDataGenerator(index, name, imports, generateImplementation);
-        FXMLguiController.reloadGenList();
-        FXMLguiController.reloadGenAndAlgListsForTests();
-        FXMLguiController.loadDataGeneratorView(Project.getCurrentGuiGen());
     }
     
     /**
@@ -254,27 +239,34 @@ public class CompSys extends Application {
         return project;
     }
     
-    public static synchronized Task performTask(final Task t) {
-        FXMLguiController.startPerformTask();
-        
-        final Thread th = new Thread(t);
-        th.start();
-        
-        Task<Void> updater = new Task<Void>() {
+    public static void runUpdater(final Task<Void> t, final Thread th) {
+        Task<Void> daemon = new Task<Void>() {
             @Override
-            protected Void call() throws Exception {
-                while(th.isAlive()) {
-                    //FXMLguiController.refreshPerformTaskPanel(t.getMessage());
-                    th.join(100);
+            protected Void call() {
+                try {
+                    while(th.isAlive()) {
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                FXMLguiController.refreshPerformingTaskPanel(t.getTitle(), t.getMessage(), t.getProgress());
+                            }
+                        });
+                        th.join(250);
+                    }
+                    
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            FXMLguiController.stopPerformingTask();
+                        }
+                    });
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 return null;
             }
         };
-        Thread upd = new Thread(updater);
+        Thread upd = new Thread(daemon);
         upd.start();
-        
-        FXMLguiController.stopPerformTask();
-        
-        return t;
     }
 }

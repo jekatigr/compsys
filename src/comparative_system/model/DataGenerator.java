@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.ClassUtils;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 
 /**
@@ -60,7 +61,6 @@ public class DataGenerator {
      */
     public DataGenerator(String name, String imports, String generateImplementation) {
         this(-1, name, imports, generateImplementation);
-        this.isCodeOpened = true;
     }
 
     /**
@@ -154,13 +154,13 @@ public class DataGenerator {
     /**
      * Метод для генерации данных в генераторе.
      */
-    public void generateData() {
+    public void generateData(HashMap importsMap) {
         try {
-            String code = this.getImports() + getHeaderInDataGeneratorCode() + this.getGenerateImplementation() + getFooterInDataGeneratorCode();
+            String code = this.getImports() + getHeaderInDataGeneratorCode(importsMap) + this.getGenerateImplementation() + getFooterInDataGeneratorCode();
             code = Proccessor.setPackageGenerator(code);
-            Proccessor.checkGeneratorCompilable(code, CompSys.getProject().getAlgorithms());//компилим
+            Proccessor.checkGeneratorCompilable(code);//компилим
 
-            URL url = new File("javatempfiles/").toURI().toURL();
+            URL url = new File("data_generator/").toURI().toURL();
             URLClassLoader classLoader = new URLClassLoader(new URL[]{url}, IGenerator.class.getClassLoader());
             Class generator = classLoader.loadClass("generator.Generator");      
             
@@ -178,6 +178,11 @@ public class DataGenerator {
         }
     }
 
+    public ArrayList<Data> getValues() {
+        return this.data;
+    }
+    
+    
     /**
      * Метод для очистки списка параметров методов вызова. Параметры также удаляются из БД.
      * Если существуют сгенерированные исходные данные для тестов, то они тоже удаляются.
@@ -285,8 +290,8 @@ public class DataGenerator {
      * Метод возвращает часть кода генератора исходных данных.
      * @return Фрагмент кода генератора.
      */
-    public static String getHeaderInDataGeneratorCode() {
-        return composeImportsString(CompSys.getProject().getAllAlgotithmsAsImportsMap())
+    public static String getHeaderInDataGeneratorCode(HashMap importsMap) {
+        return composeImportsString(importsMap)
                         + " \nimport comparative_system.model.Data;\n" +
                         "import comparative_system.model.IGenerator;\n" +
                         "import java.util.ArrayList;\n" +
@@ -305,7 +310,7 @@ public class DataGenerator {
                 "	\n" +
                 "	private static void addData("+ getMethodsParamsAsString(true) +") {\n" +
                 "        \n" +
-                "        Data d = new Data(-1, generator_id, new Object[]{"+ getMethodsParamsAsString(false) +"});\n"
+                "        Data d = new Data(list.size() - 1, generator_id, new Object[]{"+ getMethodsParamsAsString(false) +"});\n"
                                     + "        list.add(d);\n" +
                 "	}\n" +
                 "	\n" +
@@ -331,7 +336,15 @@ public class DataGenerator {
         return res;
     }
 
-    public ArrayList<Data> getValues() {
-        return this.data;
+    public static Class[] getMethodsParamsAsArrayOfClasses() {
+        Class[] arr = new Class[params.size()];
+        for(int i = 0; i <params.size(); i++) {
+            try {
+                arr[i] = ClassUtils.getClass(params.get(i).getType());
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(DataGenerator.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return arr;
     }
 }

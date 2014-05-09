@@ -1,29 +1,27 @@
 package comparative_system.model;
 
-import java.io.Serializable;
-
 /**
  * Класс для представления одного набора исходных данных.
  * @author Gromov Evg.
  */
-public class Data implements Serializable {
-    /* Индекс набора данных в БД проекта. */
-    private long id;
+public class Data {
+    /* Индекс набора данных в списке проекта. */
+    private long index;
     /** Индекс генератора данного набора исходных данных в БД. */
     private long gen_id;
     /** Исходные данные, соответствующие параметрам методов вызова алгоритмов проекта. */
-    private Object[] list;
+    private Object[] values;
 
     /**
      * Конструктор класса.
-     * @param id id в БД проекта.
+     * @param index Индекс в списке проекта.
      * @param gen_id id генератора в БД проекта.
-     * @param params Значения данных.
+     * @param values Значения данных.
      */
-    public Data(long id, long gen_id, Object[] params) {
-        this.id = id;
+    public Data(long index, long gen_id, Object[] values) {
+        this.index = index;
         this.gen_id = gen_id;
-        list = params;
+        this.values = values;
     }
 
     /**
@@ -32,5 +30,13 @@ public class Data implements Serializable {
      */
     public long getDataGeneratorDBId() {
         return this.gen_id;
+    }
+    
+    public Object[] getValues() {
+        return this.values;
+    }
+    
+    public long getIndex(){
+        return this.index;
     }
 }

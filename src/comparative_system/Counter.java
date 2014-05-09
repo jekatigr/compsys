@@ -1,37 +1,30 @@
 package comparative_system;
 
-import java.util.HashMap;
-
 /**
  * Класс для подсчета операций в алгоритмах.
  * @author Gromov evg.
  */
 public class Counter {
-    /** Список значений "название текущего потока" => "количество операций". */
-    private static volatile HashMap<String, Integer> count_of_operations = new HashMap<>();
+    /** Количество операций. */
+    private static long count_of_operations = 0;
     
     /**
      * Метод для добавления количества подсчитанных операций в список к соответствующему потоку.
      * @param count 
      */
-    public static synchronized void add(int count) {
-        String th = Thread.currentThread().getName();
-        if (count_of_operations.containsKey(th)) {
-            count_of_operations.put(th, count_of_operations.get(th) + count);
-        } else {
-            count_of_operations.put(th, count);
-        }
+    public static void add(long count) {
+        count_of_operations += count;
     }
     
     /**
-     * Метод для возврата результата по подсчету операций. После выполнения удалится
-     * соответствующий потоку элемент в общем списке подсчета. 
-     * @param thread_name Имя потока.
+     * Метод для возврата результата по подсчету операций.
      * @return Количество операций.
      */
-    public static synchronized int getCountResult(String thread_name) {
-        int res = count_of_operations.get(thread_name);
-        count_of_operations.remove(thread_name);
-        return res;
+    public static long getCountResult() {
+        return count_of_operations;
+    }
+
+    public static void resetCountResult() {
+        count_of_operations = 0;
     }
 }

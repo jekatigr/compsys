@@ -4,34 +4,59 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="513.0" prefWidth="914.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="comparative_system.controller.FXMLguiController">
-  <children><SplitPane dividerPositions="0.21162280701754385" focusTraversable="true" layoutX="-1.0" layoutY="-1.0" prefHeight="513.0" prefWidth="914.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="-1.0" xmlns:fx="http://javafx.com/fxml">
-  <items>
-    <AnchorPane maxWidth="200.0" minHeight="0.0" minWidth="100.0" prefHeight="160.0" prefWidth="100.0">
-<children><ListView fx:id="algList" editable="true" prefHeight="515.0" prefWidth="192.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="-1.0" />
-</children></AnchorPane>
-    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
-<children><Separator layoutX="-12.0" layoutY="50.0" prefHeight="0.0" prefWidth="718.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" /><TabPane fx:id="codesOfAlgorithmsTabPane" layoutX="-1.0" layoutY="126.0" prefHeight="446.0" prefWidth="433.0" rotateGraphic="false" side="TOP" tabClosingPolicy="SELECTED_TAB" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="286.0" AnchorPane.topAnchor="68.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
-<tabs>
-<Tab text="Новый класс">
-<content>
-<AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="330.0" prefWidth="884.0" />
-</content>
-</Tab>
-</tabs>
-</TabPane><BorderPane layoutX="14.0" layoutY="14.0" minWidth="100.0" prefHeight="25.0" prefWidth="697.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="7.0" AnchorPane.topAnchor="14.0">
-<left><TextField fx:id="algNameTextField" layoutX="23.0" layoutY="18.0" maxWidth="500.0" minWidth="50.0" prefHeight="34.0" prefWidth="500.0" promptText="Введите имя алгоритма..." AnchorPane.leftAnchor="23.0" AnchorPane.rightAnchor="195.0" AnchorPane.topAnchor="18.0">
-<BorderPane.margin>
-<Insets right="30.0" />
-</BorderPane.margin></TextField>
-</left>
-<right><Button layoutX="680.0" layoutY="18.0" mnemonicParsing="false" prefHeight="29.0" prefWidth="28.0" text="X" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="18.0" />
-</right></BorderPane><Separator layoutX="429.0" layoutY="68.0" orientation="VERTICAL" pickOnBounds="false" prefHeight="446.0" prefWidth="0.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.rightAnchor="281.0" AnchorPane.topAnchor="68.0" /><AnchorPane layoutX="444.0" layoutY="69.0" prefHeight="200.0" prefWidth="274.0" AnchorPane.rightAnchor="0.0">
-<children><Button layoutX="93.0" layoutY="131.0" mnemonicParsing="false" onAction="#handleSaveAlgButtonClicked" prefHeight="25.0" prefWidth="78.0" text="Сохранить" BorderPane.alignment="CENTER" /><CheckBox fx:id="showCountersCheckBox" layoutX="14.0" layoutY="85.0" mnemonicParsing="false" onAction="#handleShowCountersCheckBoxClicked" text="показать счетчики" BorderPane.alignment="CENTER" /><ComboBox fx:id="algMethodsComboBox" layoutX="10.0" layoutY="51.0" prefHeight="25.0" prefWidth="223.0" promptText="Метод вызова алгоритма..." BorderPane.alignment="CENTER" /><Button fx:id="reloadMethodsListButton" layoutX="242.0" layoutY="51.0" maxHeight="25.0" maxWidth="25.0" mnemonicParsing="false" onAction="#handleReloadMethodsListButtonClicked" prefHeight="25.0" prefWidth="25.0" /><Button layoutX="10.0" layoutY="2.0" mnemonicParsing="false" onAction="#handleAddTabButtonClicked" prefHeight="25.0" prefWidth="113.0" text="Добавить класс" />
-</children></AnchorPane>
-</children></AnchorPane>
-  </items>
-</SplitPane>
+<AnchorPane id="AnchorPane" prefHeight="513.0" prefWidth="914.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="comparative_system.controller.FXMLguiController">
+  <children>
+    <SplitPane dividerPositions="0.2111597374179431" focusTraversable="true" prefHeight="513.0" prefWidth="914.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="-1.0">
+      <items>
+        <AnchorPane maxWidth="200.0" minHeight="0.0" minWidth="100.0" prefHeight="160.0" prefWidth="100.0">
+          <children>
+            <ListView fx:id="algList" editable="true" prefHeight="515.0" prefWidth="192.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="-1.0" />
+          </children>
+        </AnchorPane>
+        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+          <children>
+            <Separator layoutY="50.0" prefHeight="0.0" prefWidth="718.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+            <TabPane fx:id="codesOfAlgorithmsTabPane" prefHeight="446.0" prefWidth="433.0" rotateGraphic="false" side="TOP" tabClosingPolicy="SELECTED_TAB" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="286.0" AnchorPane.topAnchor="68.0">
+              <tabs>
+                <Tab text="Новый класс">
+                  <content>
+                    <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="330.0" prefWidth="884.0" />
+                  </content>
+                </Tab>
+              </tabs>
+            </TabPane>
+            <BorderPane minWidth="100.0" prefHeight="25.0" prefWidth="697.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="7.0" AnchorPane.topAnchor="14.0">
+              <left>
+                <TextField fx:id="algNameTextField" maxWidth="500.0" minWidth="50.0" prefHeight="34.0" prefWidth="500.0" promptText="Введите имя алгоритма...">
+                  <BorderPane.margin>
+                    <Insets right="30.0" />
+                  </BorderPane.margin>
+                </TextField>
+              </left>
+              <right>
+                <Button mnemonicParsing="false" prefHeight="29.0" prefWidth="28.0" text="X" />
+              </right>
+            </BorderPane>
+            <Separator orientation="VERTICAL" pickOnBounds="false" prefHeight="446.0" prefWidth="0.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.rightAnchor="281.0" AnchorPane.topAnchor="68.0" />
+            <AnchorPane layoutY="69.0" prefHeight="228.0" prefWidth="274.0" AnchorPane.rightAnchor="0.0">
+              <children>
+                <Button layoutX="93.0" layoutY="131.0" mnemonicParsing="false" onAction="#handleSaveAlgButtonClicked" prefHeight="25.0" prefWidth="78.0" text="Сохранить" />
+                <CheckBox fx:id="showCountersCheckBox" layoutX="14.0" layoutY="85.0" mnemonicParsing="false" onAction="#handleShowCountersCheckBoxClicked" text="показать счетчики" />
+                <ComboBox fx:id="algMethodsComboBox" layoutX="56.0" layoutY="51.0" prefHeight="25.0" prefWidth="207.0" promptText="Выберите метод вызова..." />
+                <Button fx:id="reloadMethodsListButton" layoutX="10.0" layoutY="51.0" maxHeight="25.0" maxWidth="25.0" mnemonicParsing="false" onAction="#handleReloadMethodsListButtonClicked" prefHeight="25.0" prefWidth="25.0" />
+                <Button layoutX="10.0" layoutY="2.0" mnemonicParsing="false" onAction="#handleAddTabButtonClicked" prefHeight="25.0" prefWidth="113.0" text="Добавить класс" />
+                <Button fx:id="showErrorDescriptionButton" layoutX="42.0" layoutY="185.0" mnemonicParsing="false" onAction="#handleShowErrorInAlgButtonClicked" style="" text="Подробнее об ошибке..." textFill="RED" underline="true">
+                  <font>
+                    <Font size="14.0" />
+                  </font>
+                </Button>
+              </children>
+            </AnchorPane>
+          </children>
+        </AnchorPane>
+      </items>
+    </SplitPane>
   </children>
 </AnchorPane>

@@ -100,24 +100,23 @@ public class Proccessor {
      * @param codes Коды для поиска методов.
      * @return Лист с декларациями методов типа {@code MethodDeclaration}.
      */
-    public static ArrayList<MethodDeclaration> getAllMethodsFromCodes(ArrayList<String> codes) {
+    public static ArrayList<MethodDeclaration> getAllMethodsFromCodes(ArrayList<Code> codes) {
         final ArrayList<MethodDeclaration> methods = new ArrayList<>();
-        
+        for(Code code : codes) {
+            methods.addAll(getAllMethodsFromCode(code.getSourceCode()));
+        }
+        return methods;
+    }
+    
+    /**
+     * Метод возвращает лист всех деклараций методов, которые будут найдены в коде {@code codes}.
+     * @param codes Коды для поиска методов.
+     * @return Лист с декларациями методов типа {@code MethodDeclaration}.
+     */
+    public static ArrayList<MethodDeclaration> getAllMethodsFromCodesStrings(ArrayList<String> codes) {
+        final ArrayList<MethodDeclaration> methods = new ArrayList<>();
         for(String code : codes) {
-            parser.setSource(code.toCharArray());
-            parser.setKind(ASTParser.K_COMPILATION_UNIT);
-
-            final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
-
-            cu.accept(new ASTVisitor() {
-                @Override
-                public boolean visit(MethodDeclaration node) {
-                    if (!node.isConstructor()) {
-                        methods.add(node);
-                    }
-                    return true;
-                }
-            });
+            methods.addAll(getAllMethodsFromCode(code));
         }
         return methods;
     }
@@ -160,6 +159,15 @@ public class Proccessor {
             gen_codes.add(new Code(code, getGeneratedCode(code), Proccessor.getPackage(code), Proccessor.getClassName(code)));
         }        
         return gen_codes;
+    }
+    
+    /**
+     * Метод для расстановки счетчиков операций в алгоритма. 
+     * @param code Исходные коды алгоритма.
+     * @return Коды с расставленными счетчиками.
+     */
+    public static Code putCounters(String code) {
+            return new Code(code, getGeneratedCode(code), Proccessor.getPackage(code), Proccessor.getClassName(code));
     }   
     
     /**
@@ -1009,51 +1017,17 @@ public class Proccessor {
      * @param algs Лист с алгоритмами.
      * @return Строка, содержащая ошибки компиляции. Если ошибок нет, то вернет пустую строку.
      */
-    public static String checkGeneratorCompilable(String dataGenCode, ArrayList<Algorithm> algs) {
+    public static String checkGeneratorCompilable(String dataGenCode) {
         String res = "";
-        ArrayList<String> filesForCompile = new ArrayList<>();
         
         //чистим папку для сохранения
-        deleteDirectory(new File("javatempfiles/"));
-        new File("javatempfiles/").mkdir();
+        deleteDirectory(new File("data_generator/"));
+        new File("data_generator/generator/").mkdirs();
         //--чистим папку для сохранения
         //сохраняем исходники в каталогах согласно пакетам
         FileWriter fileW = null;
         try {
-            for (Algorithm alg : algs) {
-                for (Code code : alg.getCodes()) {
-                    parser.setSource(code.getSourceCode().toCharArray());
-                    parser.setKind(ASTParser.K_COMPILATION_UNIT);
-                    final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
-                    Name packageForPath = (cu.getPackage() != null) ? cu.getPackage().getName() : null;
-
-                    //создаем необходимые каталоги для пакета
-                    String dirsString = "";
-                    if (packageForPath != null) {
-                        while (packageForPath.isQualifiedName()) {
-                            dirsString = ((QualifiedName)packageForPath).getName().toString() + "/" + dirsString;
-                            packageForPath = ((QualifiedName)packageForPath).getQualifier();
-                        }
-                        dirsString = ((SimpleName)packageForPath).toString() + "/" + dirsString;
-                    }
-                    dirsString = "javatempfiles/" + dirsString;
-                    File dirs = new File(dirsString);
-                    dirs.mkdirs();
-
-                    String fileFullName = dirsString + Proccessor.getClassName(code.getSourceCode()) + ".java";
-                    filesForCompile.add(fileFullName);
-                    File file = new File(fileFullName);
-                    fileW = new FileWriter(file);
-                    fileW.write(code.getSourceCode());
-                    fileW.close();
-                }
-            }
-        
-            new File("javatempfiles/generator/").mkdir();
-
-            String fileFullName = "javatempfiles/generator/Generator.java";
-            filesForCompile.add(fileFullName);
-            File file = new File(fileFullName);
+            File file = new File("data_generator/generator/Generator.java");
             fileW = new FileWriter(file);
             fileW.write(dataGenCode);
             fileW.close();
@@ -1061,29 +1035,28 @@ public class Proccessor {
             Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
         }
         //компилим
-        for (String file : filesForCompile) {
-            try {
-                ProcessBuilder procBuilder = new ProcessBuilder(Preferences.getJdkPath() + "\\javac", "-sourcepath", "javatempfiles/", "-classpath", "dist/CompSys.jar", file);//TODO: в "поле" этот класспаф не сработает
-                procBuilder.redirectErrorStream(true);
-                
-                Process process = procBuilder.start();
-                
-                InputStream stdout = process.getInputStream();
-                InputStreamReader isrStdout = new InputStreamReader(stdout);
-                BufferedReader brStdout = new BufferedReader(isrStdout);
-                
-                String line = "";
-                while((line = brStdout.readLine()) != null) {
-                    res += line + "\n";
-                }
-                
-                int exitVal = process.waitFor();
-            } catch (IOException ex) {
-                Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+        try {
+            ProcessBuilder procBuilder = new ProcessBuilder(Preferences.getJdkPath() + "\\javac", "-classpath", "dist/CompSys.jar;generated_codes/", "data_generator/generator/Generator.java");//TODO: в "поле" этот класспаф не сработает
+            procBuilder.redirectErrorStream(true);
+
+            Process process = procBuilder.start();
+
+            InputStream stdout = process.getInputStream();
+            InputStreamReader isrStdout = new InputStreamReader(stdout);
+            BufferedReader brStdout = new BufferedReader(isrStdout);
+
+            String line = "";
+            while((line = brStdout.readLine()) != null) {
+                res += line + "\n";
             }
+
+            int exitVal = process.waitFor();
+        } catch (IOException ex) {
+            Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
         return res;
     }
 
@@ -1201,95 +1174,6 @@ public class Proccessor {
     }
 
     
-    public static String compileAndLoadAlgorithm(Algorithm alg) {
-        String res = "";
-        ArrayList<Code> codes = alg.getCodes();
-
-        ArrayList<String> filesForCompile = new ArrayList<>();
-        ArrayList<String> fullNamesOfClasses = new ArrayList<>();
-        //сохраняем исходники в каталогах согласно пакетам
-        for (Code code : codes) {
-            try {
-                parser.setSource(code.getGeneratedCode().toCharArray());
-                parser.setKind(ASTParser.K_COMPILATION_UNIT);
-                final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
-                Name packageForPath = (cu.getPackage() != null) ? cu.getPackage().getName() : null;
-
-                FileWriter fileW = null;
-
-                //создаем необходимые каталоги для пакета
-                String dirsString = "";
-                String className = Proccessor.getClassName(code.getGeneratedCode());
-                if (packageForPath != null) {
-                    fullNamesOfClasses.add(packageForPath.getFullyQualifiedName() + "." + className);
-                    while (packageForPath.isQualifiedName()) {
-                        dirsString = ((QualifiedName)packageForPath).getName().toString() + "/" + dirsString;
-                        packageForPath = ((QualifiedName)packageForPath).getQualifier();
-                    }
-                    dirsString = ((SimpleName)packageForPath).toString() + "/" + dirsString;
-                }
-                dirsString = "algorithms_classes/" + dirsString;
-                File dirs = new File(dirsString);
-                dirs.mkdirs();
-
-                String fileFullName = dirsString + className + ".java";
-                filesForCompile.add(fileFullName);
-                File file = new File(fileFullName);
-                fileW = new FileWriter(file);
-                fileW.write(code.getGeneratedCode());
-                fileW.close();
-            } catch (IOException ex) {
-                Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
-        //компилим
-        for (String file : filesForCompile) {
-            String errors = "";
-            try {
-                ProcessBuilder procBuilder = new ProcessBuilder(Preferences.getJdkPath() + "\\javac", "-sourcepath", "algorithms_classes/", file);
-                procBuilder.redirectErrorStream(true);
-
-                Process process = procBuilder.start();
-
-                InputStream stdout = process.getInputStream();
-                InputStreamReader isrStdout = new InputStreamReader(stdout);
-                BufferedReader brStdout = new BufferedReader(isrStdout);
-
-                String line = "";
-                while((line = brStdout.readLine()) != null) {
-                    errors += line + "\n";
-                }
-
-                int exitVal = process.waitFor();
-                
-                if (errors.equals("")) {
-                    
-                } else {
-                    res += errors + "\n";
-                }
-            } catch (IOException ex) {
-                Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        
-        try {
-            URL url = new File("algorithms_classes/").toURI().toURL();
-            URLClassLoader classLoader = new URLClassLoader(new URL[]{url}, CompSys.class.getClassLoader());
-            for (String c : fullNamesOfClasses) {
-                classLoader.loadClass(c);
-            }   
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        return res;
-    }
-
     /** Метод возвращает имя пакета из исходного кода.
      * @param code Исходный код.
      * @return Имя пакета. 
@@ -1322,11 +1206,11 @@ public class Proccessor {
      * Здесь все коды компилируются, в том числе и сгенерированные, 
      * после чего классы без ошибок компиляции подгружаются в программу. 
      * Здесь также определяется класс с главным методом.
-     * @param codes Лист кодов.
+     * @param codes Лист кодов. В кодах должны быть проставлены пакеты!
      * @param mainMethod Имя метода вызова алгоритма.
      * @return Обновленный лист кодов.
      */
-    public static ArrayList<Code> resolveCodes(ArrayList<Code> codes, String mainMethod) {
+    public static ArrayList<Code> prepareCodes(ArrayList<Code> codes, String mainMethod) {
         //сохраняем исходники в каталогах согласно пакетам
         FileWriter fileW;
         for (Code code : codes) {
@@ -1401,7 +1285,7 @@ public class Proccessor {
             URL url = new File("generated_codes/").toURI().toURL();
             URLClassLoader classLoader = new URLClassLoader(new URL[]{url}, CompSys.class.getClassLoader());
             for (Code c : codes) {
-                if (c.getGeneratedCodeErrors().equals("") && c.getSourceCodeErrors().equals("")) {
+                if (c.getSourceCodeErrors().equals("") && c.getGeneratedCodeErrors().equals("")) {
                     c.setGeneratedClass(classLoader.loadClass(c.getPackageName() + "." + c.getClassName()));
                 }
                 if (Proccessor.getMethodDeclarationFromCode(c.getSourceCode(), mainMethod) != null) {

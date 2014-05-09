@@ -1,5 +1,6 @@
 package comparative_system.gui;
 
+import comparative_system.controller.FXMLguiController;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -8,6 +9,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.web.WebView;
 import org.w3c.dom.Document;
@@ -117,6 +120,12 @@ public class CodeEditor extends AnchorPane {
     * @param editingCode Код для отображения.
     */
     public CodeEditor(String editingCode) {
+        webview.setOnKeyTyped(new EventHandler() {
+            @Override
+            public void handle(Event t) {
+                FXMLguiController.handleKeyTypedInCodeEditor();
+            }
+        });
         this.editingCode = editingCode;
         AnchorPane.setTopAnchor(webview, 0.0);
         AnchorPane.setLeftAnchor(webview, 0.0);

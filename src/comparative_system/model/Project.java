@@ -68,18 +68,22 @@ public class Project {
      * Метод для добавления нового алгоритма к проекту. Здесь же расставляются 
      * счетчики операций. Алгоритм сохраняется в БД и ему сопостовляется id. После этого 
      * классы алгоритма с вставленными счетчиками компилируются и подгружаются в основную программу.
-     * @param name Имя алгоритма.
-     * @param codes Исходные коды алгоритма.
-     * @param mainMethod Метод вызова алгоритма.
+     * @param alg Алгоритм.
      */
-    public void addNewAlgorithm(String name, String mainMethod, ArrayList<String> codes) { 
-        algorithms.add(new Algorithm(name, mainMethod, Proccessor.putCounters(codes)));
+    public void addNewAlgorithm(Algorithm alg) { 
+        algorithms.add(alg);
         this.saveAlgorithmInDB(this.algorithms.size() - 1);
-        Algorithm alg = this.algorithms.get(this.algorithms.size() - 1);
         long alg_id = alg.getId();
-        Proccessor.putPackagesIfNotExist(alg_id, alg.getCodes());
-        //alg.setFullNamesOfClassesList(Proccessor.getFullNamesOfClasses(alg_id, alg.getCodes()));
+        alg.setCodes(Proccessor.prepareCodes(Proccessor.putPackagesIfNotExist(alg_id, alg.getCodes()), alg.getMainMethod()));
         this.saveCodesOfAlgorithmInDB(this.algorithms.size() - 1);
+        
+        boolean err = false;
+        for(Code c : alg.getCodes()) {
+            if (!c.getSourceCodeErrors().isEmpty() || !c.getGeneratedCodeErrors().isEmpty()) {
+                err = true;
+            }
+        }
+        alg.setHasErrors(err);
     }
     
     /**
@@ -91,17 +95,22 @@ public class Project {
      * @param codes Исходные коды алгоритма.
      * @param mainMethod Метод вызова алгоритма.
      */
-    public void saveAlgorithm(int index, String name, String mainMethod, ArrayList<String> codes) { 
+    public void saveAlgorithm(int index, String name, String mainMethod, ArrayList<Code> codes) { 
         algorithms.get(index).setName(name);
         algorithms.get(index).setMainMethod(mainMethod);
         long alg_id = algorithms.get(index).getId();
-        ArrayList<Code> codesG = Proccessor.putCounters(codes);
-        algorithms.get(index).setCodes(Proccessor.putPackagesIfNotExist(alg_id, codesG));
-//        algorithms.get(index).setFullNamesOfClassesList(Proccessor.getFullNamesOfClasses(alg_id, codesG));
-//        algorithms.get(index).setClassNamesListList(Proccessor.getClassNames(codes));
-//        algorithms.get(index).setMethodsList(Proccessor.getAllMethodsFromCodes(codes));
+        codes = Proccessor.prepareCodes(Proccessor.putPackagesIfNotExist(alg_id, codes), mainMethod);
+        algorithms.get(index).setCodes(codes);
         this.saveAlgorithmInDB(index);
         this.saveCodesOfAlgorithmInDB(index);
+        
+        boolean err = false;
+        for(Code c : codes) {
+            if (!c.getSourceCodeErrors().isEmpty() || !c.getGeneratedCodeErrors().isEmpty()) {
+                err = true;
+            }
+        }
+        algorithms.get(index).setHasErrors(err);
     }
     
     /**
@@ -404,7 +413,7 @@ public class Project {
 
                             //methods.addAll(Proccessor.getAllMethodsFromCode(st2.columnString(2)));
                         }
-                        codes = Proccessor.resolveCodes(codes, st.columnString(2));
+                        codes = Proccessor.prepareCodes(codes, st.columnString(2));
                         //--коды алгоритмов        
                         Algorithm alg = new Algorithm(alg_id, alg_name, st.columnString(2), codes);
                         boolean err = false;
@@ -432,23 +441,29 @@ public class Project {
                         project.addDataGenerator(st.columnLong(0), st.columnString(1), st.columnString(2), st.columnString(3));
                     }
                     this.updateProgress(3, 4);
+                    this.updateTitle("Генерация данных...");
+                    this.updateMessage("");
+                    ArrayList<DataGenerator> dg = project.getDataGenerators();
+                    for (DataGenerator gen : dg) {
+                        gen.generateData(project.getAllAlgotithmsAsImportsMap());
+                    }
                     //--генераторы исходных данных
                     //исходные данные
-                    this.updateTitle("Загрузка исходных данных...");
-                    st = db.prepare("SELECT COUNT(name) FROM sqlite_master WHERE name='source_data'"); //проверяем таблицу на существование
-                    if (st.hasRow()) {
-                        st = db.prepare("IF EXISTS (SELECT * FROM source_data )"); //делаем запрос сразу на все исх данные, ибо тут обработка будет быстрее, чем если запрашивать отдельно для каждого генератора.
-                        ArrayList data_params = new ArrayList(); //список нетипизированных данных, соответствующих параметрам методов вызова алгоритмов.
-                        ArrayList<Data> data_items = new ArrayList<>();
-                        while(st.step()) {
-                            data_params.clear();
-                            for (int i = 2; i < DataGenerator.getCountOfMethodsParams(); i++) {
-                                data_params.add(st.columnValue(i));
-                            }
-                            data_items.add(new Data(st.columnLong(0), st.columnLong(1), data_params.toArray()));
-                        }
-                        project.addAllDataItems(data_items);
-                    }
+//                    this.updateTitle("Загрузка исходных данных...");
+//                    st = db.prepare("SELECT COUNT(name) FROM sqlite_master WHERE name='source_data'"); //проверяем таблицу на существование
+//                    if (st.hasRow()) {
+//                        st = db.prepare("IF EXISTS (SELECT * FROM source_data )"); //делаем запрос сразу на все исх данные, ибо тут обработка будет быстрее, чем если запрашивать отдельно для каждого генератора.
+//                        ArrayList data_params = new ArrayList(); //список нетипизированных данных, соответствующих параметрам методов вызова алгоритмов.
+//                        ArrayList<Data> data_items = new ArrayList<>();
+//                        while(st.step()) {
+//                            data_params.clear();
+//                            for (int i = 2; i < DataGenerator.getCountOfMethodsParams(); i++) {
+//                                data_params.add(st.columnValue(i));
+//                            }
+//                            data_items.add(new Data(st.columnLong(0), st.columnLong(1), data_params.toArray()));
+//                        }
+//                        project.addAllDataItems(data_items);
+//                    }
                     this.updateProgress(4, 4);
                     //--исходные данные
                     //--делаем запросы и сохраняем данные
