@@ -1,5 +1,7 @@
 package comparative_system.model;
 
+import org.apache.commons.lang3.SerializationUtils;
+
 /**
  * Класс для представления одного набора исходных данных.
  * @author Gromov Evg.
@@ -11,16 +13,20 @@ public class Data {
     private long gen_id;
     /** Исходные данные, соответствующие параметрам методов вызова алгоритмов проекта. */
     private Object[] values;
+    /**  */
+    private long second_param;
 
     /**
      * Конструктор класса.
      * @param index Индекс в списке проекта.
+     * @param second_param 
      * @param gen_id id генератора в БД проекта.
      * @param values Значения данных.
      */
-    public Data(long index, long gen_id, Object[] values) {
+    public Data(long index, long gen_id, long second_param, Object[] values) {
         this.index = index;
         this.gen_id = gen_id;
+        this.second_param = second_param;
         this.values = values;
     }
 
@@ -33,10 +39,14 @@ public class Data {
     }
     
     public Object[] getValues() {
-        return this.values;
+        return SerializationUtils.clone(this.values);
     }
     
     public long getIndex(){
         return this.index;
+    }
+
+    public long getSecondParam() {
+        return this.second_param;
     }
 }

@@ -307,11 +307,11 @@ public class DataGenerator {
     public static String getFooterInDataGeneratorCode() {
         return  "    }\n \n    private static ArrayList<Data> list = new ArrayList<Data>();\n" +
                 "	static long generator_id;\n" +
-                "	\n" +
-                "	private static void addData("+ getMethodsParamsAsString(true) +") {\n" +
+                "       \n" +
+                "	private static void addData(long second_parameter, "+ getMethodsParamsAsString(true) +") {\n" +
                 "        \n" +
-                "        Data d = new Data(list.size() - 1, generator_id, new Object[]{"+ getMethodsParamsAsString(false) +"});\n"
-                                    + "        list.add(d);\n" +
+                "        Data d = new Data(list.size(), generator_id, second_parameter, new Object[]{"+ getMethodsParamsAsString(false) +"});\n" +
+                "        list.add(d);\n" +
                 "	}\n" +
                 "	\n" +
                 "	public ArrayList<Data> getData(long gen_id) {\n" +
@@ -331,7 +331,9 @@ public class DataGenerator {
         HashMap map = new HashMap();
         String res = "";
         for (Object value : importsMap.values()) {
-            res += "import " + value + ".*;\n";
+            if (!"".equals(value.toString())) {
+                res += "import " + value + ".*;\n";
+            }
         }
         return res;
     }

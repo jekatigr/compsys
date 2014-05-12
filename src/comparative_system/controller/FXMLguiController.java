@@ -34,10 +34,13 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialogs;
+import javafx.scene.control.Dialogs.DialogResponse;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
@@ -97,6 +100,7 @@ public class FXMLguiController implements Initializable {
     private static ChangeListener selectAlgInListListener;
     /** Текстовое поле для имени алгоритма. */
     @FXML private static TextField algNameTextField;
+    @FXML private static Button removeAlgButton;
     
     /** Панель вкладок с кодами классов алгоритма. */
     @FXML private static TabPane codesOfAlgorithmsTabPane;
@@ -110,9 +114,8 @@ public class FXMLguiController implements Initializable {
     @FXML private static Button showErrorDescriptionButton;
     /** Флаг для режима добавления нового алгоритма. */
     private static boolean addingNewAlg = false;
-    //private static boolean hasChanges = false;
     
-    /** Панель для кода и значений генератора исходных данных. */
+    /** Панель для кода генератора исходных данных. */
     @FXML private static AnchorPane dataGeneratorCodePanel;
     /** Элемент список с именами генераторов. */
     @FXML private static ListView genList;
@@ -121,22 +124,21 @@ public class FXMLguiController implements Initializable {
     /** Текстовое поле для имени генератора. */
     @FXML private static TextField genNameTextField;
     /** Флаг для режима добавления нового генератора. */
+    @FXML private static Button removeGenButton;
     private static boolean addingNewGen = false;
-    /** Контейнер для кнопок выбора режима промотра генератора: код-сгенерированные данные. */
-    @FXML private static HBox dataGeneratorToggleGroupHBox;
     /** Надпись с инструкцией к генератору. */
     @FXML private static Label apiInstructionLabel;
-    /** Панель с сгенерированными данными генератора. */
-    @FXML private static AnchorPane dataGeneratorValuesPanel;
     
-    @FXML private static ListView genListForTests;
-    @FXML private static ListView algListForTests;
+    @FXML private static ComboBox genListForTests;
+    @FXML private static ComboBox algListForTests;
     @FXML private static Button startTestsButton;
+    @FXML private static LineChart testGraph;
     
     @FXML private static FlowPane taskPerformingPanel;
     @FXML private static Label currentTaskTitle;
     @FXML private static Label currentTaskDescription;
     @FXML private static ProgressBar taskProgressBar;
+    private static HashMap<String, XYChart.Series<Number,Number>> onGraph = new HashMap<>();
     
 //    /** Таблица с сгенерированными данными генератора. */
 //    @FXML private static TableView tableForDateGeneratorValues;
@@ -207,6 +209,7 @@ public class FXMLguiController implements Initializable {
     /** Обработка нажания кнопки "Исходные данные" для выбора панели. */
     @FXML private void handleDataClicked() {
         switchShowMode(1);
+        FXMLguiController.loadDataGeneratorView(Project.getCurrentGuiGen());
     }
 
     /** Обработка нажания кнопки "Результаты" для выбора панели. */
@@ -271,49 +274,39 @@ public class FXMLguiController implements Initializable {
             protected Void call() {
                 this.updateTitle("Проверка алгоритма:");
                 if (algName.length() > 0) {//проверка имени
-                    //final String compileRes = Proccessor.checkClassesCompilableInTabs(codes);
-                    //if (compileRes.length() == 0) {//проверка public-классов в вкладках на компилируемость
-                        if (methodIndex >= 0) {
-                            this.updateMessage("Проверка метода вызова алгоритма и его параметров...");
-                            this.updateProgress(1, 3);
-                            ArrayList<MethodDeclaration> methods = Proccessor.getAllMethodsFromCodes(codes);
-                            final MethodDeclaration method = methods.get(methodIndex);
-                            if (Modifier.isPublic(method.getModifiers()) && Modifier.isStatic(method.getModifiers())) {//проверка метода на модификаторы public & static
-                                final List parameters = method.parameters();
-                                if (parameters.size() > 0) {//количество параметров должно быть > 0 
-                                    final String mName = method.getName().getFullyQualifiedName();
-                                    if (Project.methodParamsAreCompatible(parameters)) {//проверка на совместимость параметров методов.
-                                        Platform.runLater(new Runnable() {
-                                            @Override
-                                            public void run() {
+                    if (methodIndex >= 0) {
+                        this.updateMessage("Проверка метода вызова алгоритма и его параметров...");
+                        this.updateProgress(1, 3);
+                        ArrayList<MethodDeclaration> methods = Proccessor.getAllMethodsFromCodes(codes);
+                        final MethodDeclaration method = methods.get(methodIndex);
+                        if (Modifier.isPublic(method.getModifiers()) && Modifier.isStatic(method.getModifiers())) {//проверка метода на модификаторы public & static
+                            final List parameters = method.parameters();
+                            if (parameters.size() > 0) {//количество параметров должно быть > 0 
+                                final String mName = method.getName().getFullyQualifiedName();
+                                if (Project.methodParamsAreCompatible(parameters)) {//проверка на совместимость параметров методов.
+                                    Platform.runLater(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            if (addingNewAlg == true) {
+                                                CompSys.addNewAlgorithm(new Algorithm(algName, mName, codes));
+                                            } else {
+                                                CompSys.saveAlgorithm(Project.getCurrentGuiAlg(), algName, mName, codes);
+                                            }   
+                                        }
+                                    });
+                                } else {//запрос на перезапись или исправление переметров методов
+                                    Platform.runLater(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            if (Dialogs.showConfirmDialog(primaryStage, "Перезаписать параметры?", "Параметры метода вызова алгоритма не совпадают с уже сохраненными! Параметры для всех алгоритмов должны совпадать.", "Параметры метода вызова...", Dialogs.DialogOptions.YES_NO) == Dialogs.DialogResponse.YES) {
+                                                //перезапись
+                                                DataGenerator.saveNewMainMethodParams(parameters);//TODO: при открытии другого проекта параметры добавляеютс к прежним, не удаляя их
                                                 if (addingNewAlg == true) {
                                                     CompSys.addNewAlgorithm(new Algorithm(algName, mName, codes));
                                                 } else {
                                                     CompSys.saveAlgorithm(Project.getCurrentGuiAlg(), algName, mName, codes);
-                                                }   
-                                            }
-                                        });
-                                    } else {//запрос на перезапись или исправление переметров методов
-                                        Platform.runLater(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                if (Dialogs.showConfirmDialog(primaryStage, "Перезаписать параметры?", "Параметры метода вызова алгоритма не совпадают с уже сохраненными! Параметры для всех алгоритмов должны совпадать.", "Параметры метода вызова...", Dialogs.DialogOptions.YES_NO) == Dialogs.DialogResponse.YES) {
-                                                    //перезапись
-                                                    DataGenerator.saveNewMainMethodParams(parameters);//TODO: при открытии другого проекта параметры добавляеютс к прежним, не удаляя их
-                                                    if (addingNewAlg == true) {
-                                                        CompSys.addNewAlgorithm(new Algorithm(algName, mName, codes));
-                                                    } else {
-                                                        CompSys.saveAlgorithm(Project.getCurrentGuiAlg(), algName, mName, codes);
-                                                    }
                                                 }
                                             }
-                                        });
-                                    }
-                                } else {
-                                    Platform.runLater(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            Dialogs.showWarningDialog(primaryStage, "Метод вызова алгоритма должен содержать один или несколько параметров для передачи данных при последующих вычислениях трудоемкости.", "Ошибка при сохранении алгоритма.", "Параметры метода...");
                                         }
                                     });
                                 }
@@ -321,26 +314,26 @@ public class FXMLguiController implements Initializable {
                                 Platform.runLater(new Runnable() {
                                     @Override
                                     public void run() {
-                                        Dialogs.showWarningDialog(primaryStage, "Метод вызова алгоритма должен обладать модификаторами public и static.", "Ошибка при сохранении алгоритма.", "Метод вызова алгоритма...");
+                                        Dialogs.showWarningDialog(primaryStage, "Метод вызова алгоритма должен содержать один или несколько параметров для передачи данных при последующих вычислениях трудоемкости.", "Ошибка при сохранении алгоритма.", "Параметры метода...");
                                     }
                                 });
-                            }                    
+                            }
                         } else {
                             Platform.runLater(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Dialogs.showWarningDialog(primaryStage, "Необходимо выбрать метод вызова алгоритма.", "Ошибка при сохранении алгоритма.", "Метод вызова алгоритма...");
+                                    Dialogs.showWarningDialog(primaryStage, "Метод вызова алгоритма должен обладать модификаторами public и static.", "Ошибка при сохранении алгоритма.", "Метод вызова алгоритма...");
                                 }
                             });
                         }                    
-                    //} else {
-//                        Platform.runLater(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                Dialogs.showWarningDialog(primaryStage, "Ошибка компиляции исходного кода.\nСообщение компилятора:\n\n" + compileRes, "Ошибка при компиляции алгоритма.", "Классы алгоритма...");
-                    //        }
-                    //    });
-                    //}                    
+                    } else {
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                Dialogs.showWarningDialog(primaryStage, "Необходимо выбрать метод вызова алгоритма.", "Ошибка при сохранении алгоритма.", "Метод вызова алгоритма...");
+                            }
+                        });
+                    }                  
                 } else {
                     Platform.runLater(new Runnable() {
                         @Override
@@ -361,90 +354,201 @@ public class FXMLguiController implements Initializable {
         CompSys.runUpdater(t, th);
     }
     
-    @FXML private void handleDataCodeButtonClicked() {
-        dataGeneratorValuesPanel.visibleProperty().setValue(false);        
-        dataGeneratorCodePanel.visibleProperty().setValue(true);        
-    }
-    
-    @FXML private void handleDataValuesButtonClicked() {
-        dataGeneratorCodePanel.visibleProperty().setValue(false);        
-        dataGeneratorValuesPanel.visibleProperty().setValue(true);
-    }
-    
     /** Обработка нажания кнопки "Сохранить и сгенерировать данные" при редактировании генератора. */
     @FXML private void handleSaveGenAndLoadDataButtonClicked() {
-        String code = ((CodeEditor) dataGeneratorCodePanel.lookup("#ceDataGen")).getCode();
-        code = Proccessor.setPackageGenerator(code);
-        String name = genNameTextField.getText().trim();
-        if (name.length() > 0) {//проверка имени
-            String compileRes = Proccessor.checkGeneratorCompilable(code);
-            if (compileRes.length() == 0) {//проверка на компилируемость
-                //отделяем импорты и код generate
-                String imports = Proccessor.getUserDefinedImports(code, CompSys.getProject().getAllAlgotithmsAsImportsMap());
-                String generateImplementation = Proccessor.getGenerateImplementation(code);
-                if (addingNewGen) {
-                    CompSys.addNewDataGenerator(name, imports, generateImplementation);
-                    CompSys.getProject().getDataGenerator(CompSys.getProject().getCountOfDataGenerators() - 1).generateData(CompSys.getProject().getAllAlgotithmsAsImportsMap());
-                    FXMLguiController.reloadGenList();
-                    FXMLguiController.reloadGenAndAlgListsForTests();
+        final String code = Proccessor.setPackageGenerator(((CodeEditor) dataGeneratorCodePanel.lookup("#ceDataGen")).getCode());
+        
+        final Task<Void> t = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                this.updateTitle("Сохранение генератора исходных данных...");
+                this.updateMessage("Проверка параметров...");
+                this.updateProgress(1, 4);
+                String name = genNameTextField.getText().trim();
+                if (name.length() > 0) {//проверка имени
+                    this.updateMessage("Компиляция...");
+                    this.updateProgress(2, 4);
+                    final String compileRes = Proccessor.checkGeneratorCompilable(code);
+                    if (compileRes.length() == 0) {//проверка на компилируемость
+                        //отделяем импорты и код generate
+                        this.updateMessage("Генерация данных...");
+                        this.updateProgress(3, 4);
+                        String imports = Proccessor.getUserDefinedImports(code, CompSys.getProject().getAllAlgotithmsAsImportsMap());
+                        String generateImplementation = Proccessor.getGenerateImplementation(code);
+                        if (addingNewGen) {
+                            CompSys.addNewDataGenerator(name, imports, generateImplementation);
+                            CompSys.getProject().getDataGenerator(CompSys.getProject().getCountOfDataGenerators() - 1).generateData(CompSys.getProject().getAllAlgotithmsAsImportsMap());
+                            Platform.runLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                    FXMLguiController.reloadGenList();
+                                    FXMLguiController.reloadGenAndAlgListsForTests();
+                                }
+                            });
+                        } else {
+                            CompSys.saveDataGenerator(Project.getCurrentGuiGen(), name, imports, generateImplementation);
+                            CompSys.getProject().getDataGenerator(Project.getCurrentGuiGen()).generateData(CompSys.getProject().getAllAlgotithmsAsImportsMap());
+                            Platform.runLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                    FXMLguiController.reloadGenList();
+                                    FXMLguiController.reloadGenAndAlgListsForTests();
+                                    FXMLguiController.loadDataGeneratorView(Project.getCurrentGuiGen());
+                                }
+                            });
+                        }
+                    } else {
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                Dialogs.showWarningDialog(primaryStage, "Ошибка компиляции исходного кода.\nСообщение компилятора:\n\n" + compileRes, "Ошибка при компиляции исходного кода генератора.", "Исходные коды генератора...");
+                            }
+                        });
+                    }
                 } else {
-                    CompSys.saveDataGenerator(Project.getCurrentGuiGen(), name, imports, generateImplementation);
-                    CompSys.getProject().getDataGenerator(Project.getCurrentGuiGen()).generateData(CompSys.getProject().getAllAlgotithmsAsImportsMap());
-                    FXMLguiController.reloadGenList();
-                    FXMLguiController.reloadGenAndAlgListsForTests();
-                    FXMLguiController.loadDataGeneratorView(Project.getCurrentGuiGen());
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            Dialogs.showWarningDialog(primaryStage, "Вы не ввели название генератора.", "Ошибка при сохранении генератора.", "Название генератора...");
+                        }
+                    });
                 }
-            } else {
-                Dialogs.showWarningDialog(primaryStage, "Ошибка компиляции исходного кода.\nСообщение компилятора:\n\n" + compileRes, "Ошибка при компиляции исходного кода генератора.", "Исходные коды генератора...");
+                return null;
             }
-        } else {
-            Dialogs.showWarningDialog(primaryStage, "Вы не ввели название генератора.", "Ошибка при сохранении генератора.", "Название генератора...");
-        }
+        };
+        
+        startPerformingTask();
+        
+        final Thread th = new Thread(t);
+        th.start();
+        
+        Task<Void> daemon = new Task<Void>() {
+            @Override
+            protected Void call() {
+                try {
+                    while(th.isAlive()) {
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                FXMLguiController.refreshPerformingTaskPanel(t.getTitle(), t.getMessage(), t.getProgress());
+                            }
+                        });
+                        th.join(250);
+                    }
+                    
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            FXMLguiController.stopPerformingTask();
+                        }
+                    });
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                return null;
+            }
+        };
+        Thread upd = new Thread(daemon);
+        upd.start();
     }
         
     @FXML private void handleStartTestsButtonClicked() {
-        int gen_index = genListForTests.getSelectionModel().getSelectedIndex();
-        int alg_index = algListForTests.getSelectionModel().getSelectedIndex();
+        final int gen_index = genListForTests.getSelectionModel().getSelectedIndex();
+        final int alg_index = algListForTests.getSelectionModel().getSelectedIndex();
         
         if (CompSys.getProject().getAlgorithm(alg_index).hasErrors()) {
             Dialogs.showErrorDialog(primaryStage, "Исправьте ошибки для проведения вычислений.", "В выбранном алгоритме есть ошибки.", "Ошибки в алгоритме...");
             return;
         }
         
-        ArrayList<Data> data = CompSys.getProject().getDataGenerator(gen_index).getValues();
+        final ArrayList<Data> data = CompSys.getProject().getDataGenerator(gen_index).getValues();
         if (data.isEmpty()) {
             Dialogs.showErrorDialog(primaryStage, "Для выбранного генератора данных не "
                     + "было создано наборов для тестов.\nПопробуйте исправить реализацию генератора для добавления наборов данных.", "Генератор данных реализован не верно!", "Нет данных для тестов...");
             return;
         }
         
-        try {
-            Algorithm alg = CompSys.getProject().getAlgorithm(alg_index);
-            Class c = alg.getClassWithMainMethod();
-            Class[] classes_of_params = DataGenerator.getMethodsParamsAsArrayOfClasses();
-            
-            ArrayList<Result> res = new ArrayList<>();
-            
-            if (c != null) {
-                for (Data d : data) {
-                    Counter.resetCountResult();
-                    Method method = c.getMethod(alg.getMainMethod(), classes_of_params);
-                    method.invoke(null, d.getValues());
-                    res.add(new Result(d.getIndex(), Counter.getCountResult()));
+        
+        final Algorithm alg = CompSys.getProject().getAlgorithm(alg_index);
+        final Class c = alg.getClassWithMainMethod();
+        final Class[] classes_of_params = DataGenerator.getMethodsParamsAsArrayOfClasses();
+
+        final ArrayList<Result> res = new ArrayList<>();
+        final XYChart.Series<Number,Number> series = new XYChart.Series<>();
+        series.setName(alg.getName()+ " - " +CompSys.getProject().getDataGenerator(gen_index).getName());
+
+        FXMLguiController.startPerformingTask();
+
+        final Task<Void> t = new Task<Void>() {
+            @Override
+            protected Void call() {
+                if (alg.getResults(gen_index) == null || alg.getResults(gen_index).isEmpty()) {
+                    if (c != null) {
+                        this.updateTitle("Вычисление трудоемкости...");
+                        this.updateMessage("Обработано: 0 из " + data.size() + ".");
+                        this.updateProgress(0, data.size());
+                        for (int i = 0; i < data.size(); i++) {
+                            try {
+                                Counter.resetCountResult();
+                                Method method = c.getMethod(alg.getMainMethod(), classes_of_params);
+                                method.invoke(null, data.get(i).getValues());
+                                res.add(new Result(Counter.getCountResult(), data.get(i).getSecondParam()));
+                                this.updateMessage("Обработано: "+ i +" из " + data.size() + " наборов данных.");
+                                this.updateProgress(i, data.size());
+                            } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                                Logger.getLogger(FXMLguiController.class.getName()).log(Level.SEVERE, null, ex);
+                            } 
+                        }
+                    }
+                    CompSys.getProject().getAlgorithm(alg_index).setResults(gen_index, res);
                 }
+                return null;
             }
-            res.get(0);
-        } catch (NoSuchMethodException ex) {
-            Logger.getLogger(FXMLguiController.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SecurityException ex) {
-            Logger.getLogger(FXMLguiController.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(FXMLguiController.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalArgumentException ex) {
-            Logger.getLogger(FXMLguiController.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvocationTargetException ex) {
-            Logger.getLogger(FXMLguiController.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        };
+        
+        final Thread th = new Thread(t);
+        th.start();
+
+        Task<Void> daemon = new Task<Void>() {
+            @Override
+            protected Void call() {
+                try {
+                    while(th.isAlive()) {
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                FXMLguiController.refreshPerformingTaskPanel(t.getTitle(), t.getMessage(), t.getProgress());
+                            }
+                        });
+                        th.join(250);
+                    }
+                    
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            ArrayList<Result> res_values = alg.getResults(gen_index);
+                            for (Result r : res_values) {
+                                series.getData().add(new XYChart.Data<Number,Number>(r.getSecondParam(), r.getCountOfOperations()));
+                            } 
+                            if (onGraph.containsKey(series.getName())) {
+                                testGraph.getData().remove(onGraph.get(series.getName()));
+                            }
+                            testGraph.getData().add(series);       
+                            onGraph.put(series.getName(), series);
+
+                            series.nodeProperty().get().setStyle("-fx-stroke-width: 2px;");
+                            
+                            FXMLguiController.stopPerformingTask();
+                        }
+                    });
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                return null;
+            }
+        };
+        Thread upd = new Thread(daemon);
+        upd.start();
     }
     
     public static void handleKeyTypedInCodeEditor() {
@@ -476,6 +580,33 @@ public class FXMLguiController implements Initializable {
         Dialogs.showCustomDialog(primaryStage, pane, error, "Ошибки в алгоритме...", Dialogs.DialogOptions.OK, null);
     }
     
+    @FXML private void handleClearTestsGraphButtonClicked() {
+            testGraph.getData().clear();
+            onGraph.clear();
+    }
+    
+    @FXML private void handleRemoveAlgButtonClicked() {
+        if (Project.getCurrentGuiAlg() != -1 && DialogResponse.YES == 
+            Dialogs.showConfirmDialog(primaryStage, "", "Удалить алгоритм \""+ CompSys.getProject().getAlgorithm(Project.getCurrentGuiAlg()).getName() +"\" и все связанные данные?", "Удаление алгоритма...", Dialogs.DialogOptions.YES_NO)) {
+            CompSys.removeAlgorithm(Project.getCurrentGuiAlg());
+            FXMLguiController.reloadAlgList();
+            FXMLguiController.loadAlgorithmView(0);
+            reloadGenAndAlgListsForTests();
+            testGraph.getData().clear();
+        }
+    }
+    
+    @FXML private void handleRemoveGenButtonClicked() {
+        if (Project.getCurrentGuiGen() != -1 && DialogResponse.YES == 
+            Dialogs.showConfirmDialog(primaryStage, "", "Удалить генератор \""+ CompSys.getProject().getDataGenerator(Project.getCurrentGuiGen()).getName() +"\" и все связанные данные?", "Удаление генератора...", Dialogs.DialogOptions.YES_NO)) {
+            CompSys.removeDataGenerator(Project.getCurrentGuiGen());
+            FXMLguiController.reloadGenList();
+            FXMLguiController.loadDataGeneratorView(0);
+            reloadGenAndAlgListsForTests();
+            testGraph.getData().clear();
+        }
+    }
+    
     
     /**
      * Метод для инициализации.
@@ -504,11 +635,16 @@ public class FXMLguiController implements Initializable {
         algList.getSelectionModel().selectedIndexProperty().addListener(selectAlgInListListener);
         genList.getSelectionModel().selectedIndexProperty().addListener(selectGenInListListener);
         
+        removeAlgButton.setGraphic(new ImageView(new Image(CompSys.class.getResourceAsStream("remove.png"))));
+        removeAlgButton.setMinSize(45, 25);
+        removeGenButton.setGraphic(new ImageView(new Image(CompSys.class.getResourceAsStream("remove.png"))));
+        removeGenButton.setMinSize(45, 25);
+        
         reloadMethodsListButton.setGraphic(new ImageView(new Image(CompSys.class.getResourceAsStream("reload.png"))));
         reloadMethodsListButton.setMinSize(30, 25);
         reloadMethodsListButton.tooltipProperty().setValue(new Tooltip("Обновить список"));
         
-        algMethodsComboBox.setDisable(false);
+        algMethodsComboBox.setDisable(true);
         showErrorDescriptionButton.setVisible(false);
         //при первом открытии отключаем все элементы и ставим вкладку алгоритмов.
         FXMLguiController.setAllEnabled(false);
@@ -522,9 +658,8 @@ public class FXMLguiController implements Initializable {
             AnchorPane.setLeftAnchor(ce, -5.0);
         dataGeneratorCodePanel.getChildren().add(ce);
         
-        apiInstructionLabel.setText("Реализуйте функцию generate(). Для сохранения набора данных воспользуйтесь функцией addData("+ DataGenerator.getMethodsParamsAsString(true) +");");
+        apiInstructionLabel.setText("Реализуйте функцию generate(). Для сохранения набора данных воспользуйтесь функцией addData(long second_parameter, ...");
         dataGeneratorCodePanel.visibleProperty().setValue(true);
-        dataGeneratorValuesPanel.visibleProperty().setValue(false);
         
         genListForTests.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
             @Override
@@ -541,6 +676,9 @@ public class FXMLguiController implements Initializable {
         
         startTestsButton.setDisable(true);
         algListForTests.setDisable(true);
+        
+        testGraph.setCreateSymbols(false);
+        testGraph.setAnimated(false);
     }
 
     /**
@@ -601,7 +739,7 @@ public class FXMLguiController implements Initializable {
         reloadGenList();
         algList.getSelectionModel().select(0);
         genList.getSelectionModel().select(0);
-        apiInstructionLabel.setText("Реализуйте функцию generate(). Для сохранения набора данных воспользуйтесь функцией\naddData("+ DataGenerator.getMethodsParamsAsString(true) +");");
+        apiInstructionLabel.setText("Реализуйте функцию generate(). Для сохранения набора данных воспользуйтесь функцией\naddData(long second_parameter, "+ DataGenerator.getMethodsParamsAsString(true) +");");
         reloadGenAndAlgListsForTests();
         setAllEnabled(true);
     }
@@ -643,7 +781,7 @@ public class FXMLguiController implements Initializable {
             
             Tab tab = new Tab();
                tab.setText("Класс (1)");
-                   CodeEditor ce = new CodeEditor("/*\n   Вставьте сюда код класса\n   или перетащите файл java\n   в окно программы и нажмите\n   кнопку \"Сохранить\"...     */\n\n\n\n");
+                   CodeEditor ce = new CodeEditor("/*\n   Вставьте сюда код класса, \n   выберите метод вызова алгоритма \n   и нажмите   кнопку \"Сохранить\"...   */\n\n\n\n");
                    ce.setId("ce");
                    AnchorPane.setTopAnchor(ce, -5.0);
                    AnchorPane.setRightAnchor(ce, 0.0);
@@ -654,6 +792,7 @@ public class FXMLguiController implements Initializable {
             codesOfAlgorithmsTabPane.getTabs().add(tab);
             algMethodsComboBox.getItems().clear();                    
             showCountersCheckBox.visibleProperty().set(false);
+            removeAlgButton.visibleProperty().set(false);
             showErrorDescriptionButton.setVisible(false);
         } else {//отображение сохраненного
             addingNewAlg = false;
@@ -701,6 +840,7 @@ public class FXMLguiController implements Initializable {
             } else {                              
                 showCountersCheckBox.selectedProperty().set(true);
             }  
+            removeAlgButton.visibleProperty().set(true);
             showCountersCheckBox.visibleProperty().set(true);
             
             showErrorDescriptionButton.setVisible(alg.hasErrors());
@@ -739,7 +879,6 @@ public class FXMLguiController implements Initializable {
             int fb = 3, fe = header.split("\n").length + fb, sb = fe + 3, se = sb + footer.split("\n").length;
             
             ((CodeEditor)dataGeneratorCodePanel.lookup("#ceDataGen")).setCode("//Добавьте необходимые классы здесь...\n\n\n"+ header + "\n        \n        \n        \n"+footer, fb, fe, sb, se);
-            dataGeneratorToggleGroupHBox.visibleProperty().setValue(false);
         } else {//отображение сохраненного
             addingNewGen = false;
             DataGenerator gen = CompSys.getProject().getDataGenerator(index);
@@ -757,7 +896,6 @@ public class FXMLguiController implements Initializable {
                 int fb = 3 + imports.split("\n").length, fe = fb + header.split("\n").length, sb = fe + genImp.split("\n").length, se = sb + footer.split("\n").length + 2;
                 
                 ((CodeEditor)dataGeneratorCodePanel.lookup("#ceDataGen")).setCode("//Добавьте необходимые классы здесь...\n\n\n"+ imports + header + genImp + footer, fb, fe, sb, se);
-                dataGeneratorToggleGroupHBox.visibleProperty().setValue(true);
             } else {//отображаем сгенерированные данные
                 //TODO: отображаем сгенерированные данные
             }

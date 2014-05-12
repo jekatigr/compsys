@@ -16,11 +16,6 @@
         </AnchorPane>
         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
           <children>
-            <AnchorPane fx:id="dataGeneratorValuesPanel" prefHeight="200.0" prefWidth="200.0" visible="true" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="82.0">
-              <children>
-                <TableView fx:id="tableForDateGeneratorValues" prefHeight="200.0" prefWidth="200.0" visible="true" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="-1.0" />
-              </children>
-            </AnchorPane>
             <BorderPane minWidth="100.0" prefHeight="25.0" prefWidth="651.0" AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="11.0" AnchorPane.topAnchor="14.0">
               <left>
                 <TextField fx:id="genNameTextField" maxWidth="500.0" minWidth="50.0" prefHeight="34.0" prefWidth="500.0" promptText="Введите имя генератора исходных данных...">
@@ -33,22 +28,12 @@
                 <Button mnemonicParsing="false" prefHeight="29.0" prefWidth="28.0" text="X" />
               </right>
             </BorderPane>
-            <HBox fx:id="dataGeneratorToggleGroupHBox" layoutY="50.0" prefHeight="25.0" prefWidth="106.0" AnchorPane.rightAnchor="11.0">
-              <children>
-                <ToggleButton mnemonicParsing="false" onAction="#handleDataCodeButtonClicked" selected="true" text="Код">
-                  <toggleGroup>
-                    <ToggleGroup fx:id="genToggles" />
-                  </toggleGroup>
-                </ToggleButton>
-                <ToggleButton mnemonicParsing="false" onAction="#handleDataValuesButtonClicked" text="Данные" toggleGroup="$genToggles" />
-              </children>
-            </HBox>
-            <AnchorPane fx:id="dataGeneratorCodePanel" prefHeight="420.0" prefWidth="404.0" visible="false" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="82.0">
+            <AnchorPane fx:id="dataGeneratorCodePanel" prefHeight="450.0" prefWidth="676.0" visible="true" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="52.0">
               <children>
                 <AnchorPane prefHeight="200.0" prefWidth="235.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                   <children>
                     <Button layoutX="9.0" layoutY="158.0" mnemonicParsing="false" onAction="#handleSaveGenAndLoadDataButtonClicked" text="Сохранить и сгенерировать данные" />
-                    <Label fx:id="apiInstructionLabel" prefHeight="75.0" prefWidth="235.0" text="Для сохранения набора данных воспользуйтесь функцией addData(...)" textAlignment="CENTER" wrapText="true" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                    <Label fx:id="apiInstructionLabel" prefHeight="129.0" prefWidth="235.0" text="Для сохранения набора данных воспользуйтесь функцией addData(...)" textAlignment="CENTER" wrapText="true" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                   </children>
                 </AnchorPane>
               </children>

@@ -37,8 +37,6 @@ public class Project {
     ArrayList<DataGenerator> dg;
     /** Алгоритмы для анализа. */
     ArrayList<Algorithm> algorithms;
-    /* Результаты анализа. Элементы в списке соотносятся с соответствующими алгоритмами в списке алгоритмов. */
-    //ArrayList<Result> results;
     /** Индекс алгоритма, который в данный момент показывается в GUI. */
     private static int currentGuiAlg = -1;
     /** Индекс генератора, который в данный момент показывается в GUI. */
@@ -53,7 +51,6 @@ public class Project {
         this.name = file.getName();
         dg = new ArrayList<>();
         algorithms = new ArrayList<>();
-        //results = new ArrayList();
     }
 
     /**
@@ -276,6 +273,29 @@ public class Project {
             Logger.getLogger(Project.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    /**
+     * Метод для удаления алгоритма из БД. 
+     * @param index Индекс в списке, соответствующий алгоритму, 
+     * который нужно удалить из БД.  
+     */
+    private void removeAlgorithmFromDB(int index) {
+        try {
+            //открываем базу данных проекта
+            SQLiteConnection db = new SQLiteConnection(this.file);
+            db.open();
+            //--открываем базу данных проекта
+            //сохраняем данные алгоритма
+            Algorithm alg = algorithms.get(index);
+            long alg_id = alg.getId();
+            if (alg_id == -1) { 
+                db.exec("DELETE * FROM algorithms WHERE id="+ alg_id);
+            }
+            //--сохраняем данные алгоритма
+        } catch (SQLiteException ex) {
+            Logger.getLogger(Project.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 
     /**
      * Метод для сохранения кодов алгоритма в БД. 
@@ -387,8 +407,8 @@ public class Project {
                 try {
                     Project project = new Project(file);
                     //открываем базу данных проекта
-                    this.updateTitle("Открытие базы данных проекта " + file.getName() + "...");
-                    this.updateMessage("");
+                    this.updateTitle("Открытие проекта...");
+                    this.updateMessage("Открытие базы данных проекта " + file.getName() + "...");
                     SQLiteConnection db = new SQLiteConnection(file);
                     db.open();
                     this.updateProgress(1, 4);
@@ -428,8 +448,8 @@ public class Project {
                     this.updateProgress(2, 4);
                     //--алгоритмы
                     //параметры методов вызова
-                    this.updateTitle("Загрузка генераторов данных...");
-                    this.updateMessage("");
+                    this.updateTitle("Открытие проекта...");
+                    this.updateMessage("Загрузка генераторов данных...");
                     st = db.prepare("SELECT * FROM main_params");
                     while(st.step()) {
                         addMainMethodsParam(st.columnString(1), st.columnString(2));
@@ -441,8 +461,7 @@ public class Project {
                         project.addDataGenerator(st.columnLong(0), st.columnString(1), st.columnString(2), st.columnString(3));
                     }
                     this.updateProgress(3, 4);
-                    this.updateTitle("Генерация данных...");
-                    this.updateMessage("");
+                    this.updateMessage("Генерация данных...");
                     ArrayList<DataGenerator> dg = project.getDataGenerators();
                     for (DataGenerator gen : dg) {
                         gen.generateData(project.getAllAlgotithmsAsImportsMap());
@@ -537,5 +556,17 @@ public class Project {
         } else {//сравниваем параметры метода по типу с уже сохраненными
             return DataGenerator.compareListOfParams(parameters);
         }
+    }
+
+    public void removeAlgorithm(int index) {
+        algorithms.remove(index);
+        removeAlgorithmFromDB(index);
+    }
+
+    public void removeDataGenerator(int index) {
+        for(Algorithm alg : algorithms) {
+            alg.removeResults(index);
+        }
+        dg.remove(index);
     }
 }

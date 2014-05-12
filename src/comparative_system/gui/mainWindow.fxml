@@ -6,7 +6,7 @@
 <?import javafx.scene.input.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" disable="false" mouseTransparent="false" pickOnBounds="false" prefHeight="551.0" prefWidth="943.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="comparative_system.controller.FXMLguiController">
+<AnchorPane id="AnchorPane" disable="false" mouseTransparent="false" pickOnBounds="false" prefHeight="551.0" prefWidth="943.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="comparative_system.controller.FXMLguiController">
   <children>
     <AnchorPane id="AnchorPane" fx:id="mainPanel" disable="false" prefHeight="323.0" prefWidth="595.0" AnchorPane.bottomAnchor="26.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="83.0" />
     <MenuBar prefWidth="595.0" rotate="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
@@ -31,35 +31,36 @@
           </items>
         </Menu>
       </menus>
-    </MenuBar><ToolBar layoutY="394.0" prefHeight="27.0" prefWidth="595.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" xmlns:fx="http://javafx.com/fxml" /><Label fx:id="title_label" layoutX="298.0" layoutY="43.0" text="Алгоритмы - это..." />
-    <HBox layoutX="14.0" layoutY="38.0" prefHeight="10.0" prefWidth="228.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
-    <children>
+    </MenuBar>
+    <ToolBar prefHeight="27.0" prefWidth="595.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+    <Label fx:id="title_label" layoutX="298.0" layoutY="43.0" text="Алгоритмы - это..." />
+    <HBox layoutX="14.0" layoutY="38.0" prefHeight="10.0" prefWidth="228.0">
+      <children>
         <ToggleButton id="alg" fx:id="algButton" contentDisplay="RIGHT" disable="false" focusTraversable="false" graphicTextGap="4.0" mnemonicParsing="false" onAction="#handleAlgClicked" prefHeight="20.0" prefWidth="85.0" selected="true" text="Алгоритмы" underline="false">
-        <toggleGroup>
-        <ToggleGroup fx:id="toggles" />
-        </toggleGroup>
+          <toggleGroup>
+            <ToggleGroup fx:id="toggles" />
+          </toggleGroup>
         </ToggleButton>
-        <ToggleButton id="data" fx:id="dataButton" contentDisplay="RIGHT" focusTraversable="false" graphicTextGap="4.0" mnemonicParsing="false" onAction="#handleDataClicked" prefHeight="13.0" prefWidth="71.0" rotate="0.0" selected="false" style="" text="Данные" textAlignment="LEFT" textOverrun="ELLIPSIS" toggleGroup="$toggles" underline="false">
-        </ToggleButton>
-        <ToggleButton id="tests" fx:id="testsButton" contentDisplay="RIGHT" focusTraversable="false" graphicTextGap="4.0" layoutX="65.0" layoutY="1.0" mnemonicParsing="false" onAction="#handleTestsClicked" prefHeight="20.0" prefWidth="69.0" selected="false" text="Расчеты" toggleGroup="$toggles" />
-    </children>
+        <ToggleButton id="data" fx:id="dataButton" contentDisplay="RIGHT" focusTraversable="false" graphicTextGap="4.0" mnemonicParsing="false" onAction="#handleDataClicked" prefHeight="13.0" prefWidth="71.0" rotate="0.0" selected="false" style="" text="Данные" textAlignment="LEFT" textOverrun="ELLIPSIS" toggleGroup="$toggles" underline="false" />
+        <ToggleButton id="tests" fx:id="testsButton" contentDisplay="RIGHT" focusTraversable="false" graphicTextGap="4.0" mnemonicParsing="false" onAction="#handleTestsClicked" prefHeight="20.0" prefWidth="69.0" selected="false" text="Расчеты" toggleGroup="$toggles" />
+      </children>
     </HBox>
     <FlowPane fx:id="taskPerformingPanel" alignment="CENTER" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: rgba(255,255,255,0.67);" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="-1.0">
-    <children>
-            <AnchorPane layoutX="573.5" layoutY="-30.0" prefHeight="135.0" prefWidth="409.0" style="-fx-background-color: #fff; -fx-border-color: #aaa;">
-                <children>
-                    <Label fx:id="currentTaskTitle" layoutX="57.0" layoutY="15.0" prefHeight="17.0" prefWidth="338.0" text="Текущая задача" AnchorPane.leftAnchor="60.0" AnchorPane.rightAnchor="12.0" />
-                    <ProgressBar fx:id="taskProgressBar" layoutX="11.0" layoutY="86.0" prefWidth="200.0" progress="0.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" />
-                    <ProgressIndicator layoutX="13.5" layoutY="45.0" prefHeight="20.0" prefWidth="20.0" progress="0.15" AnchorPane.leftAnchor="10.0" />
-                    <ImageView fitHeight="30.0" fitWidth="30.0" layoutX="21.0" layoutY="23.0" pickOnBounds="true" preserveRatio="true" AnchorPane.leftAnchor="10.0">
-                        <image>
-                            <Image url="@../proccess.gif" />
-                        </image>
-                    </ImageView>
-                    <Label fx:id="currentTaskDescription" layoutX="59.0" layoutY="47.0" prefHeight="17.0" prefWidth="106.0" text="Её описание" AnchorPane.leftAnchor="60.0" AnchorPane.rightAnchor="13.0" />
-                </children>
-            </AnchorPane>
-    </children>
+      <children>
+        <AnchorPane prefHeight="135.0" prefWidth="409.0" style="-fx-background-color: #fff; -fx-border-color: #aaa;">
+          <children>
+            <Label fx:id="currentTaskTitle" layoutY="25.0" prefHeight="17.0" prefWidth="338.0" text="Текущая задача" AnchorPane.leftAnchor="60.0" AnchorPane.rightAnchor="12.0" />
+            <ProgressBar fx:id="taskProgressBar" layoutY="86.0" prefWidth="200.0" progress="0.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" />
+            <ProgressIndicator layoutY="45.0" prefHeight="20.0" prefWidth="20.0" progress="0.15" AnchorPane.leftAnchor="10.0" />
+            <ImageView fitHeight="30.0" fitWidth="30.0" layoutY="30.0" pickOnBounds="true" preserveRatio="true" AnchorPane.leftAnchor="15.0">
+              <image>
+                <Image url="@../proccess.gif" />
+              </image>
+            </ImageView>
+            <Label fx:id="currentTaskDescription" layoutY="47.0" prefHeight="17.0" prefWidth="106.0" text="Её описание" AnchorPane.leftAnchor="60.0" AnchorPane.rightAnchor="13.0" />
+          </children>
+        </AnchorPane>
+      </children>
     </FlowPane>
   </children>
 </AnchorPane>

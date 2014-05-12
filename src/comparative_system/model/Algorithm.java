@@ -148,6 +148,20 @@ public class Algorithm {
     public boolean hasErrors() {
         return this.hasErrors;
     }
+    
+    public void setResults(long gen_index, ArrayList<Result> values) {
+        this.results.put(gen_index, Result.calculateMedians(values));
+    }
+    
+    public ArrayList<Result> getResults(long gen_index) {
+        return this.results.get(gen_index);
+    }
+    
+    public void removeResults(long gen_index) {
+        if (this.results.containsKey(gen_index)) {
+            this.results.remove(gen_index);
+        }
+    }
 }
 
 

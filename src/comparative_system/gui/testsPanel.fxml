@@ -1,15 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.lang.*?>
+<?import javafx.collections.*?>
+<?import javafx.scene.chart.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="413.0" prefWidth="855.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="comparative_system.controller.FXMLguiController">
-<children>
-    <Button fx:id="startTestsButton" layoutX="584.0" layoutY="214.0" mnemonicParsing="false" onAction="#handleStartTestsButtonClicked" text="Расчитать трудоемкость" />
-    <ListView fx:id="genListForTests" layoutX="24.0" layoutY="39.0" prefHeight="200.0" prefWidth="240.0" />
-    <Label layoutX="24.0" layoutY="20.0" text="Выберите генератор данных:" />
-    <Label layoutX="311.0" layoutY="20.0" text="Выберите алгоритм для расчета:" />
-    <ListView fx:id="algListForTests" layoutX="311.0" layoutY="39.0" prefHeight="200.0" prefWidth="240.0" />
-</children>
+<AnchorPane id="AnchorPane" prefHeight="665.0" prefWidth="1025.0000999999975" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="comparative_system.controller.FXMLguiController">
+  <children>
+    <Label layoutY="20.0" text="Выберите генератор данных:" AnchorPane.leftAnchor="24.0" />
+    <Label layoutY="20.0" text="Выберите алгоритм для расчета:" AnchorPane.leftAnchor="291.0" />
+    <ComboBox fx:id="genListForTests" layoutY="39.0" prefHeight="21.0" prefWidth="240.0" promptText="Генератор..." AnchorPane.leftAnchor="24.0">
+      <items>
+        <FXCollections fx:factory="observableArrayList">
+          <String fx:value="Item 1" />
+          <String fx:value="Item 2" />
+          <String fx:value="Item 3" />
+        </FXCollections>
+      </items>
+    </ComboBox>
+    <ComboBox fx:id="algListForTests" layoutY="39.0" prefHeight="21.0" prefWidth="240.00009999999747" promptText="Алгоритм..." AnchorPane.leftAnchor="288.0">
+      <items>
+        <FXCollections fx:factory="observableArrayList">
+          <String fx:value="Item 1" />
+          <String fx:value="Item 2" />
+          <String fx:value="Item 3" />
+        </FXCollections>
+      </items>
+    </ComboBox>
+    <LineChart id="LineChartNxN" fx:id="testGraph" prefHeight="468.0" prefWidth="818.0000999999975" AnchorPane.bottomAnchor="43.0" AnchorPane.leftAnchor="23.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="72.0">
+      <xAxis>
+        <NumberAxis side="BOTTOM" />
+      </xAxis>
+      <yAxis>
+        <NumberAxis side="LEFT" />
+      </yAxis>
+    </LineChart>
+    <BorderPane layoutY="39.0" prefHeight="26.0" prefWidth="442.0000999999975" AnchorPane.leftAnchor="556.0" AnchorPane.rightAnchor="27.0">
+      <left>
+        <Button fx:id="startTestsButton" mnemonicParsing="false" onAction="#handleStartTestsButtonClicked" prefWidth="268.0000999999975" text="Расчитать трудоемкость и построить график" />
+      </left>
+      <right>
+        <Button mnemonicParsing="false" onAction="#handleClearTestsGraphButtonClicked" text="Очистить график" />
+      </right>
+    </BorderPane>
+  </children>
 </AnchorPane>

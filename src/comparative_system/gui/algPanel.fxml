@@ -36,7 +36,7 @@
                 </TextField>
               </left>
               <right>
-                <Button mnemonicParsing="false" prefHeight="29.0" prefWidth="28.0" text="X" />
+                <Button fx:id="removeAlgButton" mnemonicParsing="false" onAction="#handleRemoveAlgButtonClicked" prefHeight="29.0" prefWidth="28.0" style="" text="X" />
               </right>
             </BorderPane>
             <Separator orientation="VERTICAL" pickOnBounds="false" prefHeight="446.0" prefWidth="0.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.rightAnchor="281.0" AnchorPane.topAnchor="68.0" />

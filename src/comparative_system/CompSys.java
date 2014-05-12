@@ -50,6 +50,7 @@ public class CompSys extends Application {
                 Preferences.savePreferences();
                 //TODO: остановить анализ saveAllBeforeClose();
                 Platform.exit();
+                System.exit(0);
             }
         });
         //загружаем файлы библиотек для подсветки кода
@@ -268,5 +269,13 @@ public class CompSys extends Application {
         };
         Thread upd = new Thread(daemon);
         upd.start();
+    }
+
+    public static void removeAlgorithm(int index) {
+        project.removeAlgorithm(index);
+    }
+    
+    public static void removeDataGenerator(int currentGuiAlg) {
+        project.removeDataGenerator(currentGuiAlg);
     }
 }
