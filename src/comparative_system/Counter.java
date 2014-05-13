@@ -2,7 +2,7 @@ package comparative_system;
 
 /**
  * Класс для подсчета операций в алгоритмах.
- * @author Gromov evg.
+ * @author Gromov Evg.
  */
 public class Counter {
     /** Количество операций. */
@@ -24,6 +24,9 @@ public class Counter {
         return count_of_operations;
     }
 
+    /**
+     * Метод для сброса счетчика операций.
+     */
     public static void resetCountResult() {
         count_of_operations = 0;
     }

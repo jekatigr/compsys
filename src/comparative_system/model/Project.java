@@ -11,13 +11,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.concurrent.Task;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.Name;
-import org.eclipse.jdt.core.dom.QualifiedName;
 
 /**
  * Класс, реализующий проект.
@@ -362,6 +358,26 @@ public class Project {
         return this.file.toString();
     }
         
+    /**
+     * Метод для удаления алгоритма из проекта.
+     * @param index Индекс алгоритма в списке.
+     */
+    public void removeAlgorithm(int index) {
+        algorithms.remove(index);
+        removeAlgorithmFromDB(index);
+    }
+
+    /**
+     * Метод для удаления генератора данных из проекта.
+     * @param index Индекс генератора в списке проекта.
+     */
+    public void removeDataGenerator(int index) {
+        for(Algorithm alg : algorithms) {
+            alg.removeResults(index);
+        }
+        dg.remove(index);
+    }
+    
     
     /**
      * Метод возвращает индекс алгоритма, который показывается в GUI в данный момент.
@@ -556,17 +572,5 @@ public class Project {
         } else {//сравниваем параметры метода по типу с уже сохраненными
             return DataGenerator.compareListOfParams(parameters);
         }
-    }
-
-    public void removeAlgorithm(int index) {
-        algorithms.remove(index);
-        removeAlgorithmFromDB(index);
-    }
-
-    public void removeDataGenerator(int index) {
-        for(Algorithm alg : algorithms) {
-            alg.removeResults(index);
-        }
-        dg.remove(index);
     }
 }

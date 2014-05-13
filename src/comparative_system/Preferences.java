@@ -23,8 +23,6 @@ public class Preferences {
     private static final String preferences_file_path = "preferences.dat";
     /** Путь к папке jdk. */
     private static String jdk_path = "";
-    /** Количество потоков при подсчетах. */
-    private static int threads_count = 4;
     /** Пути к файлам последних открытых проектов (4 максимум). Путь с индексом 0 открывался раньше всего. */
     private static ArrayList<String> projects_files = new ArrayList<>();
     /** Путь, который был открыт последним в диалоговом окне выбора файлов.  */
@@ -52,7 +50,6 @@ public class Preferences {
             JSONObject data = (JSONObject)parcer.parse(fileContent.toString());
 
             jdk_path = String.valueOf(data.get("jdk_path"));
-            threads_count = Integer.parseInt(String.valueOf(data.get("threads_count")));
             JSONArray paths = (JSONArray)data.get("projects_files");
             for(int i = 0; i < paths.size(); i++) {
                 projects_files.add(String.valueOf(paths.get(i)));
@@ -83,7 +80,6 @@ public class Preferences {
             //Сохраняем все данные в JSON-объект
             JSONObject data = new JSONObject();
             data.put("jdk_path", jdk_path);
-            data.put("threads_count", threads_count);
             JSONArray projects_files_json = new JSONArray();
             for(int i = 0; i < projects_files.size(); i++) {
                 projects_files_json.add(projects_files.get(i));

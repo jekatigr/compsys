@@ -4,9 +4,6 @@ import comparative_system.controller.FXMLguiController;
 import comparative_system.gui.CodeEditor;
 import comparative_system.model.*;
 import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
@@ -21,6 +18,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Dialogs;
 import javafx.stage.Stage;
+
 /**
  * Главный класс программы.
  * @author Gromov Evg.
@@ -240,42 +238,19 @@ public class CompSys extends Application {
         return project;
     }
     
-    public static void runUpdater(final Task<Void> t, final Thread th) {
-        Task<Void> daemon = new Task<Void>() {
-            @Override
-            protected Void call() {
-                try {
-                    while(th.isAlive()) {
-                        Platform.runLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                FXMLguiController.refreshPerformingTaskPanel(t.getTitle(), t.getMessage(), t.getProgress());
-                            }
-                        });
-                        th.join(250);
-                    }
-                    
-                    Platform.runLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            FXMLguiController.stopPerformingTask();
-                        }
-                    });
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                return null;
-            }
-        };
-        Thread upd = new Thread(daemon);
-        upd.start();
-    }
-
+    /**
+     * Метод для удаления алгоритма из проекта с обновлением GUI.
+     * @param index Индекс алгоритма в списке.
+     */
     public static void removeAlgorithm(int index) {
         project.removeAlgorithm(index);
     }
     
-    public static void removeDataGenerator(int currentGuiAlg) {
-        project.removeDataGenerator(currentGuiAlg);
+    /**
+     * Метод для удаления генератора данных из проекта с обновлением GUI.
+     * @param index Индекс генератора в списке проекта.
+     */
+    public static void removeDataGenerator(int index) {
+        project.removeDataGenerator(index);
     }
 }

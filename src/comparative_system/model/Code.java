@@ -17,8 +17,9 @@ public class Code {
     private Class generatedClass;
     /** true, если в данном классе находится метод вызова алгоритма. */
     private boolean hasMainMethod;
-    
+    /** Описание ошибок в исходном коде. */
     private String sourceCodeErrors;
+    /** Описание ошибок в сгенерированном коде. */
     private String generatedCodeErrors;
     
     /**
@@ -69,45 +70,86 @@ public class Code {
         this.generatedCode = code;
     }
 
+    /**
+     * Метод для задания пакета к этому коду.
+     * @param name Имя пакета.
+     */
     public void setPackageName(String name) {
         this.packageName = name;
     }
     
+    /**
+     * Метод возвращает имя пакета этого кода.
+     * @return Имя пакета.
+     */
     public String getPackageName() {
         return this.packageName;
     }
     
+    /**
+     * Метод для задания имени класса данного кода.
+     * @param name Имя класса.
+     */
     public void setClassName(String name) {
         this.className = name;
     }
     
+    /**
+     * Метод возвращает имя класса данного кода.
+     * @return 
+     */
     public String getClassName() {
         return this.className;
     }
     
+    /**
+     * Метод для задания класса с вставленными счетчиками.
+     * @param c Скомпилированный класс.
+     */
     public void setGeneratedClass(Class c) {
         this.generatedClass = c;
     }
     
+    /**
+     * Метод возвращает класс этого кода с вставленными счетчиками.
+     * @return Скомпилированный класс.
+     */
     public Class getGeneratedClass() {
         return this.generatedClass;
     }
     
+    /**
+     * Метод для задания описания ошибок в исходном коде.
+     * @param sourceCodeErrors Описание ошибок в исходном коде.
+     */
     public void setSourceCodeErrors(String sourceCodeErrors) {
         this.sourceCodeErrors = sourceCodeErrors;
     }
     
+    /**
+     * Метод возвращает описание ошибок в исходном коде.
+     * @return Описание ошибок в исходном коде.
+     */
     public String getSourceCodeErrors() {
         return this.sourceCodeErrors;
     }
     
+    /**
+     * етод для задания описания ошибок в сгенерированном коде.
+     * @param generatedCodeErrors Описание ошибок в сгенерированном коде
+     */
     public void setGeneratedCodeErrors(String generatedCodeErrors) {
         this.generatedCodeErrors = generatedCodeErrors;
     }
     
+    /**
+     * Метод возвращает описание ошибок в сгенерированном коде.
+     * @return Описание ошибок в сгенерированном коде.
+     */
     public String getGeneratedCodeErrors() {
         return this.generatedCodeErrors;
     }
+    
     /**
      * Метод возвращает путь к файлу будущего класса в пакете для компиляции (без имени файла).
      * @return 
@@ -116,10 +158,18 @@ public class Code {
         return this.packageName.replaceAll("\\.", "/") + "/";
     }
     
+    /**
+     * Метод задает флаг, есть ли метод вызова алгоритма в данном коде.
+     * @param hasMainMethod Флаг, есть ли главный метод в данном коде.
+     */
     public void setHasMainMethod(boolean hasMainMethod) {
         this.hasMainMethod = hasMainMethod;
     }
 
+    /**
+     * Метод возвращает флаг, есть ли главный метод в данном коде.
+     * @return Флаг, есть ли главный метод в данном коде.
+     */
     boolean getHasMainMethod() {
         return this.hasMainMethod;
     }

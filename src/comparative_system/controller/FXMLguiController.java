@@ -18,16 +18,12 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 import java.util.ResourceBundle;
-import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -46,19 +42,14 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
@@ -100,6 +91,7 @@ public class FXMLguiController implements Initializable {
     private static ChangeListener selectAlgInListListener;
     /** Текстовое поле для имени алгоритма. */
     @FXML private static TextField algNameTextField;
+    /** Кнопка для удаления алгоритма. */
     @FXML private static Button removeAlgButton;
     
     /** Панель вкладок с кодами классов алгоритма. */
@@ -125,36 +117,31 @@ public class FXMLguiController implements Initializable {
     @FXML private static TextField genNameTextField;
     /** Флаг для режима добавления нового генератора. */
     @FXML private static Button removeGenButton;
+    /** Флаг для добавления нового генератора данных. */
     private static boolean addingNewGen = false;
     /** Надпись с инструкцией к генератору. */
     @FXML private static Label apiInstructionLabel;
     
+    /** Выпадающий список генераторов данных для проведения вычислений трудоемкости. */
     @FXML private static ComboBox genListForTests;
+    /** Выпадающий список алгоритмов для проведения вычислений трудоемкости. */
     @FXML private static ComboBox algListForTests;
+    /** Кнопка для начала тестов. */
     @FXML private static Button startTestsButton;
+    /** График результатов. */
     @FXML private static LineChart testGraph;
     
+    /** Панель для отображения текущей задачи. */
     @FXML private static FlowPane taskPerformingPanel;
+    /** Имя текущей задачи. */
     @FXML private static Label currentTaskTitle;
+    /** Описание текущей задачи. */
     @FXML private static Label currentTaskDescription;
+    /** Прогрессбар для отображения прогресса выполнения текущей задачи. */
     @FXML private static ProgressBar taskProgressBar;
+    /** Список всех результатов, которые в данный момент выведены на график.  */
     private static HashMap<String, XYChart.Series<Number,Number>> onGraph = new HashMap<>();
     
-//    /** Таблица с сгенерированными данными генератора. */
-//    @FXML private static TableView tableForDateGeneratorValues;
-//
-//    public static void reloadTableValuesForCurrentDataGenerator() {
-//        DataGenerator gen = CompSys.getProject().getDataGenerator(Project.getCurrentGuiGen());
-//        
-//        ObservableList<Data> data = FXCollections.observableArrayList(gen.getValues());
-//        for(int i = 0; i < DataGenerator.getCountOfMethodsParams(); i++) {
-//            TableColumn tc = new TableColumn(""+DataGenerator.getParam(i).getName());
-//            tc.setCellValueFactory(new PropertyValueFactory<Data, Object>("list["+i+"]"));
-//            tableForDateGeneratorValues.getColumns().add(tc);
-//        }
-//        tableForDateGeneratorValues.setItems(data);
-//        
-//    }
    
     /** Обработка нажания кнопки "Сохранить проект". */
     @FXML private void handleSaveNewProject(ActionEvent event) {
@@ -351,7 +338,34 @@ public class FXMLguiController implements Initializable {
         final Thread th = new Thread(t);
         th.start();
         
-        CompSys.runUpdater(t, th);
+        Task<Void> daemon = new Task<Void>() {
+            @Override
+            protected Void call() {
+                try {
+                    while(th.isAlive()) {
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                FXMLguiController.refreshPerformingTaskPanel(t.getTitle(), t.getMessage(), t.getProgress());
+                            }
+                        });
+                        th.join(250);
+                    }
+                    
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            FXMLguiController.stopPerformingTask();
+                        }
+                    });
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                return null;
+            }
+        };
+        Thread upd = new Thread(daemon);
+        upd.start();
     }
     
     /** Обработка нажания кнопки "Сохранить и сгенерировать данные" при редактировании генератора. */
@@ -452,6 +466,9 @@ public class FXMLguiController implements Initializable {
         upd.start();
     }
         
+    /**
+     * Обработка нажатия кнопки "Расчитать трудоемкость".
+     */
     @FXML private void handleStartTestsButtonClicked() {
         final int gen_index = genListForTests.getSelectionModel().getSelectedIndex();
         final int alg_index = algListForTests.getSelectionModel().getSelectedIndex();
@@ -551,6 +568,9 @@ public class FXMLguiController implements Initializable {
         upd.start();
     }
     
+    /**
+     * Обработка изменения текста в редакторе кода.
+     */
     public static void handleKeyTypedInCodeEditor() {
         if (mode == 0) {
             algMethodsComboBox.getItems().clear();
@@ -558,6 +578,9 @@ public class FXMLguiController implements Initializable {
         } 
     }
     
+    /**
+     * Обработка нажания кнопки "показать ошибки".
+     */
     @FXML private static void handleShowErrorInAlgButtonClicked() {
         AnchorPane pane = new AnchorPane();
         TextArea t = new TextArea();
@@ -580,11 +603,17 @@ public class FXMLguiController implements Initializable {
         Dialogs.showCustomDialog(primaryStage, pane, error, "Ошибки в алгоритме...", Dialogs.DialogOptions.OK, null);
     }
     
+    /**
+     * Обработка нажатия кнопки "Очистить график".
+     */
     @FXML private void handleClearTestsGraphButtonClicked() {
             testGraph.getData().clear();
             onGraph.clear();
     }
     
+    /**
+     * Обработка нажатия кнопки удаления алгоритма.
+     */
     @FXML private void handleRemoveAlgButtonClicked() {
         if (Project.getCurrentGuiAlg() != -1 && DialogResponse.YES == 
             Dialogs.showConfirmDialog(primaryStage, "", "Удалить алгоритм \""+ CompSys.getProject().getAlgorithm(Project.getCurrentGuiAlg()).getName() +"\" и все связанные данные?", "Удаление алгоритма...", Dialogs.DialogOptions.YES_NO)) {
@@ -596,6 +625,9 @@ public class FXMLguiController implements Initializable {
         }
     }
     
+    /**
+     * Обработка нажатия кнопки удаления генератора данных.
+     */
     @FXML private void handleRemoveGenButtonClicked() {
         if (Project.getCurrentGuiGen() != -1 && DialogResponse.YES == 
             Dialogs.showConfirmDialog(primaryStage, "", "Удалить генератор \""+ CompSys.getProject().getDataGenerator(Project.getCurrentGuiGen()).getName() +"\" и все связанные данные?", "Удаление генератора...", Dialogs.DialogOptions.YES_NO)) {
@@ -916,6 +948,10 @@ public class FXMLguiController implements Initializable {
         }
     }
     
+    /**
+     * Метод для изменения интерфейса при выборе генератора в выпадающем списке на панели тестов.
+     * @param index Индекс выбранного генератора.
+     */
     private static void selectGenInListForTests(int index) {
         if (index != -1 && CompSys.getProject().getDataGenerator(index) != null) {
             algListForTests.setDisable(false);
@@ -930,10 +966,19 @@ public class FXMLguiController implements Initializable {
         }
     }
 
+    /**
+     * Метод для изменения интерфейса при выборе алгоритма в выпадающем списке на панели тестов.
+     * @param index Индекс выбранного алгоритма.
+     */
     private static void selectAlgInListForTests(int index) {
         startTestsButton.setDisable(false);
     }
     
+    /**
+     * Метод для получения панели для списка алгоритмов в красивом виде.
+     * @param index Индекс алгоритма в списке проекта.
+     * @return Панель для списка алгоритмов.
+     */
     private static Pane getAlgViewInList(int index) {
         if (index != -1) {
             AnchorPane p = new AnchorPane();
@@ -982,6 +1027,11 @@ public class FXMLguiController implements Initializable {
         }
     }
     
+    /**
+     * Метод для получения панели для списка генераторов данных в красивом виде.
+     * @param index Индекс генератора в списке проекта.
+     * @return Панель для списка генераторов.
+     */
     private static Pane getGenViewInList(int index) {
         if (index != -1) {
             AnchorPane p = new AnchorPane();
@@ -1013,16 +1063,28 @@ public class FXMLguiController implements Initializable {
         }
     }
 
+    /**
+     * Метод для переключения интерфейса в режим выполнения задачи.
+     */
     public static void startPerformingTask(){
         taskPerformingPanel.visibleProperty().setValue(true);
     }
     
+    /**
+     * Метод для обновления интерфейса в режиме выполнения задачи.
+     * @param title Имя задачи.
+     * @param message Описание задачи.
+     * @param progress Прогресс выполнения задачи.
+     */
     public static void refreshPerformingTaskPanel(String title, String message, double progress){
         currentTaskTitle.setText(title);
         currentTaskDescription.setText(message);
         taskProgressBar.setProgress(progress);
     }
     
+    /**
+     * Метод для переключения интерфейса из режима выполнения задачи.
+     */
     public static void stopPerformingTask(){
         taskPerformingPanel.visibleProperty().setValue(false);
     }

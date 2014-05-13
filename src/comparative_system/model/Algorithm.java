@@ -2,8 +2,6 @@ package comparative_system.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.Name;
 
 /**
  * Класс, реализующий алгоритм.
@@ -132,6 +130,10 @@ public class Algorithm {
         this.showCounters = show;
     }
 
+    /**
+     * Метод возвращает класс, в котором содержится метод вызова алгоритма.
+     * @return Класс с методом вызова.
+     */
     public Class getClassWithMainMethod() {
         for (Code c : codes) {
             if (c.getHasMainMethod()) {
@@ -141,22 +143,44 @@ public class Algorithm {
         return null;
     }
 
+    /**
+     * Метод задает флаг: есть а лгоритма ошибки или нет.
+     * @param err Есть ли ошибки.
+     */
     void setHasErrors(boolean err) {
         this.hasErrors = err;
     }
 
+    /**
+     * Метод возвращает флаг, есть ли ошибки в алгоритме.
+     * @return Если ли ошибки.
+     */
     public boolean hasErrors() {
         return this.hasErrors;
     }
     
+    /**
+     * Метод для задания результатов вычислений трудоемкости.
+     * @param gen_index Индекс генератора данных.
+     * @param values Список результатов.
+     */
     public void setResults(long gen_index, ArrayList<Result> values) {
         this.results.put(gen_index, Result.calculateMedians(values));
     }
     
+    /**
+     * Метод для получения списка результатов.
+     * @param gen_index Индекс генератора.
+     * @return Список результатов.
+     */
     public ArrayList<Result> getResults(long gen_index) {
         return this.results.get(gen_index);
     }
     
+    /**
+     * Метод для удаления результатов.
+     * @param gen_index Индекс генератора данных.
+     */
     public void removeResults(long gen_index) {
         if (this.results.containsKey(gen_index)) {
             this.results.remove(gen_index);

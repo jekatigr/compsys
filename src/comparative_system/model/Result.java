@@ -23,15 +23,28 @@ public class Result {
         this.second_param = second_param;
     }
     
+    /**
+     * Метод возвращает второй параметр для вывода на график результатов.
+     * @return Второй параметр.
+     */
     public long getSecondParam() {
         return this.second_param;
     }
     
+    /**
+     * Метод возвращает количество операций для вывода на график результатов.
+     * @return Количество операций.
+     */
     public long getCountOfOperations() {
         return this.count;
     }
     
     
+    /**
+     * Метод для расчета средних значений тех результатов, у которых одинаковые вторые параметры.
+     * @param values Полный список результатов.
+     * @return Список результатов с вычисленными средними значениями.
+     */
     static ArrayList<Result> calculateMedians(ArrayList<Result> values) {
         ArrayList<Result> res = new ArrayList<>();
         

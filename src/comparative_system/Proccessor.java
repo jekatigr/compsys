@@ -1,8 +1,6 @@
 package comparative_system;
 
-import comparative_system.model.Algorithm;
 import comparative_system.model.Code;
-import comparative_system.model.IGenerator;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
@@ -94,6 +92,10 @@ import org.eclipse.text.edits.TextEdit;
 public class Proccessor { 
     /** Парсер для разбора исходного кода. */
     private static final ASTParser parser = ASTParser.newParser(AST.JLS4);
+    /** Документ с кодом, в который будут расставляться счетчики операций. */
+    private static Document codeDoc = null;
+    /** Rewriter для внесения изменений в ast-дерево исходного кода алгоритмов. */
+    private static ASTRewrite rewriter = null;
     
     /**
      * Метод возвращает лист всех деклараций методов, которые будут найдены в коде {@code codes}.
@@ -146,7 +148,6 @@ public class Proccessor {
         
         return methods;
     }
-    
 
     /**
      * Метод для расстановки счетчиков операций в алгоритма. 
@@ -180,11 +181,6 @@ public class Proccessor {
         putCountersInCode(code);
         return codeDoc.get();
     }
-
-    /** Документ с кодом, в который будут расставляться счетчики операций. */
-    private static Document codeDoc = null;
-    /** Rewriter для внесения изменений в ast-дерево исходного кода алгоритмов. */
-    private static ASTRewrite rewriter = null;
     
     /**
      * Метод для расстановки счетчиков в пореданный исходный код.
@@ -1172,7 +1168,6 @@ public class Proccessor {
        
         return res.toString().substring(1, res.length() - 2);
     }
-
     
     /** Метод возвращает имя пакета из исходного кода.
      * @param code Исходный код.

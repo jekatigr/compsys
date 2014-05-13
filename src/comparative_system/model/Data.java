@@ -13,7 +13,7 @@ public class Data {
     private long gen_id;
     /** Исходные данные, соответствующие параметрам методов вызова алгоритмов проекта. */
     private Object[] values;
-    /**  */
+    /** Второй параметр для отображения на графике результатов. */
     private long second_param;
 
     /**
@@ -38,14 +38,26 @@ public class Data {
         return this.gen_id;
     }
     
+    /**
+     * Метод возвращает копию данных этого набора.
+     * @return Копия массива данных.
+     */
     public Object[] getValues() {
         return SerializationUtils.clone(this.values);
     }
     
+    /**
+     * Метод возвращает индекс этого набора в списке всех наборов генератора.
+     * @return Индекс набора.
+     */
     public long getIndex(){
         return this.index;
     }
 
+    /**
+     * Метод возвращает второй параметр для вывода на график результатов.
+     * @return Второй параметр.
+     */
     public long getSecondParam() {
         return this.second_param;
     }

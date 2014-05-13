@@ -9,8 +9,8 @@ import java.util.ArrayList;
 public interface IGenerator {
     /**
      * Метод для создания списка исходных данных, который генерирует генератор.
-     * @param gen_id id генератора в БД проекта.
+     * @param gen_index index генератора в списке  проекта.
      * @return Список исходных данных.
      */
-    public ArrayList<Data> getData(long gen_id);
+    public ArrayList<Data> getData(long gen_index);
 }

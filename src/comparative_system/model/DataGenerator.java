@@ -178,6 +178,10 @@ public class DataGenerator {
         }
     }
 
+    /**
+     * Метод возвращает список наборов исходных данных этого генератора.
+     * @return Список наборов данных.
+     */
     public ArrayList<Data> getValues() {
         return this.data;
     }
@@ -338,6 +342,10 @@ public class DataGenerator {
         return res;
     }
 
+    /**
+     * Метод возвращает массив классов параметров, которые будут передаваться в методы вызова алгоритмов.
+     * @return Массив классов.
+     */
     public static Class[] getMethodsParamsAsArrayOfClasses() {
         Class[] arr = new Class[params.size()];
         for(int i = 0; i <params.size(); i++) {
