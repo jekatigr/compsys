@@ -7,7 +7,7 @@ import org.apache.commons.lang3.SerializationUtils;
  * @author Gromov Evg.
  */
 public class Data {
-    /* Индекс набора данных в списке проекта. */
+    /** Индекс набора данных в списке проекта. */
     private long index;
     /** Индекс генератора данного набора исходных данных в БД. */
     private long gen_id;

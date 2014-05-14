@@ -14,7 +14,13 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.ClassUtils;
+import org.eclipse.jdt.core.dom.ArrayType;
+import org.eclipse.jdt.core.dom.ImportDeclaration;
+import org.eclipse.jdt.core.dom.ParameterizedType;
+import org.eclipse.jdt.core.dom.QualifiedType;
+import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
+import org.eclipse.jdt.core.dom.Type;
 
 /**
  * Класс для представления генераторов исходных данных вместе с самими данными.
@@ -194,10 +200,17 @@ public class DataGenerator {
     private static void clearParamsList() {
         params.clear();//TODO:удаление из бд и удаление данных
     }
+    
+    /**
+     * Метод для очистки статического списка параметров методов вызова.
+     */
+    public static void removeParams() {
+        params.clear();
+    }
 
     /**
      * Добавление очередного параметра метода вызова алгоритма.
-     * @param type Тип параметра.
+     * @param type Полный тип параметра.
      * @param name Имя параметра.
      */
     public static void addMainMethodsParam(String type, String name) {
@@ -263,13 +276,79 @@ public class DataGenerator {
      */
     public static void saveNewMainMethodParams(List parameters) {
         clearParamsList();
-        for(Object param : parameters) {//TODO: создать таблицу исх. данных.
+        for(Object param : parameters) {
             SingleVariableDeclaration p = (SingleVariableDeclaration)param;
-            DataGenerator.addMainMethodsParam(p.getType().toString(), p.getName().toString());
+            String type = getTypeName(p.getType());
+            DataGenerator.addMainMethodsParam(type, p.getName().toString());
         }
         saveMethodParamsInDB();
     }
+    
+    /**
+     * Метод возвращает полный тип переменной.
+     * @param t Тип переменной.
+     * @return Полное имя типа.
+     */
+    private static String getTypeName(Type t) {
+        if (t.isArrayType()) {
+            ArrayType a = (ArrayType)t;
+            String arrQ = "";
+            for (int i = 0; i < a.getDimensions(); i++) {
+                arrQ += "[]";
+            }
+            return getTypeName(a.getElementType()) + arrQ;
+        }
+        if (t.isPrimitiveType()) {
+            return t.toString();
+        }
+        if (t.isParameterizedType()) {
+            ParameterizedType p = (ParameterizedType)t;
+                        
+            return getTypeName(p.getType());
+        }
+        if (t.isQualifiedType()) {
+            QualifiedType q = (QualifiedType)t;
+            return getTypeName(q.getQualifier()) + "$" + q.getName().toString();
+        }
+        if (t.isSimpleType()) {
+            SimpleType s = (SimpleType)t;
+            if (s.getName().isQualifiedName()) {
+                return s.getName().getFullyQualifiedName();
+            } else {
+                return getQualifidNameOfSimpleType(s.getName().toString());
+            }
+        }
+        return t.toString();
+    }
 
+    /**
+     * Метод возвращает полное имя типа.
+     * @param name Имя типа.
+     * @return Полное имя типа.
+     */
+    private static String getQualifidNameOfSimpleType(String name) {
+        ArrayList<String> allClasses = new ArrayList<>();
+        
+        for(Algorithm alg : CompSys.getProject().getAlgorithms()) {
+            for(Code code : alg.getCodes()) {
+                allClasses.add(code.getPackageName() + "." + code.getClassName());
+                List imports = Proccessor.getAllImportsFromCode(code);
+                for(Object imp : imports) {
+                    ImportDeclaration i = (ImportDeclaration)imp;
+                    if (!i.isOnDemand()) {
+                        allClasses.add(i.getName().getFullyQualifiedName());
+                    }
+                }
+            }
+        }
+        for (String c : allClasses) {
+            if (c.substring(c.lastIndexOf(".") + 1, c.length()).equals(name)) {
+                return c;
+            }
+        }
+        return "java.lang." + name;
+    }
+    
     /**
      * Метод для сохранения параметров главных методов алгоритмов в БД проекта.
      */

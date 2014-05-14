@@ -25,7 +25,7 @@
                 </TextField>
               </left>
               <right>
-                <Button mnemonicParsing="false" prefHeight="29.0" prefWidth="28.0" text="X" />
+                <Button fx:id="removeGenButton" mnemonicParsing="false" onAction="#handleRemoveGenButtonClicked" prefHeight="29.0" prefWidth="28.0" text="X" />
               </right>
             </BorderPane>
             <AnchorPane fx:id="dataGeneratorCodePanel" prefHeight="450.0" prefWidth="676.0" visible="true" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="52.0">

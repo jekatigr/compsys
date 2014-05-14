@@ -46,40 +46,13 @@ public class CompSys extends Application {
             @Override
             public void handle(Event t) {
                 Preferences.savePreferences();
-                //TODO: остановить анализ saveAllBeforeClose();
+                CompSys.closeProject();
                 Platform.exit();
                 System.exit(0);
             }
         });
         //загружаем файлы библиотек для подсветки кода
         CodeEditor.loadCodeMirrorLibs();
-        /*
-        final Task loadCodeMirrorLibsTask = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                if (CodeEditor.loadCodeMirrorLibs()) {
-                    this.updateMessage("true"); 
-                } else {
-                    this.updateMessage("false"); 
-                }
-                return null;
-            }
-        };
-        
-        loadCodeMirrorLibsTask.stateProperty().addListener(new ChangeListener<Worker.State>() {
-            @Override
-            public void changed(ObservableValue<? extends Worker.State> ov, Worker.State oldState, Worker.State newState) {
-                if (Worker.State.FAILED == newState) {
-                    exitWithError("", "Ошибка при загрузке библиотек!", "Загрузка библиотек...");
-                }
-                if (Worker.State.SUCCEEDED == newState && !loadCodeMirrorLibsTask.getMessage().equals("true")) {
-                    exitWithError("", "Ошибка при загрузке библиотек!", "Загрузка библиотек...");
-                }
-            }
-        });
-        
-        new Thread(loadCodeMirrorLibsTask).start();
-        */
         //--загружаем файлы библиотек для подсветки кода
         //инициализируем интерфейс
         FXMLguiController.initialize();
@@ -95,7 +68,6 @@ public class CompSys extends Application {
         //--открываем последний проект, если он есть
         primaryStage = stage;
         stage.show();
-        
     }
 
     /**
@@ -252,5 +224,20 @@ public class CompSys extends Application {
      */
     public static void removeDataGenerator(int index) {
         project.removeDataGenerator(index);
+    }
+
+    /**
+     * Метод для очистки программы от текущего проекта.
+     */
+    public static void closeProject() {
+        project = null;
+        DataGenerator.removeParams();
+        Project.setCurrentGuiAlg(-1);
+        Project.setCurrentGuiGen(-1);
+        FXMLguiController.closeProject();
+        //очищаем временные папки программы
+        Proccessor.removeDirectory(new File("source_codes"));
+        Proccessor.removeDirectory(new File("generated_codes"));
+        Proccessor.removeDirectory(new File("data_generator"));
     }
 }

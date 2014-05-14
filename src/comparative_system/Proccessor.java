@@ -993,12 +993,12 @@ public class Proccessor {
      * Метод для удаления директории со всем содержимым.
      * @param dir 
      */
-    public static void deleteDirectory(File dir) {
+    public static void removeDirectory(File dir) {
         if (dir.isDirectory()) {
             String[] children = dir.list();
             for (String children1 : children) {
                 File f = new File(dir, children1);
-                deleteDirectory(f);
+                removeDirectory(f);
             }
             dir.delete();
         } else {
@@ -1017,7 +1017,7 @@ public class Proccessor {
         String res = "";
         
         //чистим папку для сохранения
-        deleteDirectory(new File("data_generator/"));
+        removeDirectory(new File("data_generator/"));
         new File("data_generator/generator/").mkdirs();
         //--чистим папку для сохранения
         //сохраняем исходники в каталогах согласно пакетам
@@ -1073,6 +1073,7 @@ public class Proccessor {
             Name packageForPath = (cu.getPackage() != null) ? cu.getPackage().getName() : null;
 
             if (packageForPath == null) {
+                c.setPackageName("algorithm" + alg_id);
                 c.setSourceCode("package algorithm" + alg_id + ";\n\n" + codeS);
                 c.setGeneratedCode("package algorithm" + alg_id + ";\n\n" + codeG);
             }                
@@ -1294,5 +1295,18 @@ public class Proccessor {
         }
         
         return codes;
+    }
+
+    /**
+     * Метод возвращает все импорты из исходного кода.
+     * @param code Код.
+     * @return Список импортов.
+     */
+    public static List getAllImportsFromCode(Code code) {
+        parser.setSource(code.getSourceCode().toCharArray());
+        parser.setKind(ASTParser.K_COMPILATION_UNIT);
+
+        final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+        return cu.imports();
     }
 }

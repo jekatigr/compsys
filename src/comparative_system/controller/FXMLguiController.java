@@ -143,7 +143,7 @@ public class FXMLguiController implements Initializable {
     private static HashMap<String, XYChart.Series<Number,Number>> onGraph = new HashMap<>();
     
    
-    /** Обработка нажания кнопки "Сохранить проект". */
+    /** Обработка нажания кнопки "Новый проект...". */
     @FXML private void handleSaveNewProject(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Сохранение нового проекта...");
@@ -159,7 +159,8 @@ public class FXMLguiController implements Initializable {
         File new_proj_file = fileChooser.showSaveDialog(primaryStage);
         if (new_proj_file != null) {
             Preferences.updateLastPathForFileChooser(new_proj_file.getParent());
-            Project.createNewProject(new_proj_file);//TODO: сделать проверку на успешное создание файла
+            CompSys.closeProject();
+            Project.createNewProject(new_proj_file);
             CompSys.openProject(new_proj_file);
         }
     }
@@ -178,6 +179,7 @@ public class FXMLguiController implements Initializable {
         File proj_file = fileChooser.showOpenDialog(primaryStage);
         if (proj_file != null) {
             Preferences.updateLastPathForFileChooser(proj_file.getParent());
+            CompSys.closeProject();
             CompSys.openProject(proj_file);
         }
     }
@@ -248,11 +250,17 @@ public class FXMLguiController implements Initializable {
     
     /** Обработка нажания кнопки "Сохранить" при редактировании алгоритма. */
     @FXML private void handleSaveAlgButtonClicked() {
-        final ArrayList<Code> codes = new ArrayList<>();
-        for(Tab tab : codesOfAlgorithmsTabPane.getTabs()) {
-            String code = ((CodeEditor)tab.getContent().lookup("#ce")).getCode();
-            codes.add(Proccessor.putCounters(code));
+        final ArrayList<Code> codes;
+        if(addingNewAlg == false && CompSys.getProject().getAlgorithm(Project.getCurrentGuiAlg()).getShowCounters()) {
+            codes = CompSys.getProject().getAlgorithm(Project.getCurrentGuiAlg()).getCodes();
+        } else {
+            codes = new ArrayList<>();
+            for(Tab tab : codesOfAlgorithmsTabPane.getTabs()) {
+                String code = ((CodeEditor)tab.getContent().lookup("#ce")).getCode();
+                codes.add(Proccessor.putCounters(code));
+            }
         }
+        
         final String algName = algNameTextField.getText();
         final int methodIndex = algMethodsComboBox.getSelectionModel().selectedIndexProperty().getValue();
         
@@ -287,7 +295,7 @@ public class FXMLguiController implements Initializable {
                                         public void run() {
                                             if (Dialogs.showConfirmDialog(primaryStage, "Перезаписать параметры?", "Параметры метода вызова алгоритма не совпадают с уже сохраненными! Параметры для всех алгоритмов должны совпадать.", "Параметры метода вызова...", Dialogs.DialogOptions.YES_NO) == Dialogs.DialogResponse.YES) {
                                                 //перезапись
-                                                DataGenerator.saveNewMainMethodParams(parameters);//TODO: при открытии другого проекта параметры добавляеютс к прежним, не удаляя их
+                                                DataGenerator.saveNewMainMethodParams(parameters);
                                                 if (addingNewAlg == true) {
                                                     CompSys.addNewAlgorithm(new Algorithm(algName, mName, codes));
                                                 } else {
@@ -349,7 +357,7 @@ public class FXMLguiController implements Initializable {
                                 FXMLguiController.refreshPerformingTaskPanel(t.getTitle(), t.getMessage(), t.getProgress());
                             }
                         });
-                        th.join(250);
+                        th.join(100);
                     }
                     
                     Platform.runLater(new Runnable() {
@@ -397,17 +405,22 @@ public class FXMLguiController implements Initializable {
                                 public void run() {
                                     FXMLguiController.reloadGenList();
                                     FXMLguiController.reloadGenAndAlgListsForTests();
+                                    testGraph.getData().clear();
                                 }
                             });
                         } else {
                             CompSys.saveDataGenerator(Project.getCurrentGuiGen(), name, imports, generateImplementation);
                             CompSys.getProject().getDataGenerator(Project.getCurrentGuiGen()).generateData(CompSys.getProject().getAllAlgotithmsAsImportsMap());
+                            for(int i = 0; i < CompSys.getProject().getCountOfAlgorithms(); i++) {
+                                CompSys.getProject().getAlgorithm(i).removeResults(Project.getCurrentGuiGen());
+                            }
                             Platform.runLater(new Runnable() {
                                 @Override
                                 public void run() {
                                     FXMLguiController.reloadGenList();
                                     FXMLguiController.reloadGenAndAlgListsForTests();
                                     FXMLguiController.loadDataGeneratorView(Project.getCurrentGuiGen());
+                                    testGraph.getData().clear();
                                 }
                             });
                         }
@@ -415,7 +428,15 @@ public class FXMLguiController implements Initializable {
                         Platform.runLater(new Runnable() {
                             @Override
                             public void run() {
-                                Dialogs.showWarningDialog(primaryStage, "Ошибка компиляции исходного кода.\nСообщение компилятора:\n\n" + compileRes, "Ошибка при компиляции исходного кода генератора.", "Исходные коды генератора...");
+                                AnchorPane pane = new AnchorPane();
+                                TextArea t = new TextArea();
+                                t.setText(compileRes);
+                                AnchorPane.setTopAnchor(t, -1.0);
+                                AnchorPane.setRightAnchor(t, -1.0);
+                                AnchorPane.setBottomAnchor(t, -1.0);
+                                AnchorPane.setLeftAnchor(t, -1.0);
+                                pane.getChildren().add(t);
+                                Dialogs.showCustomDialog(primaryStage, pane, "Ошибка при компиляции кода генератора.\n\nСообщение компилятора:", "Ошибки в алгоритме...", Dialogs.DialogOptions.OK, null);
                             }
                         });
                     }
@@ -447,7 +468,7 @@ public class FXMLguiController implements Initializable {
                                 FXMLguiController.refreshPerformingTaskPanel(t.getTitle(), t.getMessage(), t.getProgress());
                             }
                         });
-                        th.join(250);
+                        th.join(100);
                     }
                     
                     Platform.runLater(new Runnable() {
@@ -537,7 +558,7 @@ public class FXMLguiController implements Initializable {
                                 FXMLguiController.refreshPerformingTaskPanel(t.getTitle(), t.getMessage(), t.getProgress());
                             }
                         });
-                        th.join(250);
+                        th.join(100);
                     }
                     
                     Platform.runLater(new Runnable() {
@@ -709,7 +730,7 @@ public class FXMLguiController implements Initializable {
         startTestsButton.setDisable(true);
         algListForTests.setDisable(true);
         
-        testGraph.setCreateSymbols(false);
+        testGraph.setCreateSymbols(true);
         testGraph.setAnimated(false);
     }
 
@@ -747,6 +768,7 @@ public class FXMLguiController implements Initializable {
                 AnchorPane.setBottomAnchor(dataPanel, 0.0);
                 AnchorPane.setLeftAnchor(dataPanel, 0.0);
                 mainPanel.getChildren().add(dataPanel);
+                apiInstructionLabel.setText("Реализуйте функцию generate(). Для сохранения набора данных воспользуйтесь функцией\naddData(long second_parameter, "+ DataGenerator.getMethodsParamsAsString(true) +");");
                 break;
             }
             case 2: {
@@ -842,7 +864,8 @@ public class FXMLguiController implements Initializable {
                      if (!alg.getShowCounters()) {
                          ce = new CodeEditor(c.getSourceCode());
                      } else {
-                         ce = new CodeEditor(c.getGeneratedCode());                   
+                         ce = new CodeEditor("");                   
+                         ce.setCode(c.getGeneratedCode(), 0, 0, 0, c.getGeneratedCode().split("\n").length);                   
                      }
                      ce.setId("ce");
                      AnchorPane.setTopAnchor(ce, -5.0);
@@ -900,7 +923,7 @@ public class FXMLguiController implements Initializable {
      * @param index Индекс генератора в списке проекта, либо -1 для добавления нового генератора.
      */
     public static void loadDataGeneratorView(int index) {        
-        if (index == genList.getItems().size() - 1) {//добавление нового
+        if (index == genList.getItems().size() - 1 || index == -1) {//добавление нового
             addingNewGen = true;
             Project.setCurrentGuiGen(-1);
             genNameTextField.setText("Генератор данных ("+ (CompSys.getProject().getCountOfDataGenerators() + 1) +")");
@@ -1087,6 +1110,27 @@ public class FXMLguiController implements Initializable {
      */
     public static void stopPerformingTask(){
         taskPerformingPanel.visibleProperty().setValue(false);
+    }
+    
+    /**
+     * Метод для установки интерфейса в первородное состояние.
+     */
+    public static void closeProject() {
+        mode = 0;
+        algButton.setSelected(true);
+        switchShowMode(0);
+        setAllEnabled(false);
+        addingNewAlg = false;
+        addingNewGen = false;
+        testGraph.getData().clear();
+        currentTaskTitle.setText("");
+        currentTaskDescription.setText("");
+        onGraph = new HashMap<>();
+        algMethodsComboBox.setDisable(true);
+        showErrorDescriptionButton.setVisible(false);
+        apiInstructionLabel.setText("Реализуйте функцию generate(). Для сохранения набора данных воспользуйтесь функцией addData(long second_parameter, ...");
+        startTestsButton.setDisable(true);
+        algListForTests.setDisable(true);
     }
 }
 

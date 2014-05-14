@@ -16,8 +16,9 @@ public class Algorithm {
     private String mainMethod;
     /** Исходные и сгенерированные коды алгоритма. */
     private ArrayList<Code> codes;
-    boolean hasErrors;
-    /** Список пар результатов: "id генератора данных" => "лист результатов". */
+    /** Флаг показывающий, есть ли ошибки в данном алгоитме. */
+    private boolean hasErrors;
+    /** Список пар результатов: "Индекс генератора данных" => "лист результатов". */
     private HashMap<Long, ArrayList<Result>> results;
    
     /** Флаг для показа счетчиков в коде для GUI. */
