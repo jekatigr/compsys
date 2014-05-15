@@ -4,6 +4,7 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="501.0" prefWidth="852.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="comparative_system.controller.FXMLguiController">
   <children>
@@ -42,5 +43,23 @@
         </AnchorPane>
       </items>
     </SplitPane>
+    <FlowPane id="projectNotOpenedPanel" fx:id="withoutAnyAlgorithmsPanel" alignment="CENTER" prefHeight="515.0" prefWidth="916.0" style="-fx-background-color: rgba(255,255,255,0.67);" visible="false" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="-1.0">
+      <children>
+        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="622.0">
+          <children>
+            <Label text="Нет алгоритмов" textFill="#606060">
+              <font>
+                <Font name="Arial Bold" size="48.0" />
+              </font>
+            </Label>
+            <Hyperlink onAction="#handleAddAlgLinkClicked" text="Добавить" textAlignment="LEFT" textFill="BLACK" underline="true" wrapText="false">
+              <font>
+                <Font size="20.0" />
+              </font>
+            </Hyperlink>
+          </children>
+        </VBox>
+      </children>
+    </FlowPane>
   </children>
 </AnchorPane>

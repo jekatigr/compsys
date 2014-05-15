@@ -1,53 +1,66 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.lang.*?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.input.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" disable="false" mouseTransparent="false" pickOnBounds="false" prefHeight="551.0" prefWidth="943.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="comparative_system.controller.FXMLguiController">
+<AnchorPane id="AnchorPane" disable="false" mouseTransparent="false" pickOnBounds="false" prefHeight="622.0" prefWidth="1066.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="comparative_system.controller.FXMLguiController">
   <children>
-    <AnchorPane id="AnchorPane" fx:id="mainPanel" disable="false" prefHeight="323.0" prefWidth="595.0" AnchorPane.bottomAnchor="26.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="83.0" />
+    <AnchorPane id="AnchorPane" fx:id="mainPanel" disable="false" prefHeight="497.0" prefWidth="1066.0" AnchorPane.bottomAnchor="26.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="99.0" />
     <MenuBar prefWidth="595.0" rotate="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <menus>
         <Menu mnemonicParsing="false" text="Проект">
           <items>
-            <MenuItem mnemonicParsing="false" onAction="#handleSaveNewProject" text="Новый проект">
+            <MenuItem mnemonicParsing="false" onAction="#handleSaveNewProject" text="Новый проект" fx:id="newProjectMenuItem">
               <accelerator>
                 <KeyCodeCombination alt="UP" code="N" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
               </accelerator>
             </MenuItem>
-            <MenuItem mnemonicParsing="false" onAction="#handleOpenProject" text="Открыть..." />
+            <MenuItem mnemonicParsing="false" onAction="#handleOpenProject" text="Открыть..." fx:id="openProjectMenuItem" />
             <SeparatorMenuItem mnemonicParsing="false" />
             <MenuItem mnemonicParsing="false" onAction="#handleExit" text="Выход" />
           </items>
         </Menu>
-        <Menu mnemonicParsing="false" text="Помощь">
+        <Menu mnemonicParsing="false" text="Настройки">
           <items>
-            <MenuItem mnemonicParsing="false" text="Справка" />
-            <SeparatorMenuItem mnemonicParsing="false" />
-            <MenuItem mnemonicParsing="false" text="Настройки..." />
+            <MenuItem mnemonicParsing="false" onAction="#handleMenuItemJDKPathClicked" text="Папка с jdk..." />
           </items>
         </Menu>
       </menus>
     </MenuBar>
     <ToolBar prefHeight="27.0" prefWidth="595.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
-    <Label fx:id="title_label" layoutX="298.0" layoutY="43.0" text="Алгоритмы - это..." />
-    <HBox layoutX="14.0" layoutY="38.0" prefHeight="10.0" prefWidth="228.0">
+    <Label fx:id="title_label" layoutX="458.0" layoutY="43.0" text="Алгоритмы - это..." />
+    <HBox layoutX="26.0" layoutY="46.0" prefHeight="35.0" prefWidth="362.0">
       <children>
-        <ToggleButton id="alg" fx:id="algButton" contentDisplay="RIGHT" disable="false" focusTraversable="false" graphicTextGap="4.0" mnemonicParsing="false" onAction="#handleAlgClicked" prefHeight="20.0" prefWidth="85.0" selected="true" text="Алгоритмы" underline="false">
+        <ToggleButton id="alg" fx:id="algButton" contentDisplay="RIGHT" disable="false" focusTraversable="false" graphicTextGap="4.0" mnemonicParsing="false" onAction="#handleAlgClicked" prefHeight="30.0" prefWidth="100.0" selected="true" text="1. Алгоритмы" underline="false">
           <toggleGroup>
             <ToggleGroup fx:id="toggles" />
           </toggleGroup>
         </ToggleButton>
-        <ToggleButton id="data" fx:id="dataButton" contentDisplay="RIGHT" focusTraversable="false" graphicTextGap="4.0" mnemonicParsing="false" onAction="#handleDataClicked" prefHeight="13.0" prefWidth="71.0" rotate="0.0" selected="false" style="" text="Данные" textAlignment="LEFT" textOverrun="ELLIPSIS" toggleGroup="$toggles" underline="false" />
-        <ToggleButton id="tests" fx:id="testsButton" contentDisplay="RIGHT" focusTraversable="false" graphicTextGap="4.0" mnemonicParsing="false" onAction="#handleTestsClicked" prefHeight="20.0" prefWidth="69.0" selected="false" text="Расчеты" toggleGroup="$toggles" />
+        <ImageView fitHeight="30.0" fitWidth="30.0" opacity="0.8" pickOnBounds="true" preserveRatio="true">
+          <image>
+            <Image url="@../next.png" />
+          </image>
+        </ImageView>
+        <ToggleButton id="data" fx:id="dataButton" contentDisplay="RIGHT" focusTraversable="false" graphicTextGap="4.0" mnemonicParsing="false" onAction="#handleDataClicked" prefHeight="30.0" prefWidth="100.0" rotate="0.0" selected="false" style="" text="2. Данные" textAlignment="LEFT" textOverrun="ELLIPSIS" toggleGroup="$toggles" underline="false">
+          <HBox.margin>
+            <Insets />
+          </HBox.margin>
+        </ToggleButton>
+        <ImageView fitHeight="30.0" fitWidth="30.0" opacity="0.8" pickOnBounds="true" preserveRatio="true">
+          <image>
+            <Image url="@../next.png" />
+          </image>
+        </ImageView>
+        <ToggleButton id="tests" fx:id="testsButton" contentDisplay="RIGHT" focusTraversable="false" graphicTextGap="4.0" mnemonicParsing="false" onAction="#handleTestsClicked" prefHeight="30.0" prefWidth="100.0" selected="false" text="3. Расчеты" toggleGroup="$toggles" />
       </children>
     </HBox>
-    <FlowPane fx:id="taskPerformingPanel" alignment="CENTER" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: rgba(255,255,255,0.67);" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="-1.0">
+    <FlowPane fx:id="taskPerformingPanel" alignment="CENTER" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: rgba(255,255,255,0.67);" visible="false" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="-1.0">
       <children>
-        <AnchorPane prefHeight="135.0" prefWidth="409.0" style="-fx-background-color: #fff; -fx-border-color: #aaa;">
+        <AnchorPane prefHeight="152.0" prefWidth="409.0" style="-fx-background-color: #fff; -fx-border-color: #aaa;">
           <children>
             <Label fx:id="currentTaskTitle" layoutY="25.0" prefHeight="17.0" prefWidth="338.0" text="Текущая задача" AnchorPane.leftAnchor="60.0" AnchorPane.rightAnchor="12.0" />
             <ProgressBar fx:id="taskProgressBar" layoutY="86.0" prefWidth="200.0" progress="0.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" />
@@ -58,6 +71,7 @@
               </image>
             </ImageView>
             <Label fx:id="currentTaskDescription" layoutY="47.0" prefHeight="17.0" prefWidth="106.0" text="Её описание" AnchorPane.leftAnchor="60.0" AnchorPane.rightAnchor="13.0" />
+            <Button fx:id="cancelTaskButton" mnemonicParsing="false" onAction="#handleCancelTaskButtonClicked" text="Остановить выполнение..." AnchorPane.bottomAnchor="12.0" AnchorPane.rightAnchor="10.0" />
           </children>
         </AnchorPane>
       </children>

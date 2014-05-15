@@ -4,16 +4,22 @@ import com.almworks.sqlite4java.SQLiteConnection;
 import com.almworks.sqlite4java.SQLiteException;
 import com.almworks.sqlite4java.SQLiteStatement;
 import comparative_system.Proccessor;
+import comparative_system.controller.FXMLguiController;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
+import javafx.scene.control.Dialogs;
+import javafx.scene.control.TextArea;
+import javafx.scene.layout.AnchorPane;
 
 /**
  * Класс, реализующий проект.
@@ -272,20 +278,17 @@ public class Project {
     
     /**
      * Метод для удаления алгоритма из БД. 
-     * @param index Индекс в списке, соответствующий алгоритму, 
-     * который нужно удалить из БД.  
+     * @param alg_id id алгоритма в БД.  
      */
-    private void removeAlgorithmFromDB(int index) {
+    private void removeAlgorithmFromDB(long alg_id) {
         try {
             //открываем базу данных проекта
             SQLiteConnection db = new SQLiteConnection(this.file);
             db.open();
             //--открываем базу данных проекта
-            //сохраняем данные алгоритма
-            Algorithm alg = algorithms.get(index);
-            long alg_id = alg.getId();
-            if (alg_id == -1) { 
-                db.exec("DELETE * FROM algorithms WHERE id="+ alg_id);
+            //удаляем данные алгоритма
+            if (alg_id != -1) { 
+                db.exec("DELETE FROM algorithms WHERE id="+ alg_id);
             }
             //--сохраняем данные алгоритма
         } catch (SQLiteException ex) {
@@ -351,6 +354,26 @@ public class Project {
     }
     
     /**
+     * Метод для удаления генератора из БД. 
+     * @param gen_id id генератора в БД.  
+     */
+    private void removeDataGeneratorFromDB(long gen_id) {
+        try {
+            //открываем базу данных проекта
+            SQLiteConnection db = new SQLiteConnection(this.file);
+            db.open();
+            //--открываем базу данных проекта
+            //удаляем данные алгоритма
+            if (gen_id != -1) { 
+                db.exec("DELETE FROM data_generators WHERE id="+ gen_id);
+            }
+            //--сохраняем данные алгоритма
+        } catch (SQLiteException ex) {
+            Logger.getLogger(Project.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    /**
      * Метод возвращает путь к файлу проекта.
      * @return Путь к файлу проекта.
      */
@@ -363,8 +386,9 @@ public class Project {
      * @param index Индекс алгоритма в списке.
      */
     public void removeAlgorithm(int index) {
+        long alg_id = algorithms.get(index).getId();
         algorithms.remove(index);
-        removeAlgorithmFromDB(index);
+        removeAlgorithmFromDB(alg_id);
     }
 
     /**
@@ -372,10 +396,12 @@ public class Project {
      * @param index Индекс генератора в списке проекта.
      */
     public void removeDataGenerator(int index) {
+        long gen_id = dg.get(index).getId();
         for(Algorithm alg : algorithms) {
             alg.removeResults(index);
         }
         dg.remove(index);
+        removeDataGeneratorFromDB(gen_id);
     }
     
     
@@ -419,7 +445,7 @@ public class Project {
     public static Task<Project> openProject(final File file) {
         Task<Project> t = new Task<Project>() {
             @Override
-            protected Project call() throws Exception {
+            protected Project call() {
                 try {
                     Project project = new Project(file);
                     //открываем базу данных проекта
@@ -480,7 +506,29 @@ public class Project {
                     this.updateMessage("Генерация данных...");
                     ArrayList<DataGenerator> dg = project.getDataGenerators();
                     for (DataGenerator gen : dg) {
-                        gen.generateData(project.getAllAlgotithmsAsImportsMap());
+                        try {
+                            gen.generateData(project.getAllAlgotithmsAsImportsMap());
+                        } catch (MalformedURLException | ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
+                            String stackTr = "";
+                            for (Object o : ex.getStackTrace()) {
+                                stackTr += o + "\n";
+                            }
+                            final String  exMess = ex.getMessage() + "\n\n" + ex.toString() + "\n" + stackTr;
+                            Platform.runLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                    AnchorPane pane = new AnchorPane();
+                                    TextArea t = new TextArea();
+                                    t.setText(exMess);
+                                    AnchorPane.setTopAnchor(t, -1.0);
+                                    AnchorPane.setRightAnchor(t, -1.0);
+                                    AnchorPane.setBottomAnchor(t, -1.0);
+                                    AnchorPane.setLeftAnchor(t, -1.0);
+                                    pane.getChildren().add(t);
+                                    Dialogs.showCustomDialog(FXMLguiController.getPrimaryStage(), pane, "Исключение при расчетах трудоемкости.\n\nИнформация об исключении:", "Исключение при расчетах...", Dialogs.DialogOptions.OK, null);
+                                }
+                            });
+                        }
                     }
                     //--генераторы исходных данных
                     //исходные данные

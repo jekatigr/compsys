@@ -14,6 +14,7 @@ import comparative_system.model.Result;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,9 +37,11 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialogs;
+import javafx.scene.control.Dialogs.DialogOptions;
 import javafx.scene.control.Dialogs.DialogResponse;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -70,12 +73,22 @@ public class FXMLguiController implements Initializable {
     /** Режим: 0 для панели алгоритмов, 1 для генераторов и 2 для результатов. */
     private static int mode;
     
+    @FXML private static MenuItem openProjectMenuItem;
+    @FXML private static MenuItem newProjectMenuItem;
+    
     /** Панель алгоритмов. */
     public static Parent algPanel;
     /** Панель генераторов исходных данных. */
     public static Parent dataPanel;
     /** Панель результатов тестов. */
     public static Parent testsPanel;
+    
+    /** Панель для GUI без открытого проекта. */
+    @FXML private static FlowPane projectNotOpenedPanel;
+    /** Панель для GUI генераторов без алгоритмов в проекте. */
+    @FXML private static FlowPane withoutAnyAlgorithmsPanel;
+    /** Панель для GUI тестов без генераторов в проекте. */
+    @FXML private static FlowPane withoutAnyDataGeneratorsPanel;
     
     /** Кнопка для показа панели алгоритов. */
     @FXML private static ToggleButton algButton;
@@ -139,10 +152,14 @@ public class FXMLguiController implements Initializable {
     @FXML private static Label currentTaskDescription;
     /** Прогрессбар для отображения прогресса выполнения текущей задачи. */
     @FXML private static ProgressBar taskProgressBar;
+    /** Кнопка отмены текущей задачи. */
+    @FXML private static Button cancelTaskButton;
+    /** Флаг для остановки текущей задачи. */
+    public static boolean stopTask = false;
     /** Список всех результатов, которые в данный момент выведены на график.  */
     private static HashMap<String, XYChart.Series<Number,Number>> onGraph = new HashMap<>();
-    
-   
+
+       
     /** Обработка нажания кнопки "Новый проект...". */
     @FXML private void handleSaveNewProject(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
@@ -198,7 +215,6 @@ public class FXMLguiController implements Initializable {
     /** Обработка нажания кнопки "Исходные данные" для выбора панели. */
     @FXML private void handleDataClicked() {
         switchShowMode(1);
-        FXMLguiController.loadDataGeneratorView(Project.getCurrentGuiGen());
     }
 
     /** Обработка нажания кнопки "Результаты" для выбора панели. */
@@ -293,7 +309,7 @@ public class FXMLguiController implements Initializable {
                                     Platform.runLater(new Runnable() {
                                         @Override
                                         public void run() {
-                                            if (Dialogs.showConfirmDialog(primaryStage, "Перезаписать параметры?", "Параметры метода вызова алгоритма не совпадают с уже сохраненными! Параметры для всех алгоритмов должны совпадать.", "Параметры метода вызова...", Dialogs.DialogOptions.YES_NO) == Dialogs.DialogResponse.YES) {
+                                            if (Dialogs.showConfirmDialog(primaryStage, "Параметры метода вызова алгоритма не совпадают с уже сохраненными!\nДругие алгоритмы или генераторы данных могут потребовать соответствующих исправлений.", "Перезаписать параметры?", "Параметры метода вызова...", Dialogs.DialogOptions.YES_NO) == Dialogs.DialogResponse.YES) {
                                                 //перезапись
                                                 DataGenerator.saveNewMainMethodParams(parameters);
                                                 if (addingNewAlg == true) {
@@ -341,7 +357,7 @@ public class FXMLguiController implements Initializable {
             }
         };
         
-        startPerformingTask();
+        startPerformingTask(false);
         
         final Thread th = new Thread(t);
         th.start();
@@ -382,7 +398,7 @@ public class FXMLguiController implements Initializable {
         
         final Task<Void> t = new Task<Void>() {
             @Override
-            protected Void call() throws Exception {
+            protected Void call() {
                 this.updateTitle("Сохранение генератора исходных данных...");
                 this.updateMessage("Проверка параметров...");
                 this.updateProgress(1, 4);
@@ -399,7 +415,29 @@ public class FXMLguiController implements Initializable {
                         String generateImplementation = Proccessor.getGenerateImplementation(code);
                         if (addingNewGen) {
                             CompSys.addNewDataGenerator(name, imports, generateImplementation);
-                            CompSys.getProject().getDataGenerator(CompSys.getProject().getCountOfDataGenerators() - 1).generateData(CompSys.getProject().getAllAlgotithmsAsImportsMap());
+                            try {
+                                CompSys.getProject().getDataGenerator(CompSys.getProject().getCountOfDataGenerators() - 1).generateData(CompSys.getProject().getAllAlgotithmsAsImportsMap());
+                            } catch (MalformedURLException | ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
+                                String stackTr = "";
+                                for (Object o : ex.getStackTrace()) {
+                                    stackTr += o + "\n";
+                                }
+                                final String  exMess = ex.getMessage() + "\n\n" + ex.toString() + "\n" + stackTr;
+                                Platform.runLater(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        AnchorPane pane = new AnchorPane();
+                                        TextArea t = new TextArea();
+                                        t.setText(exMess);
+                                        AnchorPane.setTopAnchor(t, -1.0);
+                                        AnchorPane.setRightAnchor(t, -1.0);
+                                        AnchorPane.setBottomAnchor(t, -1.0);
+                                        AnchorPane.setLeftAnchor(t, -1.0);
+                                        pane.getChildren().add(t);
+                                        Dialogs.showCustomDialog(FXMLguiController.getPrimaryStage(), pane, "Исключение при расчетах трудоемкости.\n\nИнформация об исключении:", "Исключение при расчетах...", Dialogs.DialogOptions.OK, null);
+                                    }
+                                });
+                            }
                             Platform.runLater(new Runnable() {
                                 @Override
                                 public void run() {
@@ -410,7 +448,29 @@ public class FXMLguiController implements Initializable {
                             });
                         } else {
                             CompSys.saveDataGenerator(Project.getCurrentGuiGen(), name, imports, generateImplementation);
-                            CompSys.getProject().getDataGenerator(Project.getCurrentGuiGen()).generateData(CompSys.getProject().getAllAlgotithmsAsImportsMap());
+                            try {
+                                CompSys.getProject().getDataGenerator(Project.getCurrentGuiGen()).generateData(CompSys.getProject().getAllAlgotithmsAsImportsMap());
+                            } catch (MalformedURLException | ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
+                                String stackTr = "";
+                                for (Object o : ex.getStackTrace()) {
+                                    stackTr += o + "\n";
+                                }
+                                final String  exMess = ex.getMessage() + "\n\n" + ex.toString() + "\n" + stackTr;
+                                Platform.runLater(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        AnchorPane pane = new AnchorPane();
+                                        TextArea t = new TextArea();
+                                        t.setText(exMess);
+                                        AnchorPane.setTopAnchor(t, -1.0);
+                                        AnchorPane.setRightAnchor(t, -1.0);
+                                        AnchorPane.setBottomAnchor(t, -1.0);
+                                        AnchorPane.setLeftAnchor(t, -1.0);
+                                        pane.getChildren().add(t);
+                                        Dialogs.showCustomDialog(FXMLguiController.getPrimaryStage(), pane, "Исключение при расчетах трудоемкости.\n\nИнформация об исключении:", "Исключение при расчетах...", Dialogs.DialogOptions.OK, null);
+                                    }
+                                });
+                            }
                             for(int i = 0; i < CompSys.getProject().getCountOfAlgorithms(); i++) {
                                 CompSys.getProject().getAlgorithm(i).removeResults(Project.getCurrentGuiGen());
                             }
@@ -452,7 +512,7 @@ public class FXMLguiController implements Initializable {
             }
         };
         
-        startPerformingTask();
+        startPerformingTask(false);
         
         final Thread th = new Thread(t);
         th.start();
@@ -515,7 +575,7 @@ public class FXMLguiController implements Initializable {
         final XYChart.Series<Number,Number> series = new XYChart.Series<>();
         series.setName(alg.getName()+ " - " +CompSys.getProject().getDataGenerator(gen_index).getName());
 
-        FXMLguiController.startPerformingTask();
+        FXMLguiController.startPerformingTask(true);
 
         final Task<Void> t = new Task<Void>() {
             @Override
@@ -523,19 +583,37 @@ public class FXMLguiController implements Initializable {
                 if (alg.getResults(gen_index) == null || alg.getResults(gen_index).isEmpty()) {
                     if (c != null) {
                         this.updateTitle("Вычисление трудоемкости...");
-                        this.updateMessage("Обработано: 0 из " + data.size() + ".");
+                        this.updateMessage("Обработано: 0 из " + data.size() + " наборов данных...");
                         this.updateProgress(0, data.size());
-                        for (int i = 0; i < data.size(); i++) {
-                            try {
+                        try {
+                            for (int i = 0; i < data.size() && !stopTask; i++) {
                                 Counter.resetCountResult();
                                 Method method = c.getMethod(alg.getMainMethod(), classes_of_params);
                                 method.invoke(null, data.get(i).getValues());
                                 res.add(new Result(Counter.getCountResult(), data.get(i).getSecondParam()));
-                                this.updateMessage("Обработано: "+ i +" из " + data.size() + " наборов данных.");
+                                this.updateMessage("Обработано: "+ i +" из " + data.size() + " наборов данных...");
                                 this.updateProgress(i, data.size());
-                            } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                                Logger.getLogger(FXMLguiController.class.getName()).log(Level.SEVERE, null, ex);
-                            } 
+                            }
+                        } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                            String stackTr = "";
+                            for (Object o : ex.getStackTrace()) {
+                                stackTr += o + "\n";
+                            }
+                            final String  exMess = ex.getMessage() + "\n\n" + ex.toString() + "\n" + stackTr;
+                            Platform.runLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                    AnchorPane pane = new AnchorPane();
+                                    TextArea t = new TextArea();
+                                    t.setText(exMess);
+                                    AnchorPane.setTopAnchor(t, -1.0);
+                                    AnchorPane.setRightAnchor(t, -1.0);
+                                    AnchorPane.setBottomAnchor(t, -1.0);
+                                    AnchorPane.setLeftAnchor(t, -1.0);
+                                    pane.getChildren().add(t);
+                                    Dialogs.showCustomDialog(primaryStage, pane, "Исключение при расчетах трудоемкости.\n\nИнформация об исключении:", "Исключение при расчетах...", Dialogs.DialogOptions.OK, null);
+                                }
+                            });
                         }
                     }
                     CompSys.getProject().getAlgorithm(alg_index).setResults(gen_index, res);
@@ -660,6 +738,36 @@ public class FXMLguiController implements Initializable {
         }
     }
     
+    /**
+     * Метод для обработки нажатия кнопки "Отменить задачу".
+     */
+    @FXML private void handleCancelTaskButtonClicked() {
+        stopTask = true;
+    }
+    
+    /**
+     * Метод для обработки нажатия кнопки "Добавить" для добавления генератора..
+     */
+    @FXML private void handleAddDataLinkClicked() {
+        dataButton.setSelected(true);
+        switchShowMode(1);
+    }
+    
+    /**
+     * Метод для обработки нажатия кнопки "Добавить" для добавления алгоритма.
+     */
+    @FXML private void handleAddAlgLinkClicked() {
+        algButton.setSelected(true);
+        switchShowMode(0);
+    }
+    
+    /**
+     * Метод для обработки нажатия кнопки "Папка с jdk" в меню программы.
+     */
+    @FXML private void handleMenuItemJDKPathClicked() {
+        CompSys.setNewJDKPath();
+    }
+    
     
     /**
      * Метод для инициализации.
@@ -732,8 +840,20 @@ public class FXMLguiController implements Initializable {
         
         testGraph.setCreateSymbols(true);
         testGraph.setAnimated(false);
+        
+        taskPerformingPanel.setVisible(false);
+        withoutAnyAlgorithmsPanel.setVisible(false);
+        withoutAnyDataGeneratorsPanel.setVisible(false);
     }
 
+    /**
+     * Метод возвращает форму главного окна.
+     * @return Форма главного окна.
+     */ 
+    public static Stage getPrimaryStage() {
+        return primaryStage;
+    }
+    
     /**
      * Метод для активации интерфейса.
      * @param enabled Флаг активации, {@code true} для включения, {@code false} для отключения.
@@ -762,6 +882,7 @@ public class FXMLguiController implements Initializable {
                 break;
             }
             case 1: {
+                withoutAnyAlgorithmsPanel.setVisible(CompSys.getProject().getCountOfAlgorithms() == 0);
                 mainPanel.getChildren().clear();
                 AnchorPane.setTopAnchor(dataPanel, 0.0);
                 AnchorPane.setRightAnchor(dataPanel, 0.0);
@@ -772,6 +893,7 @@ public class FXMLguiController implements Initializable {
                 break;
             }
             case 2: {
+                withoutAnyDataGeneratorsPanel.setVisible(CompSys.getProject().getCountOfDataGenerators() == 0);
                 mainPanel.getChildren().clear();
                 AnchorPane.setTopAnchor(testsPanel, 0.0);
                 AnchorPane.setRightAnchor(testsPanel, 0.0);
@@ -788,6 +910,7 @@ public class FXMLguiController implements Initializable {
      * @param project Проект для отображения.
      */
     public static void openProject(Project project) {
+        projectNotOpenedPanel.setVisible(false);
         primaryStage.setTitle("Вычисление трудоемкости алгоритмов - " + project.getProjectFilePath());
         reloadAlgList();
         reloadGenList();
@@ -934,6 +1057,7 @@ public class FXMLguiController implements Initializable {
             int fb = 3, fe = header.split("\n").length + fb, sb = fe + 3, se = sb + footer.split("\n").length;
             
             ((CodeEditor)dataGeneratorCodePanel.lookup("#ceDataGen")).setCode("//Добавьте необходимые классы здесь...\n\n\n"+ header + "\n        \n        \n        \n"+footer, fb, fe, sb, se);
+            removeGenButton.visibleProperty().set(false);
         } else {//отображение сохраненного
             addingNewGen = false;
             DataGenerator gen = CompSys.getProject().getDataGenerator(index);
@@ -941,19 +1065,16 @@ public class FXMLguiController implements Initializable {
 
             genNameTextField.setText(gen.getName());
 
-            if(gen.getIsCodeOpened()) {//отображаем исходный код
-                String header = DataGenerator.getHeaderInDataGeneratorCode(CompSys.getProject().getAllAlgotithmsAsImportsMap());
-                String footer = DataGenerator.getFooterInDataGeneratorCode();
+            String header = DataGenerator.getHeaderInDataGeneratorCode(CompSys.getProject().getAllAlgotithmsAsImportsMap());
+            String footer = DataGenerator.getFooterInDataGeneratorCode();
 
-                String imports = gen.getImports() + " \n";
-                String genImp = gen.getGenerateImplementation();
-                
-                int fb = 3 + imports.split("\n").length, fe = fb + header.split("\n").length, sb = fe + genImp.split("\n").length, se = sb + footer.split("\n").length + 2;
-                
-                ((CodeEditor)dataGeneratorCodePanel.lookup("#ceDataGen")).setCode("//Добавьте необходимые классы здесь...\n\n\n"+ imports + header + genImp + footer, fb, fe, sb, se);
-            } else {//отображаем сгенерированные данные
-                //TODO: отображаем сгенерированные данные
-            }
+            String imports = gen.getImports() + " \n";
+            String genImp = gen.getGenerateImplementation();
+
+            int fb = 3 + imports.split("\n").length, fe = fb + header.split("\n").length, sb = fe + genImp.split("\n").length, se = sb + footer.split("\n").length + 2;
+
+            ((CodeEditor)dataGeneratorCodePanel.lookup("#ceDataGen")).setCode("//Добавьте необходимые классы здесь...\n\n\n"+ imports + header + genImp + footer, fb, fe, sb, se);
+            removeGenButton.visibleProperty().set(true);           
         }
     }
     
@@ -1088,9 +1209,12 @@ public class FXMLguiController implements Initializable {
 
     /**
      * Метод для переключения интерфейса в режим выполнения задачи.
+     * @param withCancel флаг отображения кнопки отмены.
      */
-    public static void startPerformingTask(){
+    public static void startPerformingTask(boolean withCancel){
         taskPerformingPanel.visibleProperty().setValue(true);
+        stopTask = false;
+        cancelTaskButton.visibleProperty().setValue(withCancel);
     }
     
     /**
@@ -1131,6 +1255,30 @@ public class FXMLguiController implements Initializable {
         apiInstructionLabel.setText("Реализуйте функцию generate(). Для сохранения набора данных воспользуйтесь функцией addData(long second_parameter, ...");
         startTestsButton.setDisable(true);
         algListForTests.setDisable(true);
+    }
+    
+    /**
+     * Метод для задания интерфейса в режим без открытого проекта.
+     */
+    public static void setWithoutProject() {
+        projectNotOpenedPanel.setVisible(true);
+        setAllEnabled(false);
+    }
+    
+    /**
+     * Метод для задания интерфейса в режим без доступа к компилятору.
+     */
+    public static void setWithoutCompiler() {
+        openProjectMenuItem.setDisable(true);
+        newProjectMenuItem.setDisable(true);
+    }
+    
+    /**
+     * Метод для задания интерфейса в режим с доступом к компилятору.
+     */
+    public static void setWithCompiler() {
+        openProjectMenuItem.setDisable(false);
+        newProjectMenuItem.setDisable(false);
     }
 }
 

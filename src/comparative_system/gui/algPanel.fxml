@@ -17,8 +17,7 @@
         </AnchorPane>
         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
           <children>
-            <Separator layoutY="50.0" prefHeight="0.0" prefWidth="718.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
-            <TabPane fx:id="codesOfAlgorithmsTabPane" prefHeight="446.0" prefWidth="433.0" rotateGraphic="false" side="TOP" tabClosingPolicy="SELECTED_TAB" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="286.0" AnchorPane.topAnchor="68.0">
+            <TabPane fx:id="codesOfAlgorithmsTabPane" prefHeight="460.0" prefWidth="433.0" rotateGraphic="false" side="TOP" tabClosingPolicy="SELECTED_TAB" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="286.0" AnchorPane.topAnchor="54.0">
               <tabs>
                 <Tab text="Новый класс">
                   <content>
@@ -27,7 +26,7 @@
                 </Tab>
               </tabs>
             </TabPane>
-            <BorderPane minWidth="100.0" prefHeight="25.0" prefWidth="697.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="7.0" AnchorPane.topAnchor="14.0">
+            <BorderPane minWidth="100.0" prefHeight="25.0" prefWidth="697.0" AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="11.0" AnchorPane.topAnchor="14.0">
               <left>
                 <TextField fx:id="algNameTextField" maxWidth="500.0" minWidth="50.0" prefHeight="34.0" prefWidth="500.0" promptText="Введите имя алгоритма...">
                   <BorderPane.margin>
@@ -39,8 +38,7 @@
                 <Button fx:id="removeAlgButton" mnemonicParsing="false" onAction="#handleRemoveAlgButtonClicked" prefHeight="29.0" prefWidth="28.0" style="" text="X" />
               </right>
             </BorderPane>
-            <Separator orientation="VERTICAL" pickOnBounds="false" prefHeight="446.0" prefWidth="0.0" AnchorPane.bottomAnchor="-1.0" AnchorPane.rightAnchor="281.0" AnchorPane.topAnchor="68.0" />
-            <AnchorPane layoutY="69.0" prefHeight="228.0" prefWidth="274.0" AnchorPane.rightAnchor="0.0">
+            <AnchorPane layoutY="54.0" prefHeight="228.0" prefWidth="274.0" AnchorPane.rightAnchor="0.0">
               <children>
                 <Button layoutX="93.0" layoutY="131.0" mnemonicParsing="false" onAction="#handleSaveAlgButtonClicked" prefHeight="25.0" prefWidth="78.0" text="Сохранить" />
                 <CheckBox fx:id="showCountersCheckBox" layoutX="14.0" layoutY="85.0" mnemonicParsing="false" onAction="#handleShowCountersCheckBoxClicked" text="показать счетчики" />
@@ -58,5 +56,14 @@
         </AnchorPane>
       </items>
     </SplitPane>
+    <FlowPane fx:id="projectNotOpenedPanel" alignment="CENTER" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: rgba(255,255,255,0.67);" visible="false" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="-1.0">
+      <children>
+        <Label text="Нет проекта" textFill="#606060">
+          <font>
+            <Font name="Arial Bold" size="48.0" />
+          </font>
+        </Label>
+      </children>
+    </FlowPane>
   </children>
 </AnchorPane>

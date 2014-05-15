@@ -40,8 +40,6 @@ public class DataGenerator {
     private String generateImplementation;
     /** Список сгенерированных исходных данных. */
     private ArrayList<Data> data;
-    /** Флаг для вкладки код/данные для GUI. */
-    private boolean isCodeOpened;
 
     /**
      * Конструктор класса.
@@ -51,7 +49,6 @@ public class DataGenerator {
      * @param generateImplementation Код генератора.
      */
     DataGenerator(long id, String name, String imports, String generateImplementation) {
-        this.isCodeOpened = true;
         this.data = new ArrayList<>();
         this.id = id;
         this.name = name;
@@ -150,38 +147,20 @@ public class DataGenerator {
     }
 
     /**
-     * Метод возвращает флаг для интерфейса.
-     * @return {@code true}, если вкладка кода показана, иначе {@code false}.
-     */
-    public boolean getIsCodeOpened() {
-        return this.isCodeOpened;
-    }
-
-    /**
      * Метод для генерации данных в генераторе.
      */
-    public void generateData(HashMap importsMap) {
-        try {
-            String code = this.getImports() + getHeaderInDataGeneratorCode(importsMap) + this.getGenerateImplementation() + getFooterInDataGeneratorCode();
-            code = Proccessor.setPackageGenerator(code);
-            Proccessor.checkGeneratorCompilable(code);//компилим
+    public void generateData(HashMap importsMap) throws MalformedURLException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+        String code = this.getImports() + getHeaderInDataGeneratorCode(importsMap) + this.getGenerateImplementation() + getFooterInDataGeneratorCode();
+        code = Proccessor.setPackageGenerator(code);
+        Proccessor.checkGeneratorCompilable(code);//компилим
 
-            URL url = new File("data_generator/").toURI().toURL();
-            URLClassLoader classLoader = new URLClassLoader(new URL[]{url}, IGenerator.class.getClassLoader());
-            Class generator = classLoader.loadClass("generator.Generator");      
-            
-            IGenerator igen = (IGenerator)generator.newInstance();
-            ArrayList<Data> list = igen.getData(this.getId());
-            this.data = list; 
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(CompSys.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        URL url = new File("data_generator/").toURI().toURL();
+        URLClassLoader classLoader = new URLClassLoader(new URL[]{url}, IGenerator.class.getClassLoader());
+        Class generator = classLoader.loadClass("generator.Generator");      
+
+        IGenerator igen = (IGenerator)generator.newInstance();
+        ArrayList<Data> list = igen.getData(this.getId());
+        this.data = list;
     }
 
     /**

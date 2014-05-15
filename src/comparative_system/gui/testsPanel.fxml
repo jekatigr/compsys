@@ -2,11 +2,13 @@
 
 <?import java.lang.*?>
 <?import javafx.collections.*?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.chart.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="665.0" prefWidth="1025.0000999999975" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="comparative_system.controller.FXMLguiController">
+<AnchorPane id="AnchorPane" prefHeight="665.0" prefWidth="1025.0000999999975" style="-fx-border-color: #919191;&#10;-fx-border-width: 1px 0px 0px 0px;&#10;" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="comparative_system.controller.FXMLguiController">
   <children>
     <Label layoutY="20.0" text="Выберите генератор данных:" AnchorPane.leftAnchor="24.0" />
     <Label layoutY="20.0" text="Выберите алгоритм для расчета:" AnchorPane.leftAnchor="291.0" />
@@ -28,12 +30,20 @@
         </FXCollections>
       </items>
     </ComboBox>
-    <LineChart id="LineChartNxN" fx:id="testGraph" prefHeight="468.0" prefWidth="818.0000999999975" AnchorPane.bottomAnchor="43.0" AnchorPane.leftAnchor="23.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="72.0">
+    <LineChart fx:id="testGraph" prefHeight="468.0" prefWidth="818.0000999999975" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="23.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="72.0">
       <xAxis>
-        <NumberAxis side="BOTTOM" />
+        <NumberAxis label="Пользовательский параметр" side="BOTTOM" upperBound="100.0">
+          <tickLabelFont>
+            <Font size="10.0" fx:id="x1" />
+          </tickLabelFont>
+        </NumberAxis>
       </xAxis>
       <yAxis>
-        <NumberAxis side="LEFT" />
+        <NumberAxis label="Количество операций" side="LEFT" tickLabelFont="$x1" tickLabelsVisible="true" upperBound="100.0">
+          <padding>
+            <Insets fx:id="x2" />
+          </padding>
+        </NumberAxis>
       </yAxis>
     </LineChart>
     <BorderPane layoutY="39.0" prefHeight="26.0" prefWidth="442.0000999999975" AnchorPane.leftAnchor="556.0" AnchorPane.rightAnchor="27.0">
@@ -44,5 +54,23 @@
         <Button mnemonicParsing="false" onAction="#handleClearTestsGraphButtonClicked" text="Очистить график" />
       </right>
     </BorderPane>
+    <FlowPane id="projectNotOpenedPanel" fx:id="withoutAnyDataGeneratorsPanel" alignment="CENTER" prefHeight="515.0" prefWidth="916.0" style="-fx-background-color: rgba(255,255,255,0.67);" visible="false" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="-1.0">
+      <children>
+        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="622.0" FlowPane.margin="$x2">
+          <children>
+            <Label text="Нет данных для расчетов" textFill="#606060">
+              <font>
+                <Font name="Arial Bold" size="48.0" />
+              </font>
+            </Label>
+            <Hyperlink onAction="#handleAddDataLinkClicked" text="Добавить" textAlignment="LEFT" textFill="BLACK" underline="true" wrapText="false">
+              <font>
+                <Font size="20.0" />
+              </font>
+            </Hyperlink>
+          </children>
+        </VBox>
+      </children>
+    </FlowPane>
   </children>
 </AnchorPane>

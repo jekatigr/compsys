@@ -1,5 +1,6 @@
 package comparative_system;
 
+import comparative_system.controller.FXMLguiController;
 import comparative_system.model.Code;
 import java.io.BufferedReader;
 import java.io.File;
@@ -15,6 +16,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
+import javafx.scene.control.Dialogs;
+import javafx.scene.control.TextArea;
+import javafx.scene.layout.AnchorPane;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
@@ -1308,5 +1313,29 @@ public class Proccessor {
 
         final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
         return cu.imports();
+    }
+
+    /**
+     * Метод для проверки доступности компилятора.
+     * @return true, если компилятор доступен, иначе false.
+     */
+    public static boolean checkCompilerAvailable() {
+        try {
+            ProcessBuilder procBuilder = new ProcessBuilder(Preferences.getJdkPath() + "\\javac");
+            procBuilder.redirectErrorStream(true);
+            Process process = procBuilder.start();
+            InputStream stdout = process.getInputStream();
+            InputStreamReader isrStdout = new InputStreamReader(stdout);
+            BufferedReader brStdout = new BufferedReader(isrStdout);
+            String line;
+            String res = "";
+            while((line = brStdout.readLine()) != null) {
+                res += line + "\n";
+            }
+            process.waitFor();
+        } catch (IOException | InterruptedException ex) {
+            return false;
+        }
+        return true;
     }
 }

@@ -79,7 +79,7 @@ public class Preferences {
         try {
             //Сохраняем все данные в JSON-объект
             JSONObject data = new JSONObject();
-            data.put("jdk_path", jdk_path);
+            data.put("jdk_path", (jdk_path == null) ? "" : jdk_path);
             JSONArray projects_files_json = new JSONArray();
             for(int i = 0; i < projects_files.size(); i++) {
                 projects_files_json.add(projects_files.get(i));
@@ -162,5 +162,9 @@ public class Preferences {
      */
     public static String getJdkPath() {
         return jdk_path;
+    }
+
+    public static void setJDKPath(String path) {
+        jdk_path = path;
     }
 }

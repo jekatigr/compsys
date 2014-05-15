@@ -60,12 +60,23 @@ public class CompSys extends Application {
         //загружаем настройки программы
         Preferences.loadPreferences();
         //--загружаем настройки программы
-        //открываем последний открытый проект, если он есть
-        File proj_file = Preferences.getLastOpenedProject();
-        if (proj_file != null) {
-            openProject(proj_file);
+        if (Preferences.getJdkPath().equals("")) {
+            CompSys.setNewJDKPath();
         }
-        //--открываем последний проект, если он есть
+        //проверяем папку с jdk
+        if (Proccessor.checkCompilerAvailable()){
+            //открываем последний открытый проект, если он есть
+            File proj_file = Preferences.getLastOpenedProject();
+            if (proj_file != null) {
+                openProject(proj_file);
+            }
+            //--открываем последний проект, если он есть
+        } else {
+            FXMLguiController.setWithoutProject();
+            FXMLguiController.setWithoutCompiler();
+            Dialogs.showErrorDialog(primaryStage, "Укажить пать к папке с jdk/bin (Меню -> Настройки -> Папка с jdk...).", "Невозможно вызвать javac компилятор!", "Ошибка...", Dialogs.DialogOptions.OK);
+        }
+        //--проверяем папку с jdk
         primaryStage = stage;
         stage.show();
     }
@@ -86,7 +97,7 @@ public class CompSys extends Application {
      * @param file Файл проекта.
      */
     public static void openProject(final File file) {        
-        FXMLguiController.startPerformingTask();
+        FXMLguiController.startPerformingTask(false);
                
         final Task t = Project.openProject(file);
         final Thread th = new Thread(t);
@@ -119,7 +130,8 @@ public class CompSys extends Application {
                         Platform.runLater(new Runnable() {
                             @Override
                             public void run() {
-                                Dialogs.showErrorDialog(primaryStage, "Ошибка при открытии последнего проекта.", "Попробуйте открыть файл еще раз.", "Ошибка при открытии проекта...");
+                                FXMLguiController.setWithoutProject();
+                                Dialogs.showErrorDialog(primaryStage, "Ошибка при открытии проекта.", "Попробуйте открыть файл еще раз.", "Ошибка при открытии проекта...");
                                 FXMLguiController.stopPerformingTask();
                             }
                         });
@@ -144,6 +156,7 @@ public class CompSys extends Application {
         project.addNewAlgorithm(alg);
         FXMLguiController.reloadAlgList();
         FXMLguiController.reloadGenAndAlgListsForTests();
+        FXMLguiController.loadDataGeneratorView(Project.getCurrentGuiGen());
     }
     
     /**
@@ -158,6 +171,7 @@ public class CompSys extends Application {
         FXMLguiController.reloadAlgList();
         FXMLguiController.reloadGenAndAlgListsForTests();
         FXMLguiController.loadAlgorithmView(Project.getCurrentGuiAlg());
+        FXMLguiController.loadDataGeneratorView(Project.getCurrentGuiGen());
     }
     
     /**
@@ -232,6 +246,7 @@ public class CompSys extends Application {
     public static void closeProject() {
         project = null;
         DataGenerator.removeParams();
+        FXMLguiController.setWithoutProject();
         Project.setCurrentGuiAlg(-1);
         Project.setCurrentGuiGen(-1);
         FXMLguiController.closeProject();
@@ -239,5 +254,25 @@ public class CompSys extends Application {
         Proccessor.removeDirectory(new File("source_codes"));
         Proccessor.removeDirectory(new File("generated_codes"));
         Proccessor.removeDirectory(new File("data_generator"));
+    }
+    
+    /**
+     * Метод для показа диалога ввода пути к jdk.
+     */
+    public static void setNewJDKPath() {
+        Preferences.setJDKPath(Dialogs.showInputDialog(primaryStage, "Путь:", "Пожалуйста, введите путь к папке с jdk/bin:", "Путь к папке с jdk..."));
+        if (Proccessor.checkCompilerAvailable()){
+            FXMLguiController.setWithCompiler();
+            //открываем последний открытый проект, если он есть
+            File proj_file = Preferences.getLastOpenedProject();
+            if (proj_file != null) {
+                openProject(proj_file);
+            }
+            //--открываем последний проект, если он есть
+        } else {
+            CompSys.closeProject();
+            FXMLguiController.setWithoutCompiler();
+            Dialogs.showErrorDialog(primaryStage, "Укажить пать к папке с jdk/bin (Меню -> Настройки -> Папка с jdk...).", "Невозможно вызвать javac компилятор!", "Ошибка...", Dialogs.DialogOptions.OK);
+        }
     }
 }
