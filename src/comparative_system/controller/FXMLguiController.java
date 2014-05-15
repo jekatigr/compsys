@@ -96,6 +96,8 @@ public class FXMLguiController implements Initializable {
     @FXML private static ToggleButton dataButton;
     /** Кнопка для показа панели результатов. */
     @FXML private static ToggleButton testsButton;
+    /** Описание текущей панели. */
+    @FXML private static Label titleLabel;
     /** Панель, накоторой будет располагаться одна из панелей: алгоритмы, генераторы или результаты. */
     @FXML private static AnchorPane mainPanel;
     /** Элемент список с именами алгоритов. */
@@ -879,6 +881,7 @@ public class FXMLguiController implements Initializable {
                 AnchorPane.setBottomAnchor(algPanel, 0.0);
                 AnchorPane.setLeftAnchor(algPanel, 0.0);
                 mainPanel.getChildren().add(algPanel);
+                titleLabel.setText("Алгоритм - это набор классов, с определенным методом для его вызова. Данные для расчетов трудоемкости будут генерироваться из параметров этого метода. Каждая вкладка ниже должна быть компилируемой.");
                 break;
             }
             case 1: {
@@ -889,7 +892,8 @@ public class FXMLguiController implements Initializable {
                 AnchorPane.setBottomAnchor(dataPanel, 0.0);
                 AnchorPane.setLeftAnchor(dataPanel, 0.0);
                 mainPanel.getChildren().add(dataPanel);
-                apiInstructionLabel.setText("Реализуйте функцию generate(). Для сохранения набора данных воспользуйтесь функцией\naddData(long second_parameter, "+ DataGenerator.getMethodsParamsAsString(true) +");");
+                titleLabel.setText("Генератор исходных данных позволяет создать наборы, которые будут передаваться алгоритмам при расчетах трудоемкости.");
+                apiInstructionLabel.setText("Реализуйте функцию generate(). Для сохранения набора данных воспользуйтесь функцией\naddData(long second_parameter, "+ DataGenerator.getMethodsParamsAsString(true) +"),\nгде second_parameter - параметр для оси X на графике результатов.");
                 break;
             }
             case 2: {
@@ -899,6 +903,7 @@ public class FXMLguiController implements Initializable {
                 AnchorPane.setRightAnchor(testsPanel, 0.0);
                 AnchorPane.setBottomAnchor(testsPanel, 0.0);
                 AnchorPane.setLeftAnchor(testsPanel, 0.0);
+                titleLabel.setText("");
                 mainPanel.getChildren().add(testsPanel);
                 break;
             }
