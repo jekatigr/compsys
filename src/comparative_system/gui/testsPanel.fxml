@@ -11,7 +11,7 @@
 <AnchorPane id="AnchorPane" prefHeight="665.0" prefWidth="1025.0000999999975" style="-fx-border-color: #919191;&#10;-fx-border-width: 1px 0px 0px 0px;&#10;" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="comparative_system.controller.FXMLguiController">
   <children>
     <Label layoutY="20.0" text="Выберите генератор данных:" AnchorPane.leftAnchor="24.0" />
-    <Label layoutY="20.0" text="Выберите алгоритм для расчета:" AnchorPane.leftAnchor="291.0" />
+    <Label layoutY="73.0" text="Выберите алгоритм для расчета:" AnchorPane.leftAnchor="27.0" />
     <ComboBox fx:id="genListForTests" layoutY="39.0" prefHeight="21.0" prefWidth="240.0" promptText="Генератор..." AnchorPane.leftAnchor="24.0">
       <items>
         <FXCollections fx:factory="observableArrayList">
@@ -21,7 +21,7 @@
         </FXCollections>
       </items>
     </ComboBox>
-    <ComboBox fx:id="algListForTests" layoutY="39.0" prefHeight="21.0" prefWidth="240.00009999999747" promptText="Алгоритм..." AnchorPane.leftAnchor="288.0">
+    <ComboBox fx:id="algListForTests" layoutY="92.0" prefHeight="21.0" prefWidth="240.00009999999747" promptText="Алгоритм..." AnchorPane.leftAnchor="24.0">
       <items>
         <FXCollections fx:factory="observableArrayList">
           <String fx:value="Item 1" />
@@ -30,7 +30,7 @@
         </FXCollections>
       </items>
     </ComboBox>
-    <LineChart fx:id="testGraph" prefHeight="468.0" prefWidth="818.0000999999975" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="23.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="72.0">
+    <LineChart fx:id="testGraph" prefHeight="511.0" prefWidth="988.0000999999975" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="23.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="154.0">
       <xAxis>
         <NumberAxis label="Пользовательский параметр" side="BOTTOM" upperBound="100.0">
           <tickLabelFont>
@@ -46,14 +46,6 @@
         </NumberAxis>
       </yAxis>
     </LineChart>
-    <BorderPane layoutY="39.0" prefHeight="26.0" prefWidth="442.0000999999975" AnchorPane.leftAnchor="556.0" AnchorPane.rightAnchor="27.0">
-      <left>
-        <Button fx:id="startTestsButton" mnemonicParsing="false" onAction="#handleStartTestsButtonClicked" prefWidth="268.0000999999975" text="Расчитать трудоемкость и построить график" />
-      </left>
-      <right>
-        <Button mnemonicParsing="false" onAction="#handleClearTestsGraphButtonClicked" text="Очистить график" />
-      </right>
-    </BorderPane>
     <FlowPane id="projectNotOpenedPanel" fx:id="withoutAnyDataGeneratorsPanel" alignment="CENTER" prefHeight="515.0" prefWidth="916.0" style="-fx-background-color: rgba(255,255,255,0.67);" visible="false" AnchorPane.bottomAnchor="-1.0" AnchorPane.leftAnchor="-1.0" AnchorPane.rightAnchor="-1.0" AnchorPane.topAnchor="-1.0">
       <children>
         <VBox alignment="CENTER" prefHeight="200.0" prefWidth="622.0" FlowPane.margin="$x2">
@@ -72,5 +64,9 @@
         </VBox>
       </children>
     </FlowPane>
+    <Button layoutY="71.0" mnemonicParsing="false" onAction="#handleClearTestsGraphButtonClicked" text="Очистить график" AnchorPane.rightAnchor="27.0" />
+    <Button fx:id="startTestsButton" layoutX="326.0" layoutY="39.0" mnemonicParsing="false" onAction="#handleStartTestsButtonClicked" prefHeight="21.0" prefWidth="180.0" text="Рассчитать трудоемкость..." textAlignment="CENTER" wrapText="true" />
+    <Label fx:id="hasResultsLabel" layoutX="326.0" layoutY="20.0" text="Еще нет результатов." />
+    <Button fx:id="addResultsToGraphButton" layoutX="327.0" layoutY="93.0" mnemonicParsing="false" onAction="#handleAddResultsToGraphButtonClicked" prefWidth="179.0" text="Добавить на график" />
   </children>
 </AnchorPane>

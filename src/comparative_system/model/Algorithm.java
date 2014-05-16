@@ -18,7 +18,7 @@ public class Algorithm {
     private ArrayList<Code> codes;
     /** Флаг показывающий, есть ли ошибки в данном алгоитме. */
     private boolean hasErrors;
-    /** Список пар результатов: "Индекс генератора данных" => "лист результатов". */
+    /** Список пар результатов: "id генератора данных в БД" => "лист результатов". */
     private HashMap<Long, ArrayList<Result>> results;
    
     /** Флаг для показа счетчиков в коде для GUI. */
@@ -161,30 +161,38 @@ public class Algorithm {
     }
     
     /**
+     * Метод для задания результатов, загруженных из БД.
+     * @param hm Хэш-таблица с результатами.
+     */
+    public void setResults(HashMap<Long, ArrayList<Result>> hm) {
+        this.results = hm;
+    }
+    
+    /**
      * Метод для задания результатов вычислений трудоемкости.
-     * @param gen_index Индекс генератора данных.
+     * @param gen_id id генератора данных в БД проекта.
      * @param values Список результатов.
      */
-    public void setResults(long gen_index, ArrayList<Result> values) {
-        this.results.put(gen_index, Result.calculateMedians(values));
+    public void saveResults(long gen_id, ArrayList<Result> values) {
+        this.results.put(gen_id, values);
     }
     
     /**
      * Метод для получения списка результатов.
-     * @param gen_index Индекс генератора.
+     * @param gen_id id генератора в БД проекта.
      * @return Список результатов.
      */
-    public ArrayList<Result> getResults(long gen_index) {
-        return this.results.get(gen_index);
+    public ArrayList<Result> getResults(long gen_id) {
+        return this.results.get(gen_id);
     }
     
     /**
      * Метод для удаления результатов.
-     * @param gen_index Индекс генератора данных.
+     * @param gen_id id генератора в БД проекта.
      */
-    public void removeResults(long gen_index) {
-        if (this.results.containsKey(gen_index)) {
-            this.results.remove(gen_index);
+    public void removeResults(long gen_id) {
+        if (this.results.containsKey(gen_id)) {
+            this.results.remove(gen_id);
         }
     }
 }

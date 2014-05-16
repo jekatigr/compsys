@@ -149,18 +149,15 @@ public class CompSys extends Application {
     }
 
     /**
-     * Добавление нового алгоритма к проекту с отображением в окне и сохранением в БД.
+     * Добавление нового алгоритма к проекту c сохранением в БД.
      * @param alg Алгоритм.
      */
     public static void addNewAlgorithm(Algorithm alg) {
         project.addNewAlgorithm(alg);
-        FXMLguiController.reloadAlgList();
-        FXMLguiController.reloadGenAndAlgListsForTests();
-        FXMLguiController.loadDataGeneratorView(Project.getCurrentGuiGen());
     }
     
     /**
-     * Метод для сохранения измененного алгоритма и отображения его в GUI.
+     * Метод для сохранения измененного алгоритма.
      * @param index Индекс алгоритма в списке проекта.
      * @param name Имя алгоритма.
      * @param codes Исходные коды алгоритма.
@@ -168,10 +165,6 @@ public class CompSys extends Application {
      */
     public static void saveAlgorithm(int index, String name, String method, ArrayList<Code> codes) {
         project.saveAlgorithm(index, name, method, codes);
-        FXMLguiController.reloadAlgList();
-        FXMLguiController.reloadGenAndAlgListsForTests();
-        FXMLguiController.loadAlgorithmView(Project.getCurrentGuiAlg());
-        FXMLguiController.loadDataGeneratorView(Project.getCurrentGuiGen());
     }
     
     /**

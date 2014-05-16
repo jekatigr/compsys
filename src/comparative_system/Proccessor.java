@@ -101,7 +101,8 @@ public class Proccessor {
     private static Document codeDoc = null;
     /** Rewriter для внесения изменений в ast-дерево исходного кода алгоритмов. */
     private static ASTRewrite rewriter = null;
-    
+    /** Префикс для classpath при компиляции (для тестов). */
+    private static final String prefix_classpath = "dist/";
     /**
      * Метод возвращает лист всех деклараций методов, которые будут найдены в коде {@code codes}.
      * @param codes Коды для поиска методов.
@@ -837,134 +838,7 @@ public class Proccessor {
         }
         return res;
     }
-
-    /**
-     * Метод для проверки компилируемости алгоритма. Здесь исходные коды 
-     * сохраняются в каталогах, соответствующих пакетам и компилируются.
-     * @param codes Лист с исходными кодами алгоритма.
-     * @return Строка, содержащая ошибки компиляции. Если ошибок нет, то вернет пустую строку.
-     */
-    public static String checkClassesCompilableInTabs(ArrayList<String> codes) {
-        String res = "";
-        ArrayList<String> filesForCompile = new ArrayList<>();
-        //сохраняем исходники в каталогах согласно пакетам
-        for (String code : codes) {
-            try {
-                parser.setSource(code.toCharArray());
-                parser.setKind(ASTParser.K_COMPILATION_UNIT);
-                final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
-                Name packageForPath = (cu.getPackage() != null) ? cu.getPackage().getName() : null;
-                
-                FileWriter fileW = null;
-                
-                //создаем необходимые каталоги для пакета
-                String dirsString = "";
-                if (packageForPath != null) {
-                    while (packageForPath.isQualifiedName()) {
-                        dirsString = ((QualifiedName)packageForPath).getName().toString() + "/" + dirsString;
-                        packageForPath = ((QualifiedName)packageForPath).getQualifier();
-                    }
-                    dirsString = ((SimpleName)packageForPath).toString() + "/" + dirsString;
-                }
-                dirsString = "javatempfiles/" + dirsString;
-                File dirs = new File(dirsString);
-                dirs.mkdirs();
-                
-                String fileFullName = dirsString + Proccessor.getClassName(code) + ".java";
-                filesForCompile.add(fileFullName);
-                File file = new File(fileFullName);
-                fileW = new FileWriter(file);
-                fileW.write(code);
-                fileW.close();
-            } catch (IOException ex) {
-                Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        
-        //компилим
-        for (String file : filesForCompile) {
-            try {
-                ProcessBuilder procBuilder = new ProcessBuilder(Preferences.getJdkPath() + "\\javac", "-sourcepath", "javatempfiles/", file);
-                procBuilder.redirectErrorStream(true);
-                
-                Process process = procBuilder.start();
-                
-                InputStream stdout = process.getInputStream();
-                InputStreamReader isrStdout = new InputStreamReader(stdout);
-                BufferedReader brStdout = new BufferedReader(isrStdout);
-                
-                String line = "";
-                while((line = brStdout.readLine()) != null) {
-                    res += line + "\n";
-                }
-                
-                int exitVal = process.waitFor();
-            } catch (IOException ex) {
-                Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        return res;
-    }
     
-    /**
-     * Метод для компиляции кода. Еще нигде не используется.
-     * @param code Код для компиляции.
-     * @return Строка, содержащая ошибки компиляции. Если ошибок нет, то вернет пустую строку.
-     */
-    private static String compile(String code) {
-        parser.setSource(code.toCharArray());
-        parser.setKind(ASTParser.K_COMPILATION_UNIT);
-        final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
-        Name packageForPath = cu.getPackage().getName();
-        
-        String res = "";
-        try {
-            FileWriter fileW = null;
-            
-            //создаем необходимые каталоги для пакета
-            String dirsString = "";
-            if (packageForPath != null) {
-                while (packageForPath.isQualifiedName()) {
-                    dirsString = ((QualifiedName)packageForPath).getName().toString() + "/" + dirsString;
-                    packageForPath = ((QualifiedName)packageForPath).getQualifier();
-                }
-                dirsString = ((SimpleName)packageForPath).toString() + "/" + dirsString;
-            }
-            dirsString = "javatempfiles/" + dirsString;
-            File dirs = new File(dirsString);
-            dirs.mkdirs();
-            
-            
-            File file = new File(dirsString + Proccessor.getClassName(code) + ".java");
-            fileW = new FileWriter(file);
-            fileW.write(code);
-            fileW.close();
-
-            ProcessBuilder procBuilder = new ProcessBuilder(Preferences.getJdkPath() + "\\javac", "-sourcepath", "javatempfiles/", dirsString + file.getName());
-            procBuilder.redirectErrorStream(true);
-
-            Process process = procBuilder.start();
-
-            InputStream stdout = process.getInputStream();
-            InputStreamReader isrStdout = new InputStreamReader(stdout);
-            BufferedReader brStdout = new BufferedReader(isrStdout);
-
-            String line = "";
-            while((line = brStdout.readLine()) != null) {
-                res += line;
-            }
-
-            int exitVal = process.waitFor();
-        } catch (IOException ex) {
-            Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(Proccessor.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return res;
-    }
-
     /**
      * Метод возвращает список имен классов с пакетами.
      * @param alg_id id алгоритма для имен по умолчанию.
@@ -1037,7 +911,7 @@ public class Proccessor {
         }
         //компилим
         try {
-            ProcessBuilder procBuilder = new ProcessBuilder(Preferences.getJdkPath() + "\\javac", "-classpath", "dist/CompSys.jar;generated_codes/", "data_generator/generator/Generator.java");//TODO: в "поле" этот класспаф не сработает
+            ProcessBuilder procBuilder = new ProcessBuilder(Preferences.getJdkPath() + "\\javac", "-classpath", prefix_classpath + "CompSys.jar;generated_codes/", "data_generator/generator/Generator.java");//TODO: в "поле" этот класспаф не сработает
             procBuilder.redirectErrorStream(true);
 
             Process process = procBuilder.start();
@@ -1071,7 +945,7 @@ public class Proccessor {
     public static ArrayList<Code> putPackagesIfNotExist(long alg_id, ArrayList<Code> codes) {
         for (Code c : codes) {
             String codeS = c.getSourceCode();
-            String codeG = c.getSourceCode();
+            String codeG = c.getGeneratedCode();
             parser.setSource(codeS.toCharArray());
             parser.setKind(ASTParser.K_COMPILATION_UNIT);
             final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
@@ -1263,7 +1137,7 @@ public class Proccessor {
                 if (!errors.equals("")) { continue; } else { errors = ""; } //если исходные коды с ошибками, то сгенерированные по определению тоже.
                 //коды со счетчиками
                 file = "generated_codes/" + code.getPathOfFileForCompile() + code.getClassName() + ".java";
-                procBuilder = new ProcessBuilder(Preferences.getJdkPath() + "\\javac", "-sourcepath", "generated_codes", "-classpath", "dist/CompSys.jar", file);
+                procBuilder = new ProcessBuilder(Preferences.getJdkPath() + "\\javac", "-sourcepath", "generated_codes", "-classpath", prefix_classpath + "CompSys.jar", file);
                 procBuilder.redirectErrorStream(true);
                 process = procBuilder.start();
                 stdout = process.getInputStream();

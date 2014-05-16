@@ -268,7 +268,7 @@ public class Project {
                         + "', '"+ alg.getMainMethod() +"')");
                 algorithms.get(index).setId(db.getLastInsertId());
             } else {//обновляем существующий
-                db.exec("UPDATE algorithms SET name='" + alg.getName() + "', main='"+ alg.getMainMethod() +"' WHERE id="+ alg_id);
+                db.exec("UPDATE algorithms SET name='" + alg.getName() + "', main='"+ alg.getMainMethod() +"' WHERE id='"+ alg_id +"'");
             }
             //--сохраняем данные алгоритма
         } catch (SQLiteException ex) {
@@ -288,7 +288,8 @@ public class Project {
             //--открываем базу данных проекта
             //удаляем данные алгоритма
             if (alg_id != -1) { 
-                db.exec("DELETE FROM algorithms WHERE id="+ alg_id);
+                db.exec("DELETE FROM algorithms WHERE id='"+ alg_id +"'");
+                db.exec("DELETE FROM codes WHERE alg_id='"+ alg_id +"'");
             }
             //--сохраняем данные алгоритма
         } catch (SQLiteException ex) {
@@ -310,12 +311,12 @@ public class Project {
             Algorithm alg = algorithms.get(index);
             long alg_id = alg.getId();
             //сохраняем коды
-            db.exec("DELETE FROM codes WHERE alg_id="+ alg_id);
+            db.exec("DELETE FROM codes WHERE alg_id='"+ alg_id +"'");
             ArrayList<Code> codes = alg.getCodes();
             for (Code code : codes) {
                 db.exec("INSERT INTO codes (alg_id, sourse_code, generated_code) "
-                        + "VALUES ("+ alg_id
-                        + ", '" + code.getSourceCode() + "', '" + code.getGeneratedCode() + "')");
+                        + "VALUES ('"+ alg_id
+                        + "', '" + code.getSourceCode() + "', '" + code.getGeneratedCode() + "')");
             }
             //--сохраняем коды 
         } catch (SQLiteException ex) {
@@ -345,7 +346,7 @@ public class Project {
                         + "', '"+ gen.getGenerateImplementation() +"')");
                 dg.get(index).setId(db.getLastInsertId());
             } else {//обновляем существующий
-                db.exec("UPDATE data_generators SET name='" + gen.getName() + "', imports='"+ gen.getImports() +"', generate_implementation='"+ gen.getGenerateImplementation() +"' WHERE id="+ gen_id);
+                db.exec("UPDATE data_generators SET name='" + gen.getName() + "', imports='"+ gen.getImports() +"', generate_implementation='"+ gen.getGenerateImplementation() +"' WHERE id='"+ gen_id +"'");
             }
             //--сохраняем данные алгоритма
         } catch (SQLiteException ex) {
@@ -365,7 +366,7 @@ public class Project {
             //--открываем базу данных проекта
             //удаляем данные алгоритма
             if (gen_id != -1) { 
-                db.exec("DELETE FROM data_generators WHERE id="+ gen_id);
+                db.exec("DELETE FROM data_generators WHERE id='"+ gen_id +"'");
             }
             //--сохраняем данные алгоритма
         } catch (SQLiteException ex) {
@@ -387,6 +388,10 @@ public class Project {
      */
     public void removeAlgorithm(int index) {
         long alg_id = algorithms.get(index).getId();
+        for (DataGenerator dg1 : dg) {
+            algorithms.get(index).removeResults(dg1.getId());
+            removeResultsFromDB(alg_id, dg1.getId());
+        }
         algorithms.remove(index);
         removeAlgorithmFromDB(alg_id);
     }
@@ -398,10 +403,79 @@ public class Project {
     public void removeDataGenerator(int index) {
         long gen_id = dg.get(index).getId();
         for(Algorithm alg : algorithms) {
-            alg.removeResults(index);
+            alg.removeResults(gen_id);
+            removeResultsFromDB(alg.getId(), gen_id);
         }
         dg.remove(index);
         removeDataGeneratorFromDB(gen_id);
+    }
+    
+    /**
+     * Метод для сохранения результатов вычислений трудоемкости. Здесь же результаты сохраняются в БД.
+     * @param alg_index Индекс алгоритма в списке проекта.
+     * @param gen_id id генератора данных в БД проекта.
+     * @param values Список результатов.
+     */
+    public void saveResults(int alg_index, long gen_id, ArrayList<Result> values) {
+        this.algorithms.get(alg_index).saveResults(gen_id, Result.calculateMedians(values));
+        this.saveResultsInDB(alg_index, gen_id);
+    }
+        
+    /**
+     * Метод для удаления результатов.
+     * @param alg_index Индекс алгоритма в списке проекта.
+     * @param gen_id id генератора данных в БД проекта.
+     */
+    public void removeResults(int alg_index, long gen_id) {
+        this.algorithms.get(alg_index).removeResults(gen_id);
+        this.removeResultsFromDB(this.algorithms.get(alg_index).getId(), gen_id);
+    }
+    
+    /**
+     * Метод для сохранения результатов вычислений в БД проекта.
+     * @param alg_index Индекс алгоритма в списке проекта.
+     * @param gen_id id генератора в БД проекта.
+     */
+    private void saveResultsInDB(int alg_index, long gen_id) {
+        try {
+            //открываем базу данных проекта
+            SQLiteConnection db = new SQLiteConnection(this.file);
+            db.open();
+            //--открываем базу данных проекта
+            Algorithm alg = algorithms.get(alg_index);
+            long alg_id = alg.getId();
+            //сохраняем коды
+            db.exec("DELETE FROM results WHERE alg_id='"+ alg_id +"' AND gen_id='"+ gen_id+"'");
+            ArrayList<Result> results = alg.getResults(gen_id);
+            for (Result res : results) {
+                db.exec("INSERT INTO results (alg_id, gen_id, operations, second_param) "
+                        + "VALUES ('"+ alg_id +"', '" + gen_id + "', '" + res.getCountOfOperations() + "', '" + res.getSecondParam() + "')");
+            }
+            //--сохраняем коды 
+        } catch (SQLiteException ex) {
+            Logger.getLogger(Project.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    /**
+     * Метод для удаления результатов вычислений в БД проекта.
+     * @param alg_id id алгоритма в БД проекта.
+     * @param gen_id id генератора в БД проекта.
+     */
+    private void removeResultsFromDB(long alg_id, long gen_id) {
+        try {
+            //открываем базу данных проекта
+            SQLiteConnection db = new SQLiteConnection(this.file);
+            db.open();
+            //--открываем базу данных проекта
+            //удаляем данные
+            if (alg_id != -1) { 
+                db.exec("DELETE FROM results WHERE alg_id='"+ alg_id +"' AND gen_id='"+ gen_id +"'");
+            }
+            //--сохраняем данные
+        } catch (SQLiteException ex) {
+            Logger.getLogger(Project.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     
@@ -466,14 +540,10 @@ public class Project {
                         //коды алгоритмов
                         ArrayList<Code> codes = new ArrayList<>();
 
-                        //ArrayList<MethodDeclaration> methods = new ArrayList<>();
-
-                        SQLiteStatement st2 = db.prepare("SELECT * FROM codes WHERE alg_id="+ alg_id +"");
+                        SQLiteStatement st2 = db.prepare("SELECT * FROM codes WHERE alg_id='"+ alg_id +"'");
                         while(st2.step()) {
                             String sc = st2.columnString(2);
                             codes.add(new Code(sc, st2.columnString(3), Proccessor.getPackage(sc), Proccessor.getClassName(sc)));
-
-                            //methods.addAll(Proccessor.getAllMethodsFromCode(st2.columnString(2)));
                         }
                         codes = Proccessor.prepareCodes(codes, st.columnString(2));
                         //--коды алгоритмов        
@@ -531,24 +601,23 @@ public class Project {
                         }
                     }
                     //--генераторы исходных данных
-                    //исходные данные
-//                    this.updateTitle("Загрузка исходных данных...");
-//                    st = db.prepare("SELECT COUNT(name) FROM sqlite_master WHERE name='source_data'"); //проверяем таблицу на существование
-//                    if (st.hasRow()) {
-//                        st = db.prepare("IF EXISTS (SELECT * FROM source_data )"); //делаем запрос сразу на все исх данные, ибо тут обработка будет быстрее, чем если запрашивать отдельно для каждого генератора.
-//                        ArrayList data_params = new ArrayList(); //список нетипизированных данных, соответствующих параметрам методов вызова алгоритмов.
-//                        ArrayList<Data> data_items = new ArrayList<>();
-//                        while(st.step()) {
-//                            data_params.clear();
-//                            for (int i = 2; i < DataGenerator.getCountOfMethodsParams(); i++) {
-//                                data_params.add(st.columnValue(i));
-//                            }
-//                            data_items.add(new Data(st.columnLong(0), st.columnLong(1), data_params.toArray()));
-//                        }
-//                        project.addAllDataItems(data_items);
-//                    }
+                    //результаты
+                    this.updateTitle("Открытие проекта...");
+                    this.updateMessage("Загрузка результатов вычислений...");
+                    for (Algorithm alg : project.getAlgorithms()) {
+                        HashMap<Long, ArrayList<Result>> hm = new HashMap<>();
+                        for (DataGenerator gen : project.getDataGenerators()) {
+                            ArrayList<Result> list = new ArrayList<>();
+                            st = db.prepare("SELECT * FROM results WHERE gen_id='" + gen.getId() + "' AND alg_id='"+alg.getId()+"'");
+                            while(st.step()) {
+                                list.add(new Result(st.columnLong(3), st.columnLong(4)));
+                            }
+                            hm.put(gen.getId(), list);
+                        }
+                        alg.setResults(hm);
+                    }
                     this.updateProgress(4, 4);
-                    //--исходные данные
+                    //--результаты
                     //--делаем запросы и сохраняем данные
                     return project;
                 } catch (SQLiteException ex) {
@@ -586,9 +655,8 @@ public class Project {
             db.exec("CREATE TABLE algorithms(id INTEGER PRIMARY KEY, name, main)");
             db.exec("CREATE TABLE codes(id INTEGER PRIMARY KEY, alg_id, sourse_code, generated_code)");
             db.exec("CREATE TABLE data_generators(id INTEGER PRIMARY KEY, name, imports, generate_implementation)");
-            db.exec("CREATE TABLE results(id INTEGER PRIMARY KEY, alg_id, data_id, operations)");
-            db.exec("CREATE TABLE exceptions(id INTEGER PRIMARY KEY, exceptions)");
             db.exec("CREATE TABLE main_params(id INTEGER PRIMARY KEY, type, name)");
+            db.exec("CREATE TABLE results(id INTEGER PRIMARY KEY, alg_id, gen_id, operations, second_param)");
             //--создаем структуру БД
             db.dispose();
         } catch (SQLiteException ex) {

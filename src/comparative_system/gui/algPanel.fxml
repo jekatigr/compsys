@@ -40,17 +40,17 @@
             </BorderPane>
             <AnchorPane layoutY="54.0" prefHeight="356.0" prefWidth="274.0" AnchorPane.rightAnchor="0.0">
               <children>
-                <Button layoutX="93.0" layoutY="211.0" mnemonicParsing="false" onAction="#handleSaveAlgButtonClicked" prefHeight="25.0" prefWidth="78.0" text="Сохранить" />
-                <CheckBox fx:id="showCountersCheckBox" layoutX="14.0" layoutY="165.0" mnemonicParsing="false" onAction="#handleShowCountersCheckBoxClicked" text="показать счетчики" />
-                <ComboBox fx:id="algMethodsComboBox" layoutX="56.0" layoutY="131.0" prefHeight="25.0" prefWidth="207.0" promptText="Выберите метод вызова..." />
-                <Button fx:id="reloadMethodsListButton" layoutX="10.0" layoutY="131.0" maxHeight="25.0" maxWidth="25.0" mnemonicParsing="false" onAction="#handleReloadMethodsListButtonClicked" prefHeight="25.0" prefWidth="25.0" />
+                <Button layoutX="93.0" layoutY="228.0" mnemonicParsing="false" onAction="#handleSaveAlgButtonClicked" prefHeight="25.0" prefWidth="78.0" text="Сохранить" />
+                <CheckBox fx:id="showCountersCheckBox" layoutX="14.0" layoutY="182.0" mnemonicParsing="false" onAction="#handleShowCountersCheckBoxClicked" text="показать счетчики" />
+                <ComboBox fx:id="algMethodsComboBox" layoutX="56.0" layoutY="148.0" prefHeight="25.0" prefWidth="207.0" promptText="Выберите метод вызова..." />
+                <Button fx:id="reloadMethodsListButton" layoutX="10.0" layoutY="148.0" maxHeight="25.0" maxWidth="25.0" mnemonicParsing="false" onAction="#handleReloadMethodsListButtonClicked" prefHeight="25.0" prefWidth="25.0" />
                 <Button layoutX="10.0" layoutY="2.0" mnemonicParsing="false" onAction="#handleAddTabButtonClicked" prefHeight="25.0" prefWidth="113.0" text="Добавить класс" />
-                <Button fx:id="showErrorDescriptionButton" layoutX="42.0" layoutY="265.0" mnemonicParsing="false" onAction="#handleShowErrorInAlgButtonClicked" style="" text="Подробнее об ошибке..." textFill="RED" underline="true">
+                <Button fx:id="showErrorDescriptionButton" layoutX="42.0" layoutY="282.0" mnemonicParsing="false" onAction="#handleShowErrorInAlgButtonClicked" style="" text="Подробнее об ошибке..." textFill="RED" underline="true">
                   <font>
                     <Font size="14.0" />
                   </font>
                 </Button>
-                <Label layoutX="56.0" layoutY="46.0" prefHeight="76.0" prefWidth="165.0" text="Метод вызова должен быть:&#10;&#9;- public&#10;&#9;- static&#10;&#9;- с параметрами" underline="false" wrapText="true" />
+                <Label layoutX="56.0" layoutY="40.0" prefHeight="103.0" prefWidth="204.0" text="Метод вызова должен быть:&#10;&#9;- public&#10;&#9;- static&#10;&#9;- с параметрами&#10;Параметры всех методов вызова должны быть одинаковыми." underline="false" wrapText="true" />
               </children>
             </AnchorPane>
           </children>
