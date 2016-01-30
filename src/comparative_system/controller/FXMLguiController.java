@@ -270,6 +270,8 @@ public class FXMLguiController implements Initializable {
         algMethodsComboBox.setDisable(false);
     }
     
+	public static boolean genhaveerror = false;
+	
     /** Обработка нажания кнопки "Сохранить" при редактировании алгоритма. */
     @FXML private void handleSaveAlgButtonClicked() {
         final ArrayList<Code> codes;
@@ -391,7 +393,7 @@ public class FXMLguiController implements Initializable {
     /** Обработка нажания кнопки "Сохранить и сгенерировать данные" при редактировании генератора. */
     @FXML private void handleSaveGenAndLoadDataButtonClicked() {
         final String code = Proccessor.setPackageGenerator(((CodeEditor) dataGeneratorCodePanel.lookup("#ceDataGen")).getCode());
-        
+        genhaveerror = true;
         final Task<Void> t = new Task<Void>() {
             @Override
             protected Void call() {
@@ -413,7 +415,8 @@ public class FXMLguiController implements Initializable {
                             CompSys.addNewDataGenerator(name, imports, generateImplementation);
                             try {
                                 CompSys.getProject().getDataGenerator(CompSys.getProject().getCountOfDataGenerators() - 1).generateData(CompSys.getProject().getAllAlgotithmsAsImportsMap());
-                            } catch (MalformedURLException | ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
+								genhaveerror = false;
+							} catch (MalformedURLException | ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
                                 String stackTr = "";
                                 for (Object o : ex.getStackTrace()) {
                                     stackTr += o + "\n";
@@ -438,7 +441,8 @@ public class FXMLguiController implements Initializable {
                             CompSys.saveDataGenerator(Project.getCurrentGuiGen(), name, imports, generateImplementation);
                             try {
                                 CompSys.getProject().getDataGenerator(Project.getCurrentGuiGen()).generateData(CompSys.getProject().getAllAlgotithmsAsImportsMap());
-                            } catch (MalformedURLException | ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
+								genhaveerror = false;
+							} catch (MalformedURLException | ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
                                 String stackTr = "";
                                 for (Object o : ex.getStackTrace()) {
                                     stackTr += o + "\n";
@@ -511,12 +515,14 @@ public class FXMLguiController implements Initializable {
                         @Override
                         public void run() {
                             FXMLguiController.stopPerformingTask();
-                            FXMLguiController.reloadGenList();
-                            FXMLguiController.reloadGenAndAlgListsForTests();
-                            if (addingNewGen){
-                                FXMLguiController.loadDataGeneratorView(0);                                
-                            } else {
-                                FXMLguiController.loadDataGeneratorView(Project.getCurrentGuiGen());
+                            if (!genhaveerror) {
+                                FXMLguiController.reloadGenList();
+                                FXMLguiController.reloadGenAndAlgListsForTests();
+                                if (addingNewGen){
+                                    FXMLguiController.loadDataGeneratorView(0);                                
+                                } else {
+                                    FXMLguiController.loadDataGeneratorView(Project.getCurrentGuiGen());
+                                }
                             }
                         }
                     });
@@ -650,7 +656,7 @@ public class FXMLguiController implements Initializable {
     /**
      * Обработка нажания кнопки "показать ошибки".
      */
-    @FXML private static void handleShowErrorInAlgButtonClicked() {
+    @FXML private void handleShowErrorInAlgButtonClicked() {
         AnchorPane pane = new AnchorPane();
         TextArea t = new TextArea();
         ArrayList<Code> codes = CompSys.getProject().getAlgorithm(Project.getCurrentGuiAlg()).getCodes();
